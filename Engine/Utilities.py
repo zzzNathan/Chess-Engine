@@ -27,6 +27,29 @@ def Get_LSB(Bitboard:i64) -> i64:
     # No bits on bitboard so return -1
     return -1
 
+# Checks if given bitboard resides on the 2nd rank (used to validate pawn moves)
+def Is_Second_Rank(bitboard:i64) -> bool: return bitboard & Rank2
+
+# Checks if given bitboard resides on the 1st rank (used to validate pawn moves)
+def Is_First_Rank(bitboard:i64) -> bool: return bitboard & Rank1
+
+# Checks if given bitboard resides on the 7th rank (used to validate pawn moves)
+def Is_Seventh_Rank(bitboard:i64) -> bool: return bitboard & Rank7
+
+# Checks if given bitboard resides on the 8th rank (used to validate pawn moves)
+def Is_Eigth_Rank(bitboard:i64) -> bool: return bitboard & Rank8
+
+# Returns both the least significant bit and the index from (0 - 63)
+def Get_LSB_and_Index(bitboard:i64) -> tuple[i64,int]:
+    LSB = Get_LSB(bitboard)
+    return LSB, int( math.log2(LSB) )
+
+# Returns index of the one bit on the given bitboard
+def GetIndex(bitboard:i64) -> int: return int( math.log2(bitboard) )
+
+# Checks whether the given board has bits within the mask
+def In_Mask(bitboard, mask): return bitboard & mask 
+
 # Function to count how many bits are in some binary representation of a number
 def BitCount(n:i64) -> int:
     count = 0
@@ -130,14 +153,32 @@ class GameState():
         self.Pieces      = [*self.WhitePieces, *self.BlackPieces]
 
     # Initialising all attributes for the game
-    def __init__(self,side,Pos,EnPassant,CastleRights,HalfMove,FullMove):
+    def __init__(self,side:str,Pos:str,EnPassant:str,CastleRights:i8,HalfMove:int,FullMove:int):
+        # Either 'w' or 'b' , signifying white or black respectively
         self.Side_To_Move    = side
+
+        # Fen string with normal FEN-notation https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
         self.FEN             = Pos
+
+        # Stored as a string of the referenced square (e.g. 'e4')
         self.En_Passant      = EnPassant
+
+        # 4-bit binary number (First 2 bits are white's queenside and kingside castle rights respectively)
+        #                     (Last 2 bits are black's queenside and kingside castle rights respectively) 
         self.Castle_Rights   = CastleRights
+
+        # The number of halfmoves since the last capture or pawn advance, used for the fifty-move rule.
         self.Half_Move_Clock = HalfMove
+
+        #The number of the full moves. It starts at 1 and is incremented after Black's move
         self.Full_Move_Clock = FullMove
-        self.CheckMask       = False
+
+        # A mask containing the attack rays of any checks on the white king
+        self.WhiteCheckMask  = False
+
+        # A mask containing the attack rays of any checks on the black king
+        self.BlackCheckMask = False
+        
         self.InitBoards()
         self.Parse_FEN( Pos )
 
@@ -236,6 +277,9 @@ class GameState():
         self.WhiteAll  = (self.WhitePawn | self.WhiteKnight | self.WhiteBishop | self.WhiteRook | self.WhiteQueen | self.WhiteKing)
         self.BlackAll  = (self.BlackPawn | self.BlackKnight | self.BlackBishop | self.BlackRook | self.BlackQueen | self.BlackKing)
         self.AllPieces = ( self.WhiteAll | self.BlackAll )
+
+# Checks whether the given square bitboard is obstructed by any piece
+def Is_Obstructed(Game:GameState,bitboard:i64): return Game.AllPieces & bitboard
 
 # Nice way to visualise the board
 def Show_bitboard(bb:int) -> str:
@@ -456,6 +500,8 @@ def Get_Pinned_Pieces(col:str, Game:GameState) -> i64:
 STARTING_FEN  = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 STARTING_GAME = GameState('w',STARTING_FEN,None,i8(0b1111),0,1)
 
+ 
+#print( Show_bitboard( Rank2) )
 
 #testmove = Move( '100000100101100100000' )
 #STARTING_GAME.Make_Move( testmove )
