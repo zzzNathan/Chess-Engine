@@ -10,7 +10,7 @@ from ConstantsAndTables import *
 
 # Shorthands
 i64 = np.uint64
-i8 = np.uint8
+i8  = np.uint8
 
 # Returns 0 if a bitboard hasn't got this bit as a one
 def Get_bit(Bitboard:i64, SquareNum:int) -> i64: return Bitboard & i64(2**SquareNum)
@@ -178,7 +178,7 @@ class GameState():
 
         # A mask containing the attack rays of any checks on the black king
         self.BlackCheckMask = False
-        
+
         self.InitBoards()
         self.Parse_FEN( Pos )
 

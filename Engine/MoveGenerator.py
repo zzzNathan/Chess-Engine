@@ -404,8 +404,17 @@ def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
     # Generate pseudo-legal moves
     Target = KING_MOVES[Index]
 
+    # Non-Castling Moves
+    # ---------------------------------------------------------------------------
+
     # Filter out illegal moves (can't move into check / cant capture your own piece)
     Target ^= (Target & All_Attacked_squares('b')) | (Target & Game.WhiteAll)
+
+    # Add in all regular moves
+    MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'w','K') )
+
+    # Castling Moves
+    # ---------------------------------------------------------------------------
 
     # Helper bitboards that verify castling moves 
     # These varibles only need to be initialised if the king is on the castling square
@@ -436,9 +445,6 @@ def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
             # Add to move list
             MoveList.append( Move('w',Index,Index + 2,False,True,'K',False) )
 
-    # Add in all regular moves
-    MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'w','K') )
-    
     return MoveList
 
 def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
@@ -452,8 +458,17 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
     # Generate pseudo-legal moves
     Target = KING_MOVES[Index]
 
+    # Non-Castling Moves
+    # ---------------------------------------------------------------------------
+
     # Filter out illegal moves (can't move into check / cant capture your own piece)
     Target ^= (Target & All_Attacked_squares('w')) | (Target & Game.BlackAll)
+
+    # Add in all regular moves
+    MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'b','k') )
+
+    # Castling Moves
+    # ---------------------------------------------------------------------------
 
     # Helper bitboards that verify castling moves 
     # These varibles only need to be initialised if the king is on the castling square
@@ -484,9 +499,6 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
             # Add to move list
             MoveList.append( Move('b',Index,Index + 2,False,True,'k',False) )
 
-    # Add in all regular moves
-    MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'b','k') )
-    
     return MoveList
 
 # Generate all legal moves (add checkmasks later)
