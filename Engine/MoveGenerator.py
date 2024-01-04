@@ -1,8 +1,6 @@
 #/*******************************************\
-#      A U T H O R: Jonathan Kasongo
-#      - - - - - -  - - - - - - - - 
-#               Y E A R: 2023
-#               - - - -  - - -
+#        M O V E   G E N E R A T I O N       
+#        - - - -   - - - - - - - - - -
 #\*******************************************/
 
 '''
@@ -49,7 +47,8 @@ def Create_Moves_From_Board(Game:GameState,source:i64,bitboard:i64,col:str,piece
     return MoveList
 
 '''
-- Implement is obstructed func
+- Precompute np arrays in constants 
+- Add a template loop for stationary pieces move
 '''
 # Masks for check moves
 # Next: mask for pinned pieces
