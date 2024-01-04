@@ -12,6 +12,9 @@ from ConstantsAndTables import *
 i64 = np.uint64
 i8  = np.uint8
 
+# Macros
+# -------------------------------------------------------------------------------
+
 # Returns 0 if a bitboard hasn't got this bit as a one
 def Get_bit(Bitboard:i64, SquareNum:int) -> i64: return Bitboard & i64(2**SquareNum)
 
@@ -62,6 +65,9 @@ def BitCount(n:i64) -> int:
 
     return count
 
+# Helper functions
+# -------------------------------------------------------------------------------
+
 # Dictionary that takes string of a square's name and gives its index ('e4') -> 36
 Square_to_index,square = dict(),0
 
@@ -103,6 +109,9 @@ Code_To_Piece = {0:'P',1:'N',2:'B',3:'R',4:'Q',5:'K'}
 Ascii_To_Name = {'P':'WhitePawn', 'p':'BlackPawn', 'N':'WhiteKnight', 'n':'BlackKnight',
                  'B':'WhiteBishop', 'b':'BlackBishop', 'R':'WhiteRook', 'r':'BlackRook',
                  'Q':'WhiteQueen', 'q':'BlackQueen', 'K':'WhiteKing', 'k':'BlackKing'}
+
+# Classes
+# -------------------------------------------------------------------------------
 
 # Class to give structure and order to moves and other relevant information
 class Move():
@@ -278,6 +287,9 @@ class GameState():
         self.BlackAll  = (self.BlackPawn | self.BlackKnight | self.BlackBishop | self.BlackRook | self.BlackQueen | self.BlackKing)
         self.AllPieces = ( self.WhiteAll | self.BlackAll )
 
+# Move Generation helper functions
+# -------------------------------------------------------------------------------
+
 # Checks whether the given square bitboard is obstructed by any piece
 def Is_Obstructed(Game:GameState,bitboard:i64): return Game.AllPieces & bitboard
 
@@ -286,7 +298,6 @@ def Show_bitboard(bb:int) -> str:
     # Fills the binary with extra zeros until 64 digits, (8x8 board)  
     result = str(bin(bb)[2:]).zfill(64)
     print(result)               
-    ''' T E M P O R A R Y'''
     return '\n'.join([' '.join(wrap(line, 1)) for line in wrap(result, 8)])
 
 # Presents the board with all bitboards combined

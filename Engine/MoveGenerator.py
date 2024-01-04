@@ -47,8 +47,8 @@ def Create_Moves_From_Board(Game:GameState,source:i64,bitboard:i64,col:str,piece
     return MoveList
 
 '''
-- Precompute np arrays in constants 
-- Add a template loop for stationary pieces move
+- For pins keep a dict in the game class 
+- Create a filtering function to ensure moves pass their relevant checkmasks
 '''
 # Masks for check moves
 # Next: mask for pinned pieces
@@ -220,6 +220,7 @@ def Generate_Black_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
 
 def Generate_White_Knight_Moves(board_copy:i64, Game:GameState) -> list:
     MoveList = []
+
     # Loop over all white knights in WhiteKnights bitboard
     while board_copy:
 
