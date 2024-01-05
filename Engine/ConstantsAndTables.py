@@ -28,6 +28,9 @@ def Reverse_bits(b:i64) -> i64:
 # Helper bitboard with all bits as 1
 AllBits = i64(0xffffffffffffffff)
 
+# Helper bitboard with all bits as 0
+NoBits = i64(0)
+
 # File mask initialisation
 NotFileA = i64(0x7F7F7F7F7F7F7F7F)
 FileA    = i64(0x8080808080808080)

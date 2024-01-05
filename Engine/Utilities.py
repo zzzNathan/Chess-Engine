@@ -188,6 +188,10 @@ class GameState():
         # A mask containing the attack rays of any checks on the black king
         self.BlackCheckMask = False
 
+        # A dictionary mapping bitboard squares to their relevant attack rays if this piece is pinned
+        # (Pinned pieces can only move along the attack ray)
+        self.Pins           = {}
+
         self.InitBoards()
         self.Parse_FEN( Pos )
 
@@ -466,45 +470,53 @@ def Is_Check(col:str, Game:GameState):
     # Return the string "Double" to signify multiple piece are checking the king
     if len(masks) > 1: return 'Double'
 
-# Returns location of pinned piece and its legal moves if a pinned piece exists 
-# otherwise return false
-def Get_Pinned_Pieces(col:str, Game:GameState) -> i64:
+# Returns a dictionary mapping the bitboards of pinned pieces to their relevant filters,
+# filters are the attacking rays of the attacker, (pinned pieces may only move along this ray or capture said piece)
+def Get_Pinned_Pieces(col:str, Game:GameState) -> dict:
     Pins = {}
-    # Shorthand for colour checks 
-    Colour = True if col == 'w' else False
-    # Get location of our colour king
-    King = Game.WhiteKing if Colour else Game.BlackKing
+
+    # Get location of relevant pieces
+    FriendlyKing = Game.WhiteKing   if col == 'w' else Game.BlackKing
+    FriendlyAll  = Game.WhiteAll    if col == 'w' else Game.BlackAll
+    EnemyQueen   = Game.BlackQueen  if col == 'w' else Game.WhiteQueen
+    EnemyRook    = Game.BlackRook   if col == 'w' else Game.WhiteRook
+    EnemyBishop  = Game.BlackBishop if col == 'w' else Game.WhiteBishop
+
 
     # Get location of all enemy slider pieces aligned with our king
     Pinners = ( 
-        # Rook rays (horizontal / vertical)
-        ( Compute_Rook_attacks( King,i64(0) ) & 
-        ( Game.Ascii_To_Board('q' if Colour else 'Q') | Game.Ascii_To_Board('r' if Colour else 'R') ) ) |
 
-        # Bishop rays (diagonal / anti-diagonal)
-        ( Compute_Bishop_attacks( King,i64(0) ) & 
-        ( Game.Ascii_To_Board('q' if Colour else 'Q') | Game.Ascii_To_Board('b' if Colour else 'B') ) ) 
+        # Enemy pieces on rook rays (horizontal / vertical)
+        ( Compute_Rook_attacks( FriendlyKing, NoBits ) & ( EnemyQueen | EnemyRook ) ) |
+
+        # Enemy pieces on bishop rays (diagonal / anti-diagonal)
+        ( Compute_Bishop_attacks( FriendlyKing, NoBits ) & ( EnemyQueen | EnemyBishop ) ) 
               )
     
     # Iterate through all potential pinners and check if a pinned piece is on this ray
     while Pinners:
-        # Get lowest bit on pinners
-        Current = Get_LSB( Pinners )
-        # Build the ray that joins the king and the potential pinner
-        Ray = Build_Ray( King,Current ) ^ King
-        # Get pinned pieces
-        Pinned = Ray & (Game.WhiteAll if Colour else Game.BlackAll)
-        # Iterate through all pinned pieces and add their moves to the dictionary
-        while Pinned:
-            # Get lowest pinned piece
-            Piece = Get_LSB( Pinned )
-            # Add to dictionary
-            Pins[ Piece ] = Ray
-            # Remove this bit from the bitboard
-            Pinned ^= Piece
+
+        # Gets potentially pinning piece
+        Attacker = Get_LSB( Pinners )
+
+        # Build the ray that joins the King and the potential pinner
+        Ray = Build_Ray( FriendlyKing, Attacker ) ^ FriendlyKing # (Removes bit on the king)
+
+        # Gets potentially pinned piece
+        Pinned = FriendlyAll & Ray
+
+        # Note that if there is more than 1 bit this isn't a pin 
+        # because either piece may move without leaving the king in check
+        if BitCount( Pinned ) == 1: 
+            
+            # Get the attacking ray from pinned piece to the attacker
+            Filter = Build_Ray( Pinned, Attacker ) ^ Pinned # (Removes bit on the pinned piece)
+
+            # Map this location to the calculated filter
+            Pins[ Pinned ] = Filter
 
         # Remove this bit from the bitboard
-        Pinners ^= Current
+        Pinners ^= Attacker
     
     return Pins
 

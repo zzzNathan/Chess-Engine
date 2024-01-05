@@ -46,6 +46,37 @@ def Create_Moves_From_Board(Game:GameState,source:i64,bitboard:i64,col:str,piece
 
     return MoveList
 
+# Will generate correct move filter in case piece is pinned or king is in check
+def Generate_Filter(Game:GameState, move:Move) -> i64:
+
+    # Get source bitboard
+    SourceBB = i64( 2**move.Source )
+
+    # Verifies whether the piece's king is currently in check, if so gives the 
+    # relevant check mask
+    Is_King_in_Check = Game.WhiteCheckMask if move.Side == 'w' else Game.BlackCheckMask
+
+    # Checks if there is a check on the piece's king
+    if Is_King_in_Check: return Is_King_in_Check
+    
+    # Checks if this piece is pinned
+    if SourceBB in Game.Pins: return Game.Pins[ SourceBB ]
+
+
+
+# Will filter through all moves generated and ensure that they are all legal
+def Filter_Moves(Game:GameState, move:Move) -> Move | bool:
+
+    # Get target square bitboards
+    TargetBB = i64( 2**move.Target )
+
+    # Generate relevant filter
+    Filter = Generate_Filter( Game,move )
+
+    # If the move has passed through the filter return it, otherwise return false
+    if TargetBB & Filter: return move
+    else: return False
+
 '''
 - For pins keep a dict in the game class 
 - Create a filtering function to ensure moves pass their relevant checkmasks
@@ -53,10 +84,10 @@ def Create_Moves_From_Board(Game:GameState,source:i64,bitboard:i64,col:str,piece
 # Masks for check moves
 # Next: mask for pinned pieces
 
-def GeneratePromotions(Source:i64,Target:i64,col:str,Capture:bool) -> list:
+def GeneratePromotions(Source:i64, Target:i64, col:str, Capture:bool) -> list:
     # Getting index of promotion squares
-    SourceIndex = int(math.log2(Source))
-    TargetIndex = int(math.log2(Target))
+    SourceIndex = int( math.log2(Source) )
+    TargetIndex = int( math.log2(Target) )
 
     # Get pawn's piece representation
     piece = 'P' if col == 'w' else 'p'
@@ -76,7 +107,7 @@ def GeneratePromotions(Source:i64,Target:i64,col:str,Capture:bool) -> list:
 
     return MoveList
 
-def Generate_White_Pawn_Moves(board_copy:i64, Game:GameState, mask=AllBits) -> list:
+def Generate_White_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
     MoveList = []
     # Loop over all white pawns in the WhitePawns bitboard
     while board_copy:
