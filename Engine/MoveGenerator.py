@@ -49,8 +49,9 @@ def Create_Moves_From_Board(Game:GameState,source:i64,bitboard:i64,col:str,piece
 # Will generate correct move filter in case piece is pinned or king is in check
 def Generate_Filter(Game:GameState, move:Move) -> i64:
 
-    # Get source bitboard
+    # Get source and target square bitboards
     SourceBB = i64( 2**move.Source )
+    TargetBB = i64( 2**move.Target )
 
     # Verifies whether the piece's king is currently in check, if so gives the 
     # relevant check mask
@@ -62,7 +63,8 @@ def Generate_Filter(Game:GameState, move:Move) -> i64:
     # Checks if this piece is pinned
     if SourceBB in Game.Pins: return Game.Pins[ SourceBB ]
 
-
+    # If this piece is neither pinned or has a king in check then return the move
+    return TargetBB
 
 # Will filter through all moves generated and ensure that they are all legal
 def Filter_Moves(Game:GameState, move:Move) -> Move | bool:
