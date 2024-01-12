@@ -69,20 +69,15 @@ def BitCount(n:i64) -> int:
 # -------------------------------------------------------------------------------
 
 # Dictionary that takes string of a square's name and gives its index ('e4') -> 36
-Square_to_index,square = dict(),0
-
-# Iterates over the 8 rows of a chess board (1-8)
-for row in range(1,9):
-
-    # Iterates over the 8 columns of a chess board 'a-h', (106...96 is the unicode for these chars)
-    for col in range(104,96,-1):
-
-        # Assign the squares name to its bitboard e.g. (h1 -> 1)
-        Square_to_index[f'{chr(col)}{row}'] = i64(square)
-        square += 1
-
-# Remove this temporary variable from memory
-del square
+Square_to_index = {
+    'h1': 0,  'g1': 1,  'f1': 2,  'e1': 3,  'd1': 4,  'c1': 5,  'b1': 6,  'a1': 7, 
+    'h2': 8,  'g2': 9,  'f2': 10, 'e2': 11, 'd2': 12, 'c2': 13, 'b2': 14, 'a2': 15, 
+    'h3': 16, 'g3': 17, 'f3': 18, 'e3': 19, 'd3': 20, 'c3': 21, 'b3': 22, 'a3': 23, 
+    'h4': 24, 'g4': 25, 'f4': 26, 'e4': 27, 'd4': 28, 'c4': 29, 'b4': 30, 'a4': 31, 
+    'h5': 32, 'g5': 33, 'f5': 34, 'e5': 35, 'd5': 36, 'c5': 37, 'b5': 38, 'a5': 39, 
+    'h6': 40, 'g6': 41, 'f6': 42, 'e6': 43, 'd6': 44, 'c6': 45, 'b6': 46, 'a6': 47, 
+    'h7': 48, 'g7': 49, 'f7': 50, 'e7': 51, 'd7': 52, 'c7': 53, 'b7': 54, 'a7': 55, 
+    'h8': 56, 'g8': 57, 'f8': 58, 'e8': 59, 'd8': 60, 'c8': 61, 'b8': 62, 'a8': 63}
 
 # Inverse of Sqaure to index, take an index and return the square's name 36 -> ('e4')
 Index_to_square = {square:index for index,square in Square_to_index.items()}
@@ -101,9 +96,6 @@ def Build_Ray(Square1:i64, Square2:i64) -> i64:
     # If ray isnt diagonal it must be vertical or horizontal
     else: return ( ( Compute_Rook_attacks( Square1,Empty )# Adds in both target squares to ray
                    & Compute_Rook_attacks( Square2,Empty ) ) ^ (Square1 | Square2) )
-
-# Helper dictionary that maps piece codes to their human readable version
-Code_To_Piece = {0:'P',1:'N',2:'B',3:'R',4:'Q',5:'K'}
 
 # Helper dictionary that maps piece ascii codes to their human readable names
 Ascii_To_Name = {'P':'WhitePawn', 'p':'BlackPawn', 'N':'WhiteKnight', 'n':'BlackKnight',
@@ -522,12 +514,3 @@ def Get_Pinned_Pieces(col:str, Game:GameState) -> dict:
 
 STARTING_FEN  = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 STARTING_GAME = GameState('w',STARTING_FEN,None,i8(0b1111),0,1)
-
- 
-#print( Show_bitboard( Rank2) )
-
-#testmove = Move( '100000100101100100000' )
-#STARTING_GAME.Make_Move( testmove )
-
-
-#print( Show_bitboard( STARTING_GAME.WhitePawn ) )

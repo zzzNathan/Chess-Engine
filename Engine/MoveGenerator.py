@@ -66,8 +66,8 @@ def Generate_Filter(Game:GameState, move:Move) -> i64:
     # If this piece is neither pinned or has a king in check then return the move
     return TargetBB
 
-# Will filter through all moves generated and ensure that they are all legal
-def Filter_Moves(Game:GameState, move:Move) -> Move | bool:
+# Will take in a given move and check if its legal
+def Filter_Move(Game:GameState, move:Move) -> Move | bool:
 
     # Get target square bitboards
     TargetBB = i64( 2**move.Target )
@@ -79,12 +79,25 @@ def Filter_Moves(Game:GameState, move:Move) -> Move | bool:
     if TargetBB & Filter: return move
     else: return False
 
+# Goes through all moves and ensures that they are all legal
+def Filter_All_Moves(Game:GameState, movelist:list[Move]) -> list[Move]:
+    FilteredMoveList = []
+
+    # Iterate through all given moves
+    for move in movelist:
+
+        # If this move passed the filter add it to the list
+        if Filter_Move( Game,move ):FilteredMoveList.append(move)
+
+    return FilteredMoveList
+
 '''
 - For pins keep a dict in the game class 
-- Create a filtering function to ensure moves pass their relevant checkmasks
+- Ensure to check for pins and checks every game loop
+- If a double check occurs then we will set the mask to 'Double' 
+
+https://github.com/Avo-k/black_numba/blob/master/attack_tables.py
 '''
-# Masks for check moves
-# Next: mask for pinned pieces
 
 def GeneratePromotions(Source:i64, Target:i64, col:str, Capture:bool) -> list:
     # Getting index of promotion squares
@@ -548,17 +561,6 @@ def Generate_Moves(Game:GameState, col:str) -> list:
         if col == 'w': return Generate_White_King_Moves( Game.WhiteKing,Game )
         else: return Generate_Black_King_Moves( Game.BlackKing,Game )
 
-    # If a singular piece checks the king
-    if Check != False:
-        # All non-king moves must go through this mask, so that they either capture the checking piece 
-        # or block the check
-        MASK = Check
-
-    #   Move encoding: One bit for side to move, three bits for piece to move, (pawn=0,knight=1,bishop=2,rook=3,queen=4,king=5)
-    #   6 bits for source square, 6 bits for target square, 
-    #   One bit for capture flag, One bit for castle flag 
-    #   3 bits for promotion flag (Knight=1, Bishop=2, Rook=3, Queen=4). 
-
     # Generate moves for the correct colour
     BOARDS = Game.WhitePieces if col == 'w' else Game.BlackPieces
 
@@ -615,7 +617,7 @@ def Generate_Moves(Game:GameState, col:str) -> list:
         elif bitboard == Game.BlackKing:
             MoveList.extend( Generate_Black_King_Moves(board_copy,Game) )
 
-    return MoveList
+    return Filter_All_Moves( Game,MoveList )
 
 # TESTING CODE
 '''

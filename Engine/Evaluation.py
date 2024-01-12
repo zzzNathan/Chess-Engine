@@ -56,7 +56,6 @@ def BlackMobility(Game:GameState) -> int:
 
     # Return the number of legal moves for white
     return len( Generate_Moves(Game,'b') )
-    
 
 '''
 Mobility bonus 0.1
