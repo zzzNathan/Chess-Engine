@@ -91,6 +91,61 @@ def Filter_All_Moves(Game:GameState, movelist:list[Move]) -> list[Move]:
 
     return FilteredMoveList
 
+# Takes in a piece's ascii representation and return a funtion that generates their pseudo-legal moves
+def Find_Move_Table(Game:GameState, char:str):
+    char = char.upper()
+
+    # Knights
+    if char == 'N': 
+        return lambda bitboard : KNIGHT_MOVES[ Board_To_Square(bitboard) ]
+
+    # Bishops
+    if char == 'B': 
+        return lambda bitboard : Compute_Bishop_attacks(bitboard,Game.AllPieces) 
+    
+    # Rooks
+    if char == 'R':
+        return lambda bitboard : Compute_Rook_attacks(bitboard,Game.AllPieces)
+    
+    # Queens
+    if char == 'Q':
+        return lambda bitboard : Compute_Queen_attacks(bitboard,Game.AllPieces)
+
+# Take in a given piece bitboard and generate all pseudo-legal moves
+# (For all pieces except pawns and king)
+def Gen_Pseudo_legal_Moves(Game:GameState, board:i64, char:str) -> list[Move]:
+    MoveList = []
+
+    # Is piece white?
+    White       = char.isupper() 
+    colour      = 'w' if (White) else 'b'
+
+    # Gets a function that returns relevant moves for specified piece
+    MoveFinder  = Find_Move_Table(Game, char)
+
+    # Gets location of all friendly pieces
+    FriendlyAll = Game.WhiteAll if (White) else Game.BlackAll
+
+    # Iterate through all pieces on the board
+    while board:
+
+        # Get lowest bit on the board
+        Current = Get_LSB(board)
+
+        # Get all target moves
+        Target = MoveFinder(Current)
+
+        # Filter out all moves that capture friendly pieces
+        Target ^=  (Target & FriendlyAll)
+
+        # Add moves to list
+        MoveList.extend( Create_Moves_From_Board(Game,Current,Target,colour,char) )
+
+        # Remove this bit from the board
+        board ^= Current
+
+    return MoveList
+
 '''
 - For pins keep a dict in the game class 
 - Ensure to check for pins and checks every game loop
@@ -264,179 +319,46 @@ def Generate_Black_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
 
     return MoveList
 
-def Generate_White_Knight_Moves(board_copy:i64, Game:GameState) -> list:
-    MoveList = []
-
-    # Loop over all white knights in WhiteKnights bitboard
-    while board_copy:
-
-        # Get source bitboard and it's index
-        Source, Index = Get_LSB_and_Index(board_copy)
-
-        # Generate all target moves
-        Target = KNIGHT_MOVES[Index] 
-
-        # Filter out all moves that capture our own coloured pieces
-        Target ^= (Target & Game.WhiteAll)
-
-        # Add moves to the movelist
-        MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'w','N') ) 
-        
-        # Remove this bit from the board
-        board_copy ^= Source
+def Generate_White_Knight_Moves(board_copy:i64, Game:GameState) -> list: 
     
-    return MoveList
+    # Return pseudo-legal moves
+    return Gen_Pseudo_legal_Moves(Game,board_copy,'N')
+    
 
 def Generate_Black_Knight_Moves(board_copy:i64, Game:GameState) -> list:
-    MoveList = []
-    # Loop over all black knights in BlackKnights bitboard
-    while board_copy:
-
-        # Get source bitboard and it's index
-        Source, Index = Get_LSB_and_Index(board_copy)
-
-        # Generate all target moves
-        Target = KNIGHT_MOVES[Index] 
-
-        # Filter out all moves that capture our own coloured pieces
-        Target ^= (Target & Game.BlackAll)
-
-        # Add moves to movelist
-        MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'b','n') )
-        
-        # Remove this bit from the board
-        board_copy ^= Source
-
-    return MoveList
+    
+    # Return pseudo-legal moves
+    return Gen_Pseudo_legal_Moves(Game,board_copy,'n')
 
 def Generate_White_Bishop_Moves(board_copy:i64, Game:GameState) -> list:
-    MoveList = []
-    # Loop over all white bishops in WhiteBishops bitboard
-    while board_copy:
-
-        # Get source bitboard and it's index
-        Source = Get_LSB(board_copy)
-
-        # Generate all target moves
-        Target = Compute_Bishop_attacks(Source,Game.AllPieces)
-
-        # Filter out moves that capture our own coloured pieces
-        Target ^= (Target & Game.WhiteAll)
-
-        # Add moves to the movelist
-        MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'w','B') )
-
-        # Remove this bit from the board
-        board_copy ^= Source
-    
-    return MoveList
+     
+    # Return pseudo-legal moves
+    return Gen_Pseudo_legal_Moves(Game,board_copy,'B')
 
 def Generate_Black_Bishop_Moves(board_copy:i64, Game:GameState) -> list:
-    MoveList = []
-    # Loop over all black bishops in BlackBishops bitboard
-    while board_copy:
-
-        # Get source bitboard and it's index
-        Source = Get_LSB(board_copy)
-
-        # Generate all target moves
-        Target = Compute_Bishop_attacks(Source,Game.AllPieces)
-
-        # Filter out moves that capture our own coloured pieces
-        Target ^= (Target & Game.BlackAll)
-
-        # Add moves to movelist
-        MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'b','b') )
-
-    return MoveList
+    
+    # Return pseudo-legal moves
+    return Gen_Pseudo_legal_Moves(Game,board_copy,'b')
 
 def Generate_White_Rook_Moves(board_copy:i64, Game:GameState) -> list:
-    MoveList = []
-    # Loop over all white rooks in WhiteRooks bitboard
-    while board_copy:
-
-        # Get source bitboard and it's index
-        Source = Get_LSB(board_copy)
-
-        # Generate rook moves
-        Target = Compute_Rook_attacks(Source,Game.AllPieces)
-
-        # Filter out all moves that capture our own pieces
-        Target ^= (Target & Game.WhiteAll)
-
-        # Add all these moves to the list
-        MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'w','R') )
-        
-        # Remove this bit from board
-        board_copy ^= Source
     
-    return MoveList
+    # Return pseudo-legal moves
+    return Gen_Pseudo_legal_Moves(Game,board_copy,'R')
 
 def Generate_Black_Rook_Moves(board_copy:i64, Game:GameState) -> list:
-    MoveList = []
-    # Loop over all black rooks in BlackRooks bitboard
-    while board_copy:
-
-        # Get source bitboard
-        Source = Get_LSB(board_copy)
-
-        # Generate rook moves
-        Target = Compute_Rook_attacks(Source,Game.AllPieces)
-
-        # Filter out all moves that capture our own pieces
-        Target ^= (Target & Game.BlackAll)
-
-        # Add these moves to the list
-        MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'b','r') ) 
-        
-        # Remove this bit from board
-        board_copy ^= Source
-
-    return MoveList
+    
+    # Return pseudo-legal moves
+    return Gen_Pseudo_legal_Moves(Game,board_copy,'r')
 
 def Generate_White_Queen_Moves(board_copy:i64, Game:GameState) -> list:
-    MoveList = []
-    # Loop over all white queens in WhiteQueens bitboard
-    while board_copy:
-
-        # Get source bitboard 
-        Source = Get_LSB(board_copy)
-
-        # Generate moves
-        Target = Compute_Queen_attacks(Source,Game.AllPieces)
-
-        # Filter out moves that capture our own coloured pieces
-        Target ^= (Target & Game.WhiteAll)
-
-        # Add all these moves to the list
-        MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'w','Q') )
-
-        # Remove this bit from the board
-        board_copy ^= Source
-
-    return MoveList
+    
+    # Return pseudo-legal moves
+    return Gen_Pseudo_legal_Moves(Game,board_copy,'Q')
 
 def Generate_Black_Queen_Moves(board_copy:i64, Game:GameState) -> list:
-    MoveList = []
-    # Loop over all white queens in WhiteQueens bitboard
-    while board_copy:
-
-        # Get source bitboard
-        Source = Get_LSB(board_copy)
-
-        # Generate moves
-        Target = Compute_Queen_attacks(Source,Game.AllPieces)
-
-        # Filter out moves that capture our own coloured pieces
-        Target ^= (Target & Game.BlackAll)
-
-        # Add all these moves to the list
-        MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'b','q') )
-
-        # Remove this bit from the board
-        board_copy ^= Source
     
-    return MoveList
+    # Return pseudo-legal moves
+    return Gen_Pseudo_legal_Moves(Game,board_copy,'q')
 
 def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
     MoveList = []
@@ -445,7 +367,7 @@ def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
     Source = board_copy
 
     # Get source square index for move encoding
-    Index = int(math.log2(Source))
+    Index = Board_To_Square(Source)
 
     # Generate pseudo-legal moves
     Target = KING_MOVES[Index]
@@ -474,7 +396,7 @@ def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
 
     # Generate castling moves
     # Kingside:                     Verify king is on correct square            Verify obstructions
-    if Game.Castle_Rights & i8(0b0100) and Source == SquareE1 and not Is_Obstructed(Game,KingRightCastle): 
+    if Game.Castle_Rights & i8(0b0100) and Source == SquareE1 and ( not Is_Obstructed(Game,KingRightCastle) ): 
 
         # Verify we aren't moving through check
         if not ( Is_square_attacked(KingRightOne,'b') or Is_square_attacked(KingRightTwo,'b') ):
@@ -483,7 +405,7 @@ def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
             MoveList.append( Move('w',Index,Index - 2,False,True,'K',False) )
 
     # Queenside:                     Verify king is on correct square           Verify obstructions
-    if Game.Castle_Rights & i8(0b1000) and Source == SquareE1 and not Is_Obstructed(Game,KingLeftCastle): 
+    if Game.Castle_Rights & i8(0b1000) and Source == SquareE1 and ( not Is_Obstructed(Game,KingLeftCastle) ): 
 
         # Verify we aren't moving through check
         if not ( Is_square_attacked(KingLeftOne,'b') or Is_square_attacked(KingLeftTwo,'b') ):
@@ -499,7 +421,7 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
     Source = board_copy
 
     # Get source square index for move encoding
-    Index = int(math.log2(Source))
+    Index = Board_To_Square(Source)
 
     # Generate pseudo-legal moves
     Target = KING_MOVES[Index]
@@ -528,7 +450,7 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
 
     # Generate castling moves
     # Kingside:                   Verify king is on correct square              Verify obstructions
-    if Game.Castle_Rights & i8(0b0001) and Source == SquareE8 and (not Is_Obstructed(Game,KingRightCastle)): 
+    if Game.Castle_Rights & i8(0b0001) and Source == SquareE8 and ( not Is_Obstructed(Game,KingRightCastle) ): 
 
         # Verify we aren't moving through check
         if not ( Is_square_attacked(KingRightOne,'w') or Is_square_attacked(KingRightTwo,'w') ):
@@ -537,7 +459,7 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
             MoveList.append( Move('b',Index,Index - 2,False,True,'k',False) )
 
     # Queenside:                   Verify king is on correct square             Verify obstructions
-    if Game.Castle_Rights & i8(0b0010) and Source == SquareE8 and (not Is_Obstructed(Game,KingLeftCastle)): 
+    if Game.Castle_Rights & i8(0b0010) and Source == SquareE8 and ( not Is_Obstructed(Game,KingLeftCastle) ): 
 
         # Verify we aren't moving through check
         if not ( Is_square_attacked(KingLeftOne,'w') or Is_square_attacked(KingLeftTwo,'w') ):
@@ -547,8 +469,6 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
 
     return MoveList
 
-# Generate all legal moves (add checkmasks later)
-''' Include relevant pin/checkmasks in gamestate then filter through as we gen moves'''
 def Generate_Moves(Game:GameState, col:str) -> list:
     # List of all legal move in position
     MoveList = []

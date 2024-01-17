@@ -12,7 +12,7 @@ from ConstantsAndTables import *
 i64 = np.uint64
 i8  = np.uint8
 
-# Macros
+# Bit macros
 # -------------------------------------------------------------------------------
 
 # Returns 0 if a bitboard hasn't got this bit as a one
@@ -57,6 +57,7 @@ def In_Mask(bitboard, mask): return bitboard & mask
 def BitCount(n:i64) -> int:
     count = 0
     while n:
+
         # Removes last bit
         n &= ( n-i64(1) )
 
@@ -65,37 +66,36 @@ def BitCount(n:i64) -> int:
 
     return count
 
+# Nice way to visualise the board
+def Show_bitboard(bb:int) -> str:
+    # Fills the binary with extra zeros until 64 digits, (8x8 board)  
+    result = str(bin(bb)[2:]).zfill(64)
+    print(result)               
+    return '\n'.join([' '.join(wrap(line, 1)) for line in wrap(result, 8)])
+
+# Because single-bit bitboards can be expressed in the form 2^n, where n is the square number
+# we can get n simply by taking logarithm base 2 of the bitboard given
+def Board_To_Square(bb:i64) -> int: return int(math.log2(bb))
+
+
 # Helper functions
 # -------------------------------------------------------------------------------
 
-# Dictionary that takes string of a square's name and gives its index ('e4') -> 36
-Square_to_index = {
-    'h1': 0,  'g1': 1,  'f1': 2,  'e1': 3,  'd1': 4,  'c1': 5,  'b1': 6,  'a1': 7, 
-    'h2': 8,  'g2': 9,  'f2': 10, 'e2': 11, 'd2': 12, 'c2': 13, 'b2': 14, 'a2': 15, 
-    'h3': 16, 'g3': 17, 'f3': 18, 'e3': 19, 'd3': 20, 'c3': 21, 'b3': 22, 'a3': 23, 
-    'h4': 24, 'g4': 25, 'f4': 26, 'e4': 27, 'd4': 28, 'c4': 29, 'b4': 30, 'a4': 31, 
-    'h5': 32, 'g5': 33, 'f5': 34, 'e5': 35, 'd5': 36, 'c5': 37, 'b5': 38, 'a5': 39, 
-    'h6': 40, 'g6': 41, 'f6': 42, 'e6': 43, 'd6': 44, 'c6': 45, 'b6': 46, 'a6': 47, 
-    'h7': 48, 'g7': 49, 'f7': 50, 'e7': 51, 'd7': 52, 'c7': 53, 'b7': 54, 'a7': 55, 
-    'h8': 56, 'g8': 57, 'f8': 58, 'e8': 59, 'd8': 60, 'c8': 61, 'b8': 62, 'a8': 63}
-
-# Inverse of Sqaure to index, take an index and return the square's name 36 -> ('e4')
-Index_to_square = {square:index for index,square in Square_to_index.items()}
-
 # Builds an attacking ray between 2 squares if the 2 squares are in line 
 # horizontally, vertically or diagonally (Used in Is_Check function)
+# could potentially be precomputed should only be 64^2 of mem
 def Build_Ray(Square1:i64, Square2:i64) -> i64:
+
     # Empty board for generating ray attacks without obstructions
     Empty = i64(0)
 
-    # Test for diagonal rays
-    Ray = Compute_Bishop_attacks( Square1,Empty ) & Compute_Bishop_attacks( Square2,Empty )
+    # The bits where 2 rays intersect will be kept by the 'AND (&)' and everything else will become 0
+    Ray = Compute_Queen_attacks( Square1,Empty ) & Compute_Queen_attacks( Square2,Empty )
 
-    if Ray: return Ray ^ (Square1 | Square2) # Adds both target squares to ray
+    # Add both source squares to the ray
+    Ray |= (Square1 | Square2)
 
-    # If ray isnt diagonal it must be vertical or horizontal
-    else: return ( ( Compute_Rook_attacks( Square1,Empty )# Adds in both target squares to ray
-                   & Compute_Rook_attacks( Square2,Empty ) ) ^ (Square1 | Square2) )
+    return Ray
 
 # Helper dictionary that maps piece ascii codes to their human readable names
 Ascii_To_Name = {'P':'WhitePawn', 'p':'BlackPawn', 'N':'WhiteKnight', 'n':'BlackKnight',
@@ -109,21 +109,13 @@ Ascii_To_Name = {'P':'WhitePawn', 'p':'BlackPawn', 'N':'WhiteKnight', 'n':'Black
 class Move():
 
     def __init__(self,side,source,target,capture,castle,piece,promo ) -> None:
-        # 'w' signifies white, 'b' signifies black
-        self.Side       = side
-        # The index of the source square
-        self.Source     = source
-        # The index of the target square
-        self.Target     = target
-        # Is this move a capture ?
-        self.Capture    = capture
-        # Is this move a castle ?
-        self.Castle     = castle
-        # Capital refers to a white piece, lowercase refers to a black piece
-        # Standard chess notation applies
-        self.Piece      = piece
-        # Is this move a promotion ?
-        self.Promotion  = promo
+        self.Side      = side    # 'w' signifies white, 'b' signifies black
+        self.Source    = source  # The index of the source square
+        self.Target    = target  # The index of the target square
+        self.Capture   = capture # Is this move a capture ?
+        self.Castle    = castle  # Is this move a castle ?
+        self.Piece     = piece   # Standard chess notation applies (Capital = white, Lowercase = black)
+        self.Promotion = promo   # Is this move a promotion ?
         
 # Class for storing all gamestate variables in one place
 class GameState():
@@ -171,7 +163,7 @@ class GameState():
         # The number of halfmoves since the last capture or pawn advance, used for the fifty-move rule.
         self.Half_Move_Clock = HalfMove
 
-        #The number of the full moves. It starts at 1 and is incremented after Black's move
+        # The number of the full moves. It starts at 1 and is incremented after Black's move
         self.Full_Move_Clock = FullMove
 
         # A mask containing the attack rays of any checks on the white king
@@ -187,35 +179,41 @@ class GameState():
         self.InitBoards()
         self.Parse_FEN( Pos )
 
-    # Takes an ascii representation of a piece and returns relevant bitboard
-    def Ascii_To_Board(self,char):
+    # Updates current occupancy bitboards
+    def UpdateOcc(self):
 
-        # Map each letter to relevant board
-        Char_To_Board = {'P':self.WhitePawn, 'p':self.BlackPawn, 'N':self.WhiteKnight, 'n':self.BlackKnight,
-                         'B':self.WhiteBishop, 'b':self.BlackBishop, 'R':self.WhiteRook, 'r':self.BlackRook,
-                         'Q':self.WhiteQueen, 'q':self.BlackQueen, 'K':self.WhiteKing, 'k':self.BlackKing}
-
-        # Return the board that was required
-        return Char_To_Board[ char ]
-    
-    # Takes a game board and returns the relevant ascii representation of that board
-    def Board_To_Ascii(self,board):
-
-        # Map each board to relevant letter
-        Board_To_Char = {self.WhitePawn: 'P', self.BlackPawn: 'p', self.WhiteKnight: 'N', self.BlackKnight: 'n',
-                         self.WhiteBishop: 'B', self.BlackBishop: 'b', self.WhiteRook: 'R', self.BlackRook: 'r', 
-                         self.WhiteQueen: 'Q', self.BlackQueen: 'q', self.WhiteKing:'K', self.BlackKing :'k'}
+        # Ensures all occupancy boards are correct
+        self.WhiteAll  = (self.WhitePawn | self.WhiteKnight | self.WhiteBishop | 
+                          self.WhiteRook | self.WhiteQueen  | self.WhiteKing)
         
-        return Board_To_Char[ board ]
+        self.BlackAll  = (self.BlackPawn | self.BlackKnight | self.BlackBishop |
+                           self.BlackRook | self.BlackQueen | self.BlackKing)
+        
+        self.AllPieces = ( self.WhiteAll | self.BlackAll )
+    
+    # Adds piece to bitboard
+    def AddPiece(self,piece,square):
+
+        # Get name of board's variable
+        Name = Ascii_To_Name[ piece ]
+
+        # Get board to add piece to 
+        Board  = Ascii_To_Board( self,piece )
+
+        # Add piece to board
+        Board = Set_bit( Board,square )
+
+        # Update board attribute
+        setattr( self,Name,Board )
 
     # Takes a Forsyth-edwards notation string and prints the relevant game state
     def Parse_FEN(self,fen:str):
         # Separate fen into separate strings based on what information they have
-        fen = fen.split()
+        Fen, Side, Castle, En_Passant, Half_Move, Full_Move = fen.split()
         
         # Iterates through each rank of the board
         Square = 63
-        for rank in fen[0].split('/'):
+        for rank in Fen.split('/'):
             
             # Iterate through pieces on each rank
             for piece in rank:
@@ -225,31 +223,25 @@ class GameState():
 
                 # Otherwise place a piece on the relevant bitboard square
                 else: 
-                    # Update bitboard with new piece
-                    Board  = self.Ascii_To_Board( piece )
-                    Board |= i64( 2**Square )
-                    Name   = Ascii_To_Name[ piece ] 
-
-                    # Update actual board attribute
-                    setattr( self,Name,Board )
+                    self.AddPiece( piece,Square )
                     Square -= 1
 
         # Update gamestate attributes
-        self.Side_To_Move = fen[1]
+        self.Side_To_Move = Side
         self.Castle_Rights = i8(0)
-        if fen[2] != '-':
-            for castle in fen[2]:
-                match castle:
-                    # Castles are encoded as following: - White controls the 4 and 8 bits
-                    #                                   - Black controls the 1 and 2 bits
-                    # Kingside is the rightmost bit, Queenside is the leftmost bit                                 
-                    case 'K': self.Castle_Rights != i8(0b0100)
-                    case 'Q': self.Castle_Rights |= i8(0b1000)
-                    case 'k': self.Castle_Rights |= i8(0b0001)
-                    case 'q': self.Castle_Rights |= i8(0b0010)
-        self.En_Passant = None if fen[3] == '-' else fen[3]
-        self.Half_Move_Clock = fen[4]
-        self.Full_Move_Clock = fen[5]
+        self.En_Passant = None if (En_Passant == '-') else En_Passant
+        self.Half_Move_Clock = Half_Move
+        self.Full_Move_Clock = Full_Move
+        if Castle == '-': return
+        for letter in Castle:
+            match letter:
+                # Castles are encoded as following: - White controls the 4 and 8 bits
+                #                                   - Black controls the 1 and 2 bits
+                # Kingside is the rightmost bit, Queenside is the leftmost bit                                 
+                case 'K': self.Castle_Rights != i8(0b0100)
+                case 'Q': self.Castle_Rights |= i8(0b1000)
+                case 'k': self.Castle_Rights |= i8(0b0001)
+                case 'q': self.Castle_Rights |= i8(0b0010)
 
     # Plays a given move onto the board
     def Make_Move(self,move:Move):
@@ -271,7 +263,7 @@ class GameState():
         if move.Capture == True: Make_Capture( self,Target,Colour )
 
         # Update actual bitboard
-        Board  = self.Ascii_To_Board( Piece )
+        Board  = Ascii_To_Board( self,Piece )
         Board ^= ( Source | Target )
 
         # Update the attribute to the new bitboard
@@ -279,22 +271,13 @@ class GameState():
         setattr( self,Name,Board )
             
         # Update occupancies
-        self.WhiteAll  = (self.WhitePawn | self.WhiteKnight | self.WhiteBishop | self.WhiteRook | self.WhiteQueen | self.WhiteKing)
-        self.BlackAll  = (self.BlackPawn | self.BlackKnight | self.BlackBishop | self.BlackRook | self.BlackQueen | self.BlackKing)
-        self.AllPieces = ( self.WhiteAll | self.BlackAll )
+        self.UpdateOcc()
 
-# Move Generation helper functions
+# Helper functions
 # -------------------------------------------------------------------------------
 
 # Checks whether the given square bitboard is obstructed by any piece
 def Is_Obstructed(Game:GameState,bitboard:i64): return Game.AllPieces & bitboard
-
-# Nice way to visualise the board
-def Show_bitboard(bb:int) -> str:
-    # Fills the binary with extra zeros until 64 digits, (8x8 board)  
-    result = str(bin(bb)[2:]).zfill(64)
-    print(result)               
-    return '\n'.join([' '.join(wrap(line, 1)) for line in wrap(result, 8)])
 
 # Presents the board with all bitboards combined
 def Show_Board(Game:GameState) -> str:
@@ -315,7 +298,7 @@ def Show_Board(Game:GameState) -> str:
                 # If this bit is set add the piece's ascii representation
                 if Get_bit( piece,SquareNum ):
 
-                    result = f'{ Game.Board_To_Ascii(piece) } {result}'
+                    result = f'{ Board_To_Ascii(Game,piece) } {result}'
                     break
 
             # Add a dot to show an empty square
@@ -336,44 +319,35 @@ def Show_Board(Game:GameState) -> str:
 # Returns true if square is attacked by given colour
 def Is_square_attacked(SquareNum:int, colour:str, Game:GameState) -> bool:
     bitboard = i64(2**SquareNum)
-    # Does a white piece attack this square?
-    if colour == 'w':
-        # Does a white king attack this square?
-        if KING_MOVES[SquareNum] & Game.WhiteKing: return True 
 
-        # Does a white pawn attack this square?
-        if BLACK_PAWN_ATKS[SquareNum] & Game.WhitePawn: return True
+    # Get relevant piece bitboards
+    Attacking_King     = Game.WhiteKing   if (colour == 'w') else Game.BlackKing
+    Attacking_Pawn     = Game.WhitePawn   if (colour == 'w') else Game.BlackPawn
+    Attacking_Knight   = Game.WhiteKnight if (colour == 'w') else Game.BlackKnight
+    Attacking_Bishop   = Game.WhiteBishop if (colour == 'w') else Game.BlackBishop
+    Attacking_Rook     = Game.WhiteRook   if (colour == 'w') else Game.BlackRook
+    Attacking_Queen    = Game.WhiteQueen  if (colour == 'w') else Game.BlackQueen
+    Opposite_Pawn_Atks = BLACK_PAWN_ATKS[SquareNum] if (colour == 'w') else WHITE_PAWN_ATKS[SquareNum]
 
-        # Does a white knight attack this square?
-        if KNIGHT_MOVES[SquareNum] & Game.WhiteKnight: return True
+    # Does a king attack this square?
+    if KING_MOVES[SquareNum] & Attacking_King: return True 
 
-        # Does a white bishop attack this square?
-        if Compute_Bishop_attacks( bitboard, Game.AllPieces ) & Game.WhiteBishop: return True
+    # Does a pawn attack this square?
+    if Opposite_Pawn_Atks & Attacking_Pawn: return True
 
-        # Does a white rook attack this square?
-        if Compute_Rook_attacks( bitboard, Game.AllPieces ) & Game.WhiteRook: return True
+    # Does a knight attack this square?
+    if KNIGHT_MOVES[SquareNum] & Attacking_Knight: return True
 
-        # Does a white queen attack this square?
-        if Compute_Queen_attacks( bitboard, Game.AllPieces ) & Game.WhiteQueen: return True
-    else:
-        # Does a black king attack this square?
-        if KING_MOVES[SquareNum] & Game.BlackKing: return True
+    # Does a bishop attack this square?
+    if Compute_Bishop_attacks( bitboard, Game.AllPieces ) & Attacking_Bishop: return True
 
-        # Does a black pawn attack this square?
-        if WHITE_PAWN_ATKS[SquareNum] & Game.BlackPawn: return True
+    # Does a rook attack this square?
+    if Compute_Rook_attacks( bitboard, Game.AllPieces ) & Attacking_Rook: return True
 
-        # Does a black knight attack this square?
-        if KNIGHT_MOVES[SquareNum] & Game.BlackKnight: return True
+    # Does a queen attack this square?
+    if Compute_Queen_attacks( bitboard, Game.AllPieces ) & Attacking_Queen: return True
 
-        # Does a black bishop attack this square?
-        if Compute_Bishop_attacks( bitboard, Game.AllPieces ) & Game.BlackBishop: return True
-
-        # Does a black rook attack this square?
-        if Compute_Rook_attacks( bitboard, Game.AllPieces ) & Game.BlackRook: return True
-
-        # Does a black queen attack this square?
-        if Compute_Queen_attacks( bitboard, Game.AllPieces ) & Game.BlackQueen: return True
-    # Return False if no pieces attack this square
+    # Return false if no pieces attack this square
     return False
 
 # Returns a bitboard with all of the squares that the given colour attacks
@@ -387,6 +361,29 @@ def All_Attacked_squares(col:str, Game:GameState) -> i64:
 
     return bitboard        
 
+# Takes in an ascii representation and returns relevant bitboard
+def Ascii_To_Board(Game:GameState, piece:str) -> i64:
+    # Map each letter to relevant board
+    Char_To_Board = {
+        'P':Game.WhitePawn, 'p':Game.BlackPawn, 'N':Game.WhiteKnight, 'n':Game.BlackKnight,
+        'B':Game.WhiteBishop, 'b':Game.BlackBishop, 'R':Game.WhiteRook, 'r':Game.BlackRook,
+        'Q':Game.WhiteQueen, 'q':Game.BlackQueen, 'K':Game.WhiteKing, 'k':Game.BlackKing }
+
+    # Return the board that was required
+    return Char_To_Board[ piece ]
+
+# Takes in bitboard and returns the relevant ascii representation
+def Board_To_Ascii(Game:GameState, board:i64) -> i64:
+
+    # Map each board to relevant letter
+    Board_To_Char = {
+        Game.WhitePawn: 'P', Game.BlackPawn: 'p', Game.WhiteKnight: 'N', Game.BlackKnight: 'n',
+        Game.WhiteBishop: 'B', Game.BlackBishop: 'b', Game.WhiteRook: 'R', Game.BlackRook: 'r', 
+        Game.WhiteQueen: 'Q', Game.BlackQueen: 'q', Game.WhiteKing:'K', Game.BlackKing :'k' }
+    
+    # Return the character required
+    return Board_To_Char[ board ]
+
 # Plays a castling move onto the game board
 def Make_Castle(Game:GameState, Source:i64, Target:i64, Colour:str):
     # Get correct king bitboard
@@ -396,23 +393,27 @@ def Make_Castle(Game:GameState, Source:i64, Target:i64, Colour:str):
     Rook = Game.WhiteRook if Colour == 'w' else Game.BlackRook
 
     # True if the king moves to the right
-    Right = True if Target < Source else False
+    Right = True if (Target < Source) else False
 
     # Move king
     King ^= ( Source | Target )
 
     # Move rook
     if Right:
-        if Colour == 'w': Rook ^= ( i64(1) | i64(4) )
-        else: Rook ^= ( i64(2**56) | i64(2**58) )
+        if Colour == 'w': Rook ^= ( SquareH1 | SquareF1 )
+        else:             Rook ^= ( SquareH8 | SquareF8 )
     else:
-        if Colour == 'w': Rook ^= ( i64(2**7) | i64(2**4) )
-        else: Rook ^= ( i64(2**63) | i64(2**60) )
+        if Colour == 'w': Rook ^= ( SquareA1 | SquareD1 )
+        else:             Rook ^= ( SquareA8 | SquareD8 )
 
 # Plays a capture onto the game board
 def Make_Capture(Game:GameState, Target:i64, Colour:str):
+
+    # Gets the list of enemy bitboards
+    EnemyBoards = Game.BlackPieces if Colour == 'w' else Game.WhitePieces
+
     # Iterate through enemy bitboards until we find the correct one
-    for EnemyPiece in (Game.BlackPieces if Colour == 'w' else Game.WhitePieces):
+    for EnemyPiece in EnemyBoards:
 
         # If this enemy bitboard contains the piece we captured
         if Remove := (EnemyPiece & Target): 
@@ -430,27 +431,34 @@ def Is_Check(col:str, Game:GameState):
     # Shorthand for colour checks 
     Colour = True if col == 'w' else False
 
+    # Get enemy pieces
+    EnemyBishop = 'b' if Colour else 'B'
+    EnemyRook   = 'r' if Colour else 'R'
+    EnemyQueen  = 'q' if Colour else 'Q'
+    EnemyPawn   = ( (WHITE_PAWN_ATKS[King] & Game.BlackPawn) if Colour else 
+                    (BLACK_PAWN_ATKS[King] & Game.WhitePawn) )
+    EnemyKnight = ( (KNIGHT_MOVES[ King ] & Game.BlackKnight) if Colour else 
+                    (KNIGHT_MOVES[ King ] & Game.WhiteKnight) )
+
     # Select correct king bitboard
     King = Game.WhiteKing if Colour else Game.BlackKing
 
     # Checking for enemy pawn attacks
-    Checking_Piece = (WHITE_PAWN_ATKS[ King ] & Game.BlackPawn) if Colour else (BLACK_PAWN_ATKS[ King ] & Game.WhitePawn)
-    if Checking_Piece: masks.append( Checking_Piece )
+    if EnemyPawn: masks.append( EnemyPawn )
 
     # Checking for enemy knight attacks
-    Checking_Piece = (KNIGHT_MOVES[ King ] & Game.BlackKnight) if Colour else (KNIGHT_MOVES[ King ] & Game.WhiteKnight)
-    if Checking_Piece: masks.append( Checking_Piece )
+    if EnemyKnight: masks.append( EnemyKnight )
 
     # Checking for enemy bishop attacks
-    Checking_Piece = (Compute_Bishop_attacks( King,Game.AllPieces ) & Game.Ascii_To_Board('b' if Colour else 'B'))
+    Checking_Piece = (Compute_Bishop_attacks( King,Game.AllPieces ) & Ascii_To_Board(Game,EnemyBishop))
     if Checking_Piece: masks.append( Build_Ray( Checking_Piece,King ) ^ King )
 
     # Checking for enemy rook attacks
-    Checking_Piece =  (Compute_Rook_attacks( King,Game.AllPieces ) & Game.Ascii_To_Board('r' if Colour else 'R'))
+    Checking_Piece =  (Compute_Rook_attacks( King,Game.AllPieces ) & Ascii_To_Board(Game,EnemyRook))
     if Checking_Piece: masks.append( Build_Ray( Checking_Piece,King ) ^ King )
 
     # Checking for enemy queen attacks
-    Checking_Piece = (Compute_Queen_attacks( King,Game.AllPieces ) & Game.Ascii_To_Board('q' if Colour else 'Q'))
+    Checking_Piece = (Compute_Queen_attacks( King,Game.AllPieces ) & Ascii_To_Board(Game,EnemyQueen))
     if Checking_Piece: masks.append( Build_Ray( Checking_Piece,King ) ^ King )
 
     # Return False if there is no check
