@@ -10,7 +10,7 @@ from ConstantsAndTables import *
 
 # Shorthands
 i64 = np.uint64
-i8  = np.uint8
+i8  = np.uint8  
 
 # Bit macros
 # -------------------------------------------------------------------------------
@@ -25,33 +25,34 @@ def Set_bit(Bitboard:i64, SquareNum:int) -> i64: return Bitboard | i64(2**Square
 def Delete_bit(Bitboard:i64, SquareNum:int) -> i64: return Bitboard ^ i64(2**SquareNum)
 
 # Gets the least significant bit (bit worth the lowest value)
-def Get_LSB(Bitboard:i64) -> i64:
+def Get_LSB(Bitboard:i64) -> i64 | int:
     if Bitboard:return Bitboard & (~Bitboard + i64(1))
     # No bits on bitboard so return -1
     return -1
 
 # Checks if given bitboard resides on the 2nd rank (used to validate pawn moves)
-def Is_Second_Rank(bitboard:i64) -> bool: return bitboard & Rank2
+def Is_Second_Rank(bitboard:i64) -> i64: return bitboard & Rank2
 
 # Checks if given bitboard resides on the 1st rank (used to validate pawn moves)
-def Is_First_Rank(bitboard:i64) -> bool: return bitboard & Rank1
+def Is_First_Rank(bitboard:i64) -> i64: return bitboard & Rank1
 
 # Checks if given bitboard resides on the 7th rank (used to validate pawn moves)
-def Is_Seventh_Rank(bitboard:i64) -> bool: return bitboard & Rank7
+def Is_Seventh_Rank(bitboard:i64) -> i64: return bitboard & Rank7
 
 # Checks if given bitboard resides on the 8th rank (used to validate pawn moves)
-def Is_Eigth_Rank(bitboard:i64) -> bool: return bitboard & Rank8
+def Is_Eigth_Rank(bitboard:i64) -> i64: return bitboard & Rank8
 
 # Returns both the least significant bit and the index from (0 - 63)
 def Get_LSB_and_Index(bitboard:i64) -> tuple[i64,int]:
     LSB = Get_LSB(bitboard)
-    return LSB, int( math.log2(LSB) )
+    return LSB, GetIndex( LSB )
 
 # Returns index of the one bit on the given bitboard
 def GetIndex(bitboard:i64) -> int: return int( math.log2(bitboard) )
 
 # Checks whether the given board has bits within the mask
-def In_Mask(bitboard, mask): return bitboard & mask 
+
+def In_Mask(bitboard:i64, mask:i64) -> i64: return bitboard & mask 
 
 # Function to count how many bits are in some binary representation of a number
 def BitCount(n:i64) -> int:
@@ -76,7 +77,6 @@ def Show_bitboard(bb:int) -> str:
 # Because single-bit bitboards can be expressed in the form 2^n, where n is the square number
 # we can get n simply by taking logarithm base 2 of the bitboard given
 def Board_To_Square(bb:i64) -> int: return int(math.log2(bb))
-
 
 # Helper functions
 # -------------------------------------------------------------------------------

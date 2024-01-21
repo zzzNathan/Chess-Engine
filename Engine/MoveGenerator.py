@@ -14,7 +14,7 @@ from Utilities import *
 
 # Shorthands
 i64 = np.uint64
-i8 = np.uint8
+i8  = np.uint8
 
 # Generates a list of moves that have target squares as the 1's on a given bitboard
 def Create_Moves_From_Board(Game:GameState,source:i64,bitboard:i64,col:str,piece:str) -> list:
@@ -150,6 +150,7 @@ def Gen_Pseudo_legal_Moves(Game:GameState, board:i64, char:str) -> list[Move]:
 - For pins keep a dict in the game class 
 - Ensure to check for pins and checks every game loop
 - If a double check occurs then we will set the mask to 'Double' 
+- Keep all previous positions in a table to check for 3-fold repitition
 
 https://github.com/Avo-k/black_numba/blob/master/attack_tables.py
 '''
