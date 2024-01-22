@@ -39,11 +39,11 @@ def Ascii_To_Table(piece:str, Game:GameState) -> list:
 
 # Takes in an integer from the domain of [0,32] and linearly maps it to a phase score
 # of a range [0,1] 
-def Normalise(n:int) -> int: return (n-2)/30
+def Normalise(n:int) -> float: return (n-2)/30
 
 # Function to get the current game phase, a game phase of 0 means we are in the early game while 
 # a game phase of 1 means that we are late into the endgame
-def Get_GamePhase(Game:GameState) -> int: 
+def Get_GamePhase(Game:GameState) -> float: 
 
     # We will use the number of pieces left on the board to deterimine the game phase
     # This implies that 32 pieces will garner a game phase score of 0
@@ -56,11 +56,27 @@ def Get_GamePhase(Game:GameState) -> int:
 
 # Function to linealy interpolate between a middle game table and and endgame table
 # depending on the given "Phase" score
-def MergeTables(TableMid:list, TableEnd:list, Phase:int) -> list: NotImplemented
+def MergeTables(TableMid:list, TableEnd:list, Phase:float) -> list: 
+    
+    # Initialise the merged table
+    Table = [[-1 for i in range(8)] for j in range(8)]
+    # Iterate over all the squares in both tables
+    for row in range(8):
+        for col in range(8):
+
+            # Get the value of the relevant square in both the midgame and engame tables
+            MidSquare = TableMid[row][col]
+            EndSquare = TableEnd[row][col]
+            
+            # Calculate the weighted sum of both squares and put it into the table
+            WeightedSquare  = ( EndSquare * Phase ) + ( MidSquare * (1-Phase) )
+            Table[row][col] = WeightedSquare
+            
+    return Table 
 
 # Iterate through a given bitboard and use a given piece square table to properly count
 # centipawn value with biases for positon
-def Add_Weighted_Material(Piece:str, Board:i64, Table:list) -> int:
+def Add_Weighted_Material(Board:i64, Table:list) -> int:
     score = 0
 
     while Board:
@@ -68,10 +84,12 @@ def Add_Weighted_Material(Piece:str, Board:i64, Table:list) -> int:
         # Get lowest 1 bit on the board and its relevant index
         current, index = Get_LSB_and_Index(Board)
         
-        Table[index]
+        score += Table[index]
 
         # Remove this bit from the board
         Board ^= current
+
+    return score
 
 # Heuristic to determine centipawn value of white's material 
 def WhiteMaterial(Game:GameState) -> int:
@@ -82,7 +100,7 @@ def WhiteMaterial(Game:GameState) -> int:
         name = Board_To_Ascii( Game,board )
 
         # Iterate through this board and add the relevant centipawn value to score
-        Score += Add_Weighted_Material( name,board,Ascii_To_Table(name) )
+        Score += Add_Weighted_Material( board,Ascii_To_Table(name,Game) )
 
     return Score
 
