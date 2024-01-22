@@ -8,6 +8,7 @@ from textwrap import wrap
 import numpy as np
 from ConstantsAndTables import *
 from ClassUtilities     import *
+from PieceSquareTables  import *
 
 # Shorthands
 i64 = np.uint64
@@ -146,7 +147,10 @@ def Show_Board(Game:GameState) -> str:
     return '\n'.join(Board)
   
 # Returns true if square is attacked by given colour
-def Is_square_attacked(SquareNum:int, colour:str, Game:GameState) -> bool:
+def Is_square_attacked(SquareNum:int|i64, colour:str, Game:GameState) -> bool:
+    # If a bitboard was passed in then change it to a square 
+    if type( SquareNum ) == i64: SquareNum = GetIndex( SquareNum )
+
     bitboard = i64(2**SquareNum)
 
     # Get relevant piece bitboards
@@ -223,16 +227,17 @@ def Is_Check(col:str, Game:GameState):
     Colour = True if col == 'w' else False
     
     # Select correct king bitboard
-    King = Game.WhiteKing if Colour else Game.BlackKing
+    KingBoard  = Game.WhiteKing if Colour else Game.BlackKing
+    KingSquare = GetIndex(KingBoard) 
 
     # Get enemy pieces
     EnemyBishop = 'b' if Colour else 'B'
     EnemyRook   = 'r' if Colour else 'R'
     EnemyQueen  = 'q' if Colour else 'Q'
-    EnemyPawn   = ( (WHITE_PAWN_ATKS[King] & Game.BlackPawn) if Colour else 
-                    (BLACK_PAWN_ATKS[King] & Game.WhitePawn) )
-    EnemyKnight = ( (KNIGHT_MOVES[ King ] & Game.BlackKnight) if Colour else 
-                    (KNIGHT_MOVES[ King ] & Game.WhiteKnight) )
+    EnemyPawn   = ( (WHITE_PAWN_ATKS[ KingSquare ] & Game.BlackPawn) if Colour else 
+                    (BLACK_PAWN_ATKS[ KingSquare ] & Game.WhitePawn) )
+    EnemyKnight = ( (KNIGHT_MOVES[ KingSquare ] & Game.BlackKnight) if Colour else 
+                    (KNIGHT_MOVES[ KingSquare ] & Game.WhiteKnight) )
 
     # Checking for enemy pawn attacks
     if EnemyPawn: masks.append( EnemyPawn )
@@ -241,16 +246,16 @@ def Is_Check(col:str, Game:GameState):
     if EnemyKnight: masks.append( EnemyKnight )
 
     # Checking for enemy bishop attacks
-    Checking_Piece = (Compute_Bishop_attacks( King,Game.AllPieces ) & Ascii_To_Board(Game,EnemyBishop))
-    if Checking_Piece: masks.append( Build_Ray( Checking_Piece,King ) ^ King )
+    Checking_Piece = (Compute_Bishop_attacks( KingBoard,Game.AllPieces ) & Ascii_To_Board(Game,EnemyBishop))
+    if Checking_Piece: masks.append( Build_Ray( Checking_Piece,KingBoard ) ^ KingBoard )
 
     # Checking for enemy rook attacks
-    Checking_Piece =  (Compute_Rook_attacks( King,Game.AllPieces ) & Ascii_To_Board(Game,EnemyRook))
-    if Checking_Piece: masks.append( Build_Ray( Checking_Piece,King ) ^ King )
+    Checking_Piece =  (Compute_Rook_attacks( KingBoard,Game.AllPieces ) & Ascii_To_Board(Game,EnemyRook))
+    if Checking_Piece: masks.append( Build_Ray( Checking_Piece,KingBoard ) ^ KingBoard )
 
     # Checking for enemy queen attacks
-    Checking_Piece = (Compute_Queen_attacks( King,Game.AllPieces ) & Ascii_To_Board(Game,EnemyQueen))
-    if Checking_Piece: masks.append( Build_Ray( Checking_Piece,King ) ^ King )
+    Checking_Piece = (Compute_Queen_attacks( KingBoard,Game.AllPieces ) & Ascii_To_Board(Game,EnemyQueen))
+    if Checking_Piece: masks.append( Build_Ray( Checking_Piece,KingBoard ) ^ KingBoard )
 
     # Return False if there is no check
     if len(masks) == 0: return False
@@ -311,5 +316,78 @@ def Get_Pinned_Pieces(col:str, Game:GameState) -> dict:
     
     return Pins
 
-STARTING_FEN  = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-STARTING_GAME = GameState('w',STARTING_FEN,None,i8(0b1111),0,1)
+# Will take in an ascii representation of a piece and return its relevant table
+def Ascii_To_Table(piece:str, Game:GameState) -> list:
+    
+    # Map all pieces to their relevant tables
+    Map = {
+        'P' : Pawn_SQ_TABLE,
+        'N' : Knight_SQ_TABLES,
+        'B' : Bishop_SQ_TABLES,
+        'R' : Rook_SQ_TABLES,
+        'Q' : Queen_SQ_TABLES,
+        'K' : MergeTables(King_SQ_TABLES_mid, King_SQ_TABLES_end
+                          ,Get_GamePhase(Game))
+    }
+
+    return Map[ piece.upper() ]
+
+# Takes in an integer from the domain of [0,32] and linearly maps it to a phase score
+# of a range [0,1] 
+def Normalise(n:int) -> float: return (n-2)/30
+
+# Function to get the current game phase, a game phase of 0 means we are in the early game while 
+# a game phase of 1 means that we are late into the endgame
+def Get_GamePhase(Game:GameState) -> float: 
+
+    # Counts up how many pieces are on the board
+    pieces = 0 
+    for board in Game.Pieces: pieces += BitCount( board )
+    
+    # Linearly maps the number of pieces into a range of [0,1] to be used as the "phase score"
+    return Normalise(pieces)
+
+# Function to linealy interpolate between a middle game table and and endgame table
+# depending on the given "Phase" score
+def MergeTables(TableMid:list, TableEnd:list, Phase:float) -> list: 
+    
+    # Initialise the merged table
+    Table = [None for _ in range(64)]
+
+    for square in range(64):
+
+        # Get the value of the relevant square in both the middle and endgame tables
+        MidSquare = TableMid[square]
+        EndSquare = TableEnd[square]
+
+        # Calculate the weighted sum of both squares and put it into the table
+        WeightedSquare  = ( EndSquare * Phase ) + ( MidSquare * (1-Phase) )
+        Table[square] = WeightedSquare
+   
+    return Table 
+
+# Iterate through a given bitboard and use a given piece square table to properly count
+# centipawn value with biases for positon
+def Add_Weighted_Material(Board:i64, Table:list, Black=False) -> int:
+    score = 0
+    
+    # If this is a black piece we must remap the square to where it would be when viewing the board
+    # from white's perspective
+    def Remap(square:int) -> int:
+        if Black: return Black_To_White[square]
+        else: return square
+
+    while Board:
+        
+        # Get lowest 1 bit on the board and its relevant index
+        current, index = Get_LSB_and_Index(Board)
+        
+        # Add relevant weighting to the score
+        score += Table[ Remap(index) ]
+
+        # Remove this bit from the board
+        Board ^= current
+
+    return score
+
+

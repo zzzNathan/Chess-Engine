@@ -377,7 +377,7 @@ def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
     # ---------------------------------------------------------------------------
 
     # Filter out illegal moves (can't move into check / cant capture your own piece)
-    Target ^= (Target & All_Attacked_squares('b')) | (Target & Game.WhiteAll)
+    Target ^= (Target & All_Attacked_squares('b',Game)) | (Target & Game.WhiteAll)
 
     # Add in all regular moves
     MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'w','K') )
@@ -397,19 +397,19 @@ def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
 
     # Generate castling moves
     # Kingside:                     Verify king is on correct square            Verify obstructions
-    if Game.Castle_Rights & i8(0b0100) and Source == SquareE1 and ( not Is_Obstructed(Game,KingRightCastle) ): 
+    if Game.Castle_Rights & W_KingSide and Source == SquareE1 and ( not Is_Obstructed(Game,KingRightCastle) ): 
 
         # Verify we aren't moving through check
-        if not ( Is_square_attacked(KingRightOne,'b') or Is_square_attacked(KingRightTwo,'b') ):
+        if not ( Is_square_attacked(KingRightOne,'b',Game) or Is_square_attacked(KingRightTwo,'b',Game) ):
 
             # Add to move list
             MoveList.append( Move('w',Index,Index - 2,False,True,'K',False) )
 
     # Queenside:                     Verify king is on correct square           Verify obstructions
-    if Game.Castle_Rights & i8(0b1000) and Source == SquareE1 and ( not Is_Obstructed(Game,KingLeftCastle) ): 
+    if Game.Castle_Rights & W_QueenSide and Source == SquareE1 and ( not Is_Obstructed(Game,KingLeftCastle) ): 
 
         # Verify we aren't moving through check
-        if not ( Is_square_attacked(KingLeftOne,'b') or Is_square_attacked(KingLeftTwo,'b') ):
+        if not ( Is_square_attacked(KingLeftOne,'b',Game) or Is_square_attacked(KingLeftTwo,'b',Game) ):
 
             # Add to move list
             MoveList.append( Move('w',Index,Index + 2,False,True,'K',False) )
@@ -431,7 +431,7 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
     # ---------------------------------------------------------------------------
 
     # Filter out illegal moves (can't move into check / cant capture your own piece)
-    Target ^= (Target & All_Attacked_squares('w')) | (Target & Game.BlackAll)
+    Target ^= (Target & All_Attacked_squares('w',Game)) | (Target & Game.BlackAll)
 
     # Add in all regular moves
     MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'b','k') )
@@ -451,19 +451,19 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
 
     # Generate castling moves
     # Kingside:                   Verify king is on correct square              Verify obstructions
-    if Game.Castle_Rights & i8(0b0001) and Source == SquareE8 and ( not Is_Obstructed(Game,KingRightCastle) ): 
+    if Game.Castle_Rights & B_KingSide and Source == SquareE8 and ( not Is_Obstructed(Game,KingRightCastle) ): 
 
         # Verify we aren't moving through check
-        if not ( Is_square_attacked(KingRightOne,'w') or Is_square_attacked(KingRightTwo,'w') ):
+        if not ( Is_square_attacked(KingRightOne,'w',Game) or Is_square_attacked(KingRightTwo,'w',Game) ):
 
             # Add to move list
             MoveList.append( Move('b',Index,Index - 2,False,True,'k',False) )
 
     # Queenside:                   Verify king is on correct square             Verify obstructions
-    if Game.Castle_Rights & i8(0b0010) and Source == SquareE8 and ( not Is_Obstructed(Game,KingLeftCastle) ): 
+    if Game.Castle_Rights & B_QueenSide and Source == SquareE8 and ( not Is_Obstructed(Game,KingLeftCastle) ): 
 
         # Verify we aren't moving through check
-        if not ( Is_square_attacked(KingLeftOne,'w') or Is_square_attacked(KingLeftTwo,'w') ):
+        if not ( Is_square_attacked(KingLeftOne,'w',Game) or Is_square_attacked(KingLeftTwo,'w',Game) ):
 
             # Add to move list
             MoveList.append( Move('b',Index,Index + 2,False,True,'k',False) )
@@ -543,6 +543,4 @@ def Generate_Moves(Game:GameState, col:str) -> list:
 # TESTING CODE
 '''
 for move in Generate_Moves(STARTING_GAME,'w'):
-   #print( move[10:16],2)
-   #print( move[0],move[1:4],Index_to_square[int(f'0b{move[4:10]}',2)],Index_to_square[int(f'0b{move[10:16]}',2)],move[16:] )
-   print(move)'''
+    print(move.__dict__)'''

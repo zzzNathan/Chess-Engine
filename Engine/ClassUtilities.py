@@ -53,13 +53,21 @@ class GameState():
         self.WhiteAll    = i64(0)
         self.BlackAll    = i64(0)
         self.AllPieces   = i64(0)
-        # Piece iterators
-        self.WhitePieces = [self.WhitePawn, self.WhiteKnight, self.WhiteBishop, self.WhiteRook, self.WhiteQueen, self.WhiteKing]
-        self.BlackPieces = [self.BlackPawn, self.BlackKnight, self.BlackBishop, self.BlackRook, self.BlackQueen, self.BlackKing]
-        self.Pieces      = [*self.WhitePieces, *self.BlackPieces]
+        
+    # Piece iterators (The decorator @property allows this attribute to automatically update when one of the attributes in the list changes)
+    @property
+    def WhitePieces(self):
+        return [self.WhitePawn, self.WhiteKnight, self.WhiteBishop, self.WhiteRook, self.WhiteQueen, self.WhiteKing]
+
+    @property
+    def BlackPieces(self):
+        return [self.BlackPawn, self.BlackKnight, self.BlackBishop, self.BlackRook, self.BlackQueen, self.BlackKing]
+
+    @property
+    def Pieces(self): return [*self.WhitePieces, *self.BlackPieces]
 
     # Initialising all attributes for the game
-    def __init__(self,side:str,Pos:str,EnPassant:str,CastleRights:i8,HalfMove:int,FullMove:int):
+    def __init__(self,side:str,Pos:str,EnPassant:str|None,CastleRights:i8,HalfMove:int,FullMove:int):
         # Either 'w' or 'b' , signifying white or black respectively
         self.Side_To_Move    = side
 
@@ -119,6 +127,23 @@ class GameState():
         # Update board attribute
         setattr( self,Name,Board )
 
+    def Initialise_GameState_Variables(self, Side:str, En_Passant:str|None, Half_Move:int, Full_Move:int, Castle:str):
+        
+        # Initialise gamestate attributes
+        self.Side_To_Move = Side
+        self.Castle_Rights = i8(0)
+        self.En_Passant = None if (En_Passant == '-') else En_Passant
+        self.Half_Move_Clock = Half_Move
+        self.Full_Move_Clock = Full_Move
+        if Castle == '-': return
+        for letter in Castle:
+            match letter:
+                 
+                case 'K': self.Castle_Rights != W_KingSide
+                case 'Q': self.Castle_Rights |= W_QueenSide
+                case 'k': self.Castle_Rights |= B_KingSide
+                case 'q': self.Castle_Rights |= B_QueenSide
+
     # Takes a Forsyth-edwards notation string and prints the relevant game state
     def Parse_FEN(self,fen:str):
         # Separate fen into separate strings based on what information they have
@@ -138,22 +163,12 @@ class GameState():
                 else: 
                     self.AddPiece( piece,Square )
                     Square -= 1
-
-        # Update gamestate attributes
-        self.Side_To_Move = Side
-        self.Castle_Rights = i8(0)
-        self.En_Passant = None if (En_Passant == '-') else En_Passant
-        self.Half_Move_Clock = Half_Move
-        self.Full_Move_Clock = Full_Move
-        if Castle == '-': return
-        for letter in Castle:
-            match letter:
-                 
-                case 'K': self.Castle_Rights != W_KingSide
-                case 'Q': self.Castle_Rights |= W_QueenSide
-                case 'k': self.Castle_Rights |= B_KingSide
-                case 'q': self.Castle_Rights |= B_QueenSide
-
+       
+        Half_Move = int(Half_Move)
+        Full_Move = int(Full_Move)
+        # Initialise gamestate varaibles
+        self.Initialise_GameState_Variables(Side, En_Passant, Half_Move, Full_Move, Castle)
+        
     # Plays a given move onto the board
     def Make_Move(self,move:Move):
 
@@ -232,3 +247,6 @@ def Ascii_To_Board(Game:GameState, piece:str) -> i64:
 
     # Return the board that was required
     return Char_To_Board[ piece ]
+
+STARTING_FEN  = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+STARTING_GAME = GameState('w',STARTING_FEN,None,i8(0b1111),0,1)
