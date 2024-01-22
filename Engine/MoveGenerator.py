@@ -125,7 +125,7 @@ def Gen_Pseudo_legal_Moves(Game:GameState, board:i64, char:str) -> list[Move]:
 
     # Gets location of all friendly pieces
     FriendlyAll = Game.WhiteAll if (White) else Game.BlackAll
-
+    #print(FriendlyAll)
     # Iterate through all pieces on the board
     while board:
 
@@ -542,5 +542,10 @@ def Generate_Moves(Game:GameState, col:str) -> list:
 
 # TESTING CODE
 '''
-for move in Generate_Moves(STARTING_GAME,'w'):
-    print(move.__dict__)'''
+print( len(Generate_Moves(STARTING_GAME,'b') ))
+for move in Generate_Moves(STARTING_GAME,'b'):
+    print( Show_bitboard(i64(2**move.Source)) , '\n\n')
+    print( Show_bitboard(i64(2**move.Target)) , '\n\n')
+print('\n\n')
+#print( len(Generate_Moves(STARTING_GAME,'b')) )
+#for move in Generate_Moves(STARTING_GAME,'b'): print( move.__dict__ )'''

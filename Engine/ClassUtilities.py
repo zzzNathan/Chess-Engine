@@ -49,11 +49,20 @@ class GameState():
         self.BlackRook   = i64(0)
         self.BlackQueen  = i64(0)
         self.BlackKing   = i64(0)
-        # Piece combinations
-        self.WhiteAll    = i64(0)
-        self.BlackAll    = i64(0)
-        self.AllPieces   = i64(0)
-        
+    
+    # Piece combinations (The decorator @property allows this attribute to automatically update when one of the attributes in the list changes)
+    @property
+    def WhiteAll(self): 
+        return (self.WhitePawn | self.WhiteKnight | self.WhiteBishop | self.WhiteRook | self.WhiteQueen | self.WhiteKing)
+
+    @property
+    def BlackAll(self):
+        return (self.BlackPawn | self.BlackKnight | self.BlackBishop | self.BlackRook | self.BlackQueen | self.BlackKing)
+
+    @property
+    def AllPieces(self):
+        return (self.WhiteAll | self.BlackAll)
+
     # Piece iterators (The decorator @property allows this attribute to automatically update when one of the attributes in the list changes)
     @property
     def WhitePieces(self):
@@ -99,18 +108,6 @@ class GameState():
 
         self.InitBoards()
         self.Parse_FEN( Pos )
-
-    # Updates current occupancy bitboards
-    def UpdateOcc(self):
-
-        # Ensures all occupancy boards are correct
-        self.WhiteAll  = (self.WhitePawn | self.WhiteKnight | self.WhiteBishop | 
-                          self.WhiteRook | self.WhiteQueen  | self.WhiteKing)
-        
-        self.BlackAll  = (self.BlackPawn | self.BlackKnight | self.BlackBishop |
-                           self.BlackRook | self.BlackQueen | self.BlackKing)
-        
-        self.AllPieces = ( self.WhiteAll | self.BlackAll )
     
     # Adds piece to bitboard
     def AddPiece(self,piece,square):
@@ -196,9 +193,6 @@ class GameState():
         Name = Ascii_To_Name[ Piece ]
         setattr( self,Name,Board )
             
-        # Update occupancies
-        self.UpdateOcc()
-
 # Plays a castling move onto the game board
 def Make_Castle(Game:GameState, Source:i64, Target:i64, Colour:str):
     # Get correct king bitboard

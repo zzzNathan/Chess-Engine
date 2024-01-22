@@ -69,7 +69,7 @@ def BitCount(n:i64) -> int:
     return count
 
 # Nice way to visualise the board
-def Show_bitboard(bb:int) -> str:
+def Show_bitboard(bb:i64) -> str:
     # Fills the binary with extra zeros until 64 digits, (8x8 board)  
     result = str(bin(bb)[2:]).zfill(64)
     print(result)               
