@@ -50,7 +50,9 @@ class GameState():
         self.BlackQueen  = i64(0)
         self.BlackKing   = i64(0)
     
-    # Piece combinations (The decorator @property allows this attribute to automatically update when one of the attributes in the list changes)
+    # (The decorator @property allows this attribute to automatically update when one of the attributes in the list changes)
+
+    # Piece combinations 
     @property
     def WhiteAll(self): 
         return (self.WhitePawn | self.WhiteKnight | self.WhiteBishop | self.WhiteRook | self.WhiteQueen | self.WhiteKing)
@@ -63,7 +65,7 @@ class GameState():
     def AllPieces(self):
         return (self.WhiteAll | self.BlackAll)
 
-    # Piece iterators (The decorator @property allows this attribute to automatically update when one of the attributes in the list changes)
+    # Piece iterators 
     @property
     def WhitePieces(self):
         return [self.WhitePawn, self.WhiteKnight, self.WhiteBishop, self.WhiteRook, self.WhiteQueen, self.WhiteKing]

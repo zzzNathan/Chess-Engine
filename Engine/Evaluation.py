@@ -21,10 +21,15 @@ WEIGHTS = {
 'P' : 100, # Pawn weight
 }
 
+# Values to increase or decrease evaluation scores based on their importance to the game
+Damping = {}
+
 # Heuristic to determine centipawn value of white's material 
-def WhiteMaterial(Game:GameState) -> int:
+def Material(Game:GameState, col:str) -> int:
     Score = 0
-    for board in Game.WhitePieces:
+
+    Boards = Game.WhitePieces if (col=='w') else Game.BlackPieces
+    for board in Boards:
 
         # Get piece name 
         name = Board_To_Ascii( Game,board )
@@ -34,30 +39,29 @@ def WhiteMaterial(Game:GameState) -> int:
 
     return Score
 
-# Heuristic to determine centipawn value of black's material
-def BlackMaterial(Game:GameState) -> int:
-    Score = 0
-    for board in Game.BlackPieces:
-        
-        # Get piece name
-        name = Board_To_Ascii( Game,board )
+# Determines how many squares the given colour controls
+def Mobility(Game:GameState, col:str) -> int:
 
-        # Iterate through this board and add the relevant centipawn value to score
-        Score += Add_Weighted_Material( board,Ascii_To_Table(name,Game),True )
+    # Return the number of legal moves for given colour
+    return len( Generate_Moves(Game, col) )
 
-    return Score
+# Determines whether the pawn structure is connected 
+def Connectivity(Game:GameState, col:str) -> int:
+    
+    # Get bitboard of white pawns then and it with the board shifted left then right (with masking)
+    # Then all bits remaining in the and will be connected
+    Board             = Game.WhitePawn if (col=='w') else Game.BlackPawn
+    Board_Shift_Left  = (Board << i64(1)) & NotFileH
+    Board_Shift_Right = (Board >> i64(1)) & NotFileA
 
-# Determines how many squares white controls
-def WhiteMobility(Game:GameState) -> int:
+    Board_Shift_Left  &= Board
+    Board_Shift_Right &= Board
+    
+    # Xor is used to ensure that the same pawn isn't double counted
+    return BitCount( Board_Shift_Left ^ Board_Shift_Right )
 
-    # Return the number of legal moves for white
-    return len( Generate_Moves(Game,'w') )
 
-# Determines how many squares black controls
-def BlackMobility(Game:GameState) -> int:
-
-    # Return the number of legal moves for white
-    return len( Generate_Moves(Game,'b') )
+# For double pawns and the biboard with itself shifted up by one and the remaining bits will all be doubles
 
 '''
 Mobility bonus 0.1
@@ -71,12 +75,10 @@ Minor pieces behind pawn
 '''
 Basic Evaluation Features
 
-Piece-Square Tables
 Pawn Structure
 Evaluation of Pieces
 Evaluation Patterns
 Center Control
-Connectivity
 Trapped Pieces
 King Safety
 Space
@@ -87,13 +89,16 @@ Space
 #       ( -ve sign signifies an advantage for black )
 def Evaluate(Game:GameState) -> int:
     Score = 0
-
+    
     # Who has more material ?
-    Score += (WhiteMaterial(Game) - BlackMaterial(Game)) 
+    Score += (Material(Game,'w') - Material(Game,'b')) #*Damping['Material']
 
-    # Who has more legal moves ? black has one more legal move
-    Score += (WhiteMobility(Game) - BlackMobility(Game))
+    # Who has more legal moves ?
+    Score += (Mobility(Game,'w') - Mobility(Game,'b')) #* Damping['Mobility']
 
+    # Who has more connected pawns ?
+    Score += (Connectivity(Game,'w') - Connectivity(Game,'b')) #* Damping['Connectivity']
+ 
     return Score
 
 # IN PROGRESS
