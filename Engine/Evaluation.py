@@ -35,20 +35,20 @@ def Material(Game:GameState, col:str) -> int:
         name = Board_To_Ascii( Game,board )
 
         # Iterate through this board and add the relevant centipawn value to score
-        Score += Add_Weighted_Material( board,Ascii_To_Table(name,Game) )
+        Score += Add_Weighted_Material( board,Ascii_To_Table(name,Game),col=='b' )
 
     return Score
 
-# Determines how many squares the given colour controls
+# Gives bonus based on how mnay legal move the given colour can make
 def Mobility(Game:GameState, col:str) -> int:
 
     # Return the number of legal moves for given colour
     return len( Generate_Moves(Game, col) )
 
-# Determines whether the pawn structure is connected 
+# Gives bonus based on how many pawns are connected
 def Connectivity(Game:GameState, col:str) -> int:
     
-    # Get bitboard of white pawns then and it with the board shifted left then right (with masking)
+    # Get bitboard of white pawns then AND it with the board shifted left then right (with masking)
     # Then all bits remaining in the and will be connected
     Board             = Game.WhitePawn if (col=='w') else Game.BlackPawn
     Board_Shift_Left  = (Board << i64(1)) & NotFileH
@@ -60,8 +60,15 @@ def Connectivity(Game:GameState, col:str) -> int:
     # Xor is used to ensure that the same pawn isn't double counted
     return BitCount( Board_Shift_Left ^ Board_Shift_Right )
 
+# Gives penalty based on how many pawns are doubled
+def DoubledPawns(Game:GameState, col:str) -> int:
 
-# For double pawns and the biboard with itself shifted up by one and the remaining bits will all be doubles
+    # Get bitboard of given coloured pawns then AND it with the same board shifted up by one
+    # Then all the remaining bits will be doubled pawns
+    Board          = Game.WhitePawn if (col=='w') else Game.BlackPawn
+    Board_Shift_Up = Board << i64(8)
+
+    return BitCount( Board & Board_Shift_Up ) 
 
 '''
 Mobility bonus 0.1
@@ -98,7 +105,10 @@ def Evaluate(Game:GameState) -> int:
 
     # Who has more connected pawns ?
     Score += (Connectivity(Game,'w') - Connectivity(Game,'b')) #* Damping['Connectivity']
- 
+   
+    # Who has less doubled pawns ?
+    Score += (DoubledPawns(Game, 'b') - DoubledPawns(Game, 'w')) #* Damping['DoubledPawns']
+    
     return Score
 
 # IN PROGRESS
