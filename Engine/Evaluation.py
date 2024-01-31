@@ -57,8 +57,7 @@ def Connectivity(Game:GameState, col:str) -> int:
     Board_Shift_Left  &= Board
     Board_Shift_Right &= Board
     
-    # Xor is used to ensure that the same pawn isn't double counted
-    return BitCount( Board_Shift_Left ^ Board_Shift_Right )
+    return BitCount( Board_Shift_Left | Board_Shift_Right )
 
 # Gives penalty based on how many pawns are doubled
 def DoubledPawns(Game:GameState, col:str) -> int:
