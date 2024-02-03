@@ -5,6 +5,7 @@
 
 import numpy as np
 from ConstantsAndTables import *
+from BitMacros          import *
 
 # Shorthands
 i64 = np.uint64

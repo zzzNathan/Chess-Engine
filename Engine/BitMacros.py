@@ -2,7 +2,8 @@
 #             B I T   M A C R O S      
 #             - - -   - - - - - - 
 #\********************************************/
-from textwrap import wrap
+from textwrap           import wrap
+from ConstantsAndTables import *
 import numpy as np
 from math import log2
 
@@ -71,3 +72,19 @@ def Show_bitboard(bb:i64) -> str:
 # Because single-bit bitboards can be expressed in the form 2^n, where n is the square number
 # we can get n simply by taking logarithm base 2 of the bitboard given
 def Board_To_Square(bb:i64) -> int: return int(log2(bb))
+
+# Builds an attacking ray between 2 squares if the 2 squares are in line 
+# horizontally, vertically or diagonally (Used in Is_Check function)
+# could potentially be precomputed should only be 64^2 of mem
+def Build_Ray(Square1:i64, Square2:i64) -> i64:
+
+    # Empty board for generating ray attacks without obstructions
+    Empty = i64(0)
+
+    # The bits where 2 rays intersect will be kept by the 'AND (&)' and everything else will become 0
+    Ray = Compute_Queen_attacks( Square1,Empty ) & Compute_Queen_attacks( Square2,Empty )
+
+    # Add both source squares to the ray
+    Ray |= (Square1 | Square2)
+
+    return Ray

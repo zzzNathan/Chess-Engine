@@ -192,7 +192,7 @@ def Generate_White_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
 
         # Normal Moves
         # -----------------------------------------------------------------------
-
+        Target = i64(0) # Initialise target variable
         # Obstruction check for one square up
         if not Is_Obstructed( Game,SourceUpOne ):Target = WHITE_PAWN_MOVES[Index] 
 
@@ -263,7 +263,7 @@ def Generate_Black_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
 
         # Normal Moves
         # -----------------------------------------------------------------------
-
+        Target = i64(0) # Initialise target variable
         # Obstruction check for one square up
         if not Is_Obstructed(Game,SourceUpOne): Target = BLACK_PAWN_MOVES[Index]
 
