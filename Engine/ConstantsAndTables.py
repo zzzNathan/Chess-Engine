@@ -49,11 +49,8 @@ def Reverse_bits(b:i64) -> i64:
 
     return (b << i64(48)) | ((b & i64(0xffff0000)) << i64(16)) | ((b >> i64(16)) & i64(0xffff0000)) | (b >> i64(48))
 
-#/*******************************************\
-#              B I T B O A R D S       
-#              - - - - - - - - -
-#\*******************************************/
-
+# Bitboards
+# -------------------------------------------------------------------------------
 # Helper bitboard with all bits as 1
 AllBits = i64(0xffffffffffffffff)
 
@@ -183,11 +180,6 @@ W_QueenSide = i8( 0b1000 )
 B_KingSide  = i8( 0b0001 )
 B_QueenSide = i8( 0b0010 )
 
-#/*******************************************\
-#       P R E - C O M P U T A T I O N S      
-#       - - -   - - - - - - - - - - - -
-#\*******************************************/
-
 # Sliding Pieces
 # -------------------------------------------------------------------------------
 
@@ -205,7 +197,7 @@ def Sliding_Moves(Location:i64, blockers:i64, mask:i64) -> i64:
 
 def Compute_Rook_attacks(RookLocation:i64, blockers:i64) -> i64:
     # Piece bitboards are in the form 2^n, to find n we take log base 2 of this bitboard
-    SquareNum = int( np.log2(RookLocation) )
+    SquareNum = int( math.log2(RookLocation) )
     Rank = (SquareNum // 8) + 1 # Calculates rank index
     File = SquareNum % 8        # Calculates file index
     return (Sliding_Moves(RookLocation, blockers, RANKS[Rank]) |
@@ -230,7 +222,6 @@ def Compute_Queen_attacks(QueenLocation:i64, blockers:i64)->i64:
 
 # Arrays
 # -------------------------------------------------------------------------------
-
 # Precomputing all movement arrays, the 'Compute_*(non-slider piece here)*_Moves()' functions
 # can be viewed in the previous commits (before the 4th Jan 2024), they have been removed because they only need
 # to be used one time, in order to calculate the following arrays.
