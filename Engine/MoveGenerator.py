@@ -10,7 +10,7 @@
 # Chess engine in Python
 import numpy as np
 from ConstantsAndTables import *
-from Utilities import *
+from Utilities          import *
 
 # Shorthands
 i64 = np.uint64
@@ -242,7 +242,7 @@ def Generate_White_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
             if BLACK_PAWN_ATKS[ Square_to_index[Game.En_Passant] ] & Source:
 
                 # Add to movelist
-                MoveList.append( Move('w',Index,Square_to_index[Game.En_Passant],True,False,'P') )    
+                MoveList.append( Move('w',Index,Square_to_index[Game.En_Passant],True,False,'P',False) )
 
         # Remove this bit from the board
         board_copy ^= Source
@@ -313,7 +313,7 @@ def Generate_Black_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
             if WHITE_PAWN_ATKS[ Square_to_index[Game.En_Passant] ] & Source:
 
                 # Add to movelist
-                MoveList.append( Move('b',Index,Square_to_index[Game.En_Passant],True,False,'p') )    
+                MoveList.append( Move('b',Index,Square_to_index[Game.En_Passant],True,False,'p',False) )    
     
         # Remove this bit from the board
         board_copy ^= Source
