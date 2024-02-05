@@ -95,7 +95,11 @@ Space
 #       ( -ve sign signifies an advantage for black )
 def Evaluate(Game:GameState) -> int:
     Score = 0
-    
+
+    # Check if white of black has checkmate
+    if Is_Check('w',Game) and Generate_White_King_Moves(Game.WhiteKing,Game) == []: return -INF
+    if Is_Check('b',Game) and Generate_Black_King_Moves(Game.BlackKing,Game) == []: return INF
+
     # Who has more material ?
     Score += (Material(Game,'w') - Material(Game,'b')) #*Damping['Material']
 

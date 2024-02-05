@@ -52,7 +52,6 @@ class GameState():
         self.BlackKing   = i64(0)
     
     # (The decorator @property allows this attribute to automatically update when one of the attributes in the list changes)
-
     # Piece combinations 
     @property
     def WhiteAll(self): 
@@ -63,8 +62,7 @@ class GameState():
         return (self.BlackPawn | self.BlackKnight | self.BlackBishop | self.BlackRook | self.BlackQueen | self.BlackKing)
 
     @property
-    def AllPieces(self):
-        return (self.WhiteAll | self.BlackAll)
+    def AllPieces(self): return (self.WhiteAll | self.BlackAll)
 
     # Piece iterators 
     @property
@@ -203,7 +201,7 @@ class GameState():
         self.Pins = Get_Pinned_Pieces('w', self) | Get_Pinned_Pieces('b', self)
 
 
- # Determines whether there is a check or not if so returns a bitboard of the attacking ray
+# Determines whether there is a check or not if so returns a bitboard of the attacking ray
 # (Used in legal move generation)
 def Is_Check(col:str, Game:GameState):
     # Will store rays or locations of checking pieces
@@ -350,6 +348,9 @@ def Ascii_To_Board(Game:GameState, piece:str) -> i64:
 
     # Return the board that was required
     return Char_To_Board[ piece ]
+
+# Checks whether the given square bitboard is obstructed by any piece
+def Is_Obstructed(Game:GameState,bitboard:i64): return Game.AllPieces & bitboard
 
 STARTING_FEN  = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 STARTING_GAME = GameState('w',STARTING_FEN,None,i8(0b1111),0,1)

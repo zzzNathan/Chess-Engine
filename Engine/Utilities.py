@@ -17,9 +17,6 @@ Ascii_To_Name = {'P':'WhitePawn', 'p':'BlackPawn', 'N':'WhiteKnight', 'n':'Black
                  'B':'WhiteBishop', 'b':'BlackBishop', 'R':'WhiteRook', 'r':'BlackRook',
                  'Q':'WhiteQueen', 'q':'BlackQueen', 'K':'WhiteKing', 'k':'BlackKing'}
 
-# Checks whether the given square bitboard is obstructed by any piece
-def Is_Obstructed(Game:GameState,bitboard:i64): return Game.AllPieces & bitboard
-
 # Presents the board with all bitboards combined
 def Show_Board(Game:GameState) -> str:
     Board = []
@@ -144,8 +141,7 @@ def Ascii_To_Table(piece:str, Game:GameState) -> list:
 
     return Map[ piece.upper() ]
 
-# Takes in an integer from the domain of [0,32] and linearly maps it to a phase score
-# of a range [0,1] 
+# Takes in an integer from the domain of [0,32] and linearly maps it to a phase score of a range [0,1] 
 def Normalise(n:int) -> float: return (n-2)/30
 
 # Function to get the current game phase, a game phase of 0 means we are in the early game while 

@@ -395,21 +395,17 @@ def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
         KingRightTwo    = (Source >> i64(2))
         KingLeftTwo     = (Source << i64(2))
 
-    # Generate castling moves
-    # Kingside:                     Verify king is on correct square            Verify obstructions
-    if Game.Castle_Rights & W_KingSide and Source == SquareE1 and ( not Is_Obstructed(Game,KingRightCastle) ): 
-
-        # Verify we aren't moving through check
-        if not ( Is_square_attacked(KingRightOne,'b',Game) or Is_square_attacked(KingRightTwo,'b',Game) ):
+        # Generate castling moves
+        # Kingside:                                      Verify obstructions
+        if (Game.Castle_Rights & W_KingSide) and ( not Is_Obstructed(Game,KingRightCastle) ) and \
+        ( not (Is_square_attacked(KingRightOne,'b',Game) or Is_square_attacked(KingRightTwo,'b',Game)) ):
 
             # Add to move list
             MoveList.append( Move('w',Index,Index - 2,False,True,'K',False) )
 
-    # Queenside:                     Verify king is on correct square           Verify obstructions
-    if Game.Castle_Rights & W_QueenSide and Source == SquareE1 and ( not Is_Obstructed(Game,KingLeftCastle) ): 
-
-        # Verify we aren't moving through check
-        if not ( Is_square_attacked(KingLeftOne,'b',Game) or Is_square_attacked(KingLeftTwo,'b',Game) ):
+        # Queenside:                                     Verify obstructions
+        if (Game.Castle_Rights & W_QueenSide) and ( not Is_Obstructed(Game,KingLeftCastle) ) and \
+        ( not (Is_square_attacked(KingLeftOne,'b',Game) or Is_square_attacked(KingLeftTwo,'b',Game)) ): 
 
             # Add to move list
             MoveList.append( Move('w',Index,Index + 2,False,True,'K',False) )
@@ -449,22 +445,18 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
         KingRightTwo    = (Source >> i64(2))
         KingLeftTwo     = (Source << i64(2))
 
-    # Generate castling moves
-    # Kingside:                   Verify king is on correct square              Verify obstructions
-    if Game.Castle_Rights & B_KingSide and Source == SquareE8 and ( not Is_Obstructed(Game,KingRightCastle) ): 
-
-        # Verify we aren't moving through check
-        if not ( Is_square_attacked(KingRightOne,'w',Game) or Is_square_attacked(KingRightTwo,'w',Game) ):
+        # Generate castling moves
+        # Kingside:                                      Verify obstructions
+        if Game.Castle_Rights & B_KingSide and ( not Is_Obstructed(Game,KingRightCastle) ) and \
+        ( not (Is_square_attacked(KingRightOne,'w',Game) or Is_square_attacked(KingRightTwo,'w',Game)) ):
 
             # Add to move list
             MoveList.append( Move('b',Index,Index - 2,False,True,'k',False) )
 
-    # Queenside:                   Verify king is on correct square             Verify obstructions
-    if Game.Castle_Rights & B_QueenSide and Source == SquareE8 and ( not Is_Obstructed(Game,KingLeftCastle) ): 
-
-        # Verify we aren't moving through check
-        if not ( Is_square_attacked(KingLeftOne,'w',Game) or Is_square_attacked(KingLeftTwo,'w',Game) ):
-
+        # Queenside:                                     Verify obstructions
+        if Game.Castle_Rights & B_QueenSide and ( not Is_Obstructed(Game,KingLeftCastle) ) and \
+        ( not (Is_square_attacked(KingLeftOne,'w',Game) or Is_square_attacked(KingLeftTwo,'w',Game)) ):
+            
             # Add to move list
             MoveList.append( Move('b',Index,Index + 2,False,True,'k',False) )
 

@@ -1,9 +1,5 @@
-from Evaluation import *
+from Evaluation    import *
 from MoveGenerator import *
 
-# IN PROGRESS
-def GenMoves(col,Game):
+# For the search we will implement the alpha-beta technique
 
-    MoveList = []
-
-    return MoveList
