@@ -1,0 +1,2 @@
+# Ignore cache folders across repository
+/__pycache__/

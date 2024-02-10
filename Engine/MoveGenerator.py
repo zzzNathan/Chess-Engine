@@ -9,8 +9,9 @@
 ''' 
 # Chess engine in Python
 import numpy as np
-from ConstantsAndTables import *
-from Utilities          import *
+from typing import Callable
+from Engine.ConstantsAndTables import *
+from Engine.Utilities          import *
 
 # Shorthands
 i64 = np.uint64
@@ -53,12 +54,11 @@ def Generate_Filter(Game:GameState, move:Move) -> i64:
     SourceBB = i64( 2**move.Source )
     TargetBB = i64( 2**move.Target )
 
-    # Verifies whether the piece's king is currently in check, if so gives the 
-    # relevant check mask
-    Is_King_in_Check = Game.WhiteCheckMask if move.Side == 'w' else Game.BlackCheckMask
+    # Generates relevant checkmask
+    CheckMask = Game.WhiteCheckMask if move.Side == 'w' else Game.BlackCheckMask
 
     # Checks if there is a check on the piece's king
-    if Is_King_in_Check: return Is_King_in_Check
+    if Is_Check(move.Side, Game): return CheckMask
     
     # Checks if this piece is pinned
     if SourceBB in Game.Pins: return Game.Pins[ SourceBB ]
@@ -92,7 +92,7 @@ def Filter_All_Moves(Game:GameState, movelist:list[Move]) -> list[Move]:
     return FilteredMoveList
 
 # Takes in a piece's ascii representation and return a funtion that generates their pseudo-legal moves
-def Find_Move_Table(Game:GameState, char:str):
+def Find_Move_Table(Game:GameState, char:str) -> Callable:
     char = char.upper()
 
     # Knights

@@ -4,8 +4,9 @@
 #\*******************************************/
 
 import numpy as np
-from ConstantsAndTables import *
-from BitMacros          import *
+from copy import deepcopy
+from Engine.ConstantsAndTables import *
+from Engine.BitMacros          import *
 
 # Shorthands
 i64 = np.uint64
@@ -22,14 +23,14 @@ Ascii_To_Name = {'P':'WhitePawn', 'p':'BlackPawn', 'N':'WhiteKnight', 'n':'Black
 # Class to give structure and order to moves and other relevant information
 class Move():
 
-    def __init__(self,side,source,target,capture,castle,piece,promo ) -> None:
+    def __init__(self,side,source,target,capture,castle,piece,promo):
         self.Side      = side    # 'w' signifies white, 'b' signifies black
         self.Source    = source  # The index of the source square
         self.Target    = target  # The index of the target square
         self.Capture   = capture # Is this move a capture ?
         self.Castle    = castle  # Is this move a castle ?
         self.Piece     = piece   # Standard chess notation applies (Capital = white, Lowercase = black)
-        self.Promotion = promo   # Is this move a promotion ?
+        self.Promotion = promo   # Is this move a promotion ? (False or piece name)
 
 # Class for storing all gamestate variables in one place
 class GameState():
@@ -98,14 +99,18 @@ class GameState():
         self.Full_Move_Clock = FullMove
 
         # A mask containing the attack rays of any checks on the white king
-        self.WhiteCheckMask  = False
+        self.WhiteCheckMask  = AllBits
 
         # A mask containing the attack rays of any checks on the black king
-        self.BlackCheckMask = False
+        self.BlackCheckMask = AllBits
 
         # A dictionary mapping bitboard squares to their relevant attack rays if this piece is pinned
         # (Pinned pieces can only move along the attack ray)
         self.Pins           = {}
+        
+        # Lists to hold previous positons and moves respectively
+        self.PreviousPositions = []
+        self.PreviousMoves = []
 
         self.InitBoards()
         self.Parse_FEN( Pos )
@@ -125,9 +130,10 @@ class GameState():
         # Update board attribute
         setattr( self,Name,Board )
 
-    def Initialise_GameState_Variables(self, Side:str, En_Passant:str|None, Half_Move:int, Full_Move:int, Castle:str):
+    def Initialise_GameState_Variables(self,fen:str, Side:str, En_Passant:str|None, Half_Move:int, Full_Move:int, Castle:str):
         
         # Initialise gamestate attributes
+        self.FEN = fen
         self.Side_To_Move = Side
         self.Castle_Rights = i8(0)
         self.En_Passant = None if (En_Passant == '-') else En_Passant
@@ -165,7 +171,7 @@ class GameState():
         Half_Move = int(Half_Move)
         Full_Move = int(Full_Move)
         # Initialise gamestate varaibles
-        self.Initialise_GameState_Variables(Side, En_Passant, Half_Move, Full_Move, Castle)
+        self.Initialise_GameState_Variables(fen, Side, En_Passant, Half_Move, Full_Move, Castle)
         
     # Plays a given move onto the board
     def Make_Move(self,move:Move):
@@ -199,6 +205,10 @@ class GameState():
         
         # Update dictionary containing all pins
         self.Pins = Get_Pinned_Pieces('w', self) | Get_Pinned_Pieces('b', self)
+
+        # If there is check update the check mask
+        self.WhiteCheckMask = Is_Check('w', self)
+        self.BlackCheckMask = Is_Check('b', self)
 
 
 # Determines whether there is a check or not if so returns a bitboard of the attacking ray
@@ -354,3 +364,11 @@ def Is_Obstructed(Game:GameState,bitboard:i64): return Game.AllPieces & bitboard
 
 STARTING_FEN  = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 STARTING_GAME = GameState('w',STARTING_FEN,None,i8(0b1111),0,1)
+
+# Takes a fen string and creates a gamestate object from it
+def Fen_to_GameState(fen:str) -> GameState:
+    
+    # Creates a copy of the starting position then parses the custom fen
+    New_Game = deepcopy(STARTING_GAME)
+    New_Game.Parse_FEN(fen)
+    return New_Game

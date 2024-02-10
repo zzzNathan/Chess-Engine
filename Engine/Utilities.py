@@ -3,10 +3,10 @@
 #      - - - - - - -  - - - - - - - - -
 #\*******************************************/
 import numpy as np
-from ConstantsAndTables import *
-from ClassUtilities     import *
-from PieceSquareTables  import *
-from BitMacros          import *
+from Engine.ConstantsAndTables import *
+from Engine.ClassUtilities     import *
+from Engine.PieceSquareTables  import *
+from Engine.BitMacros          import *
 
 # Shorthands
 i64 = np.uint64
@@ -197,3 +197,13 @@ def Add_Weighted_Material(Board:i64, Table:list, Black=False) -> int:
         Board ^= current
 
     return score
+
+# Takes in a Move object and returns its relevant uci string
+# https://en.wikipedia.org/wiki/Universal_Chess_Interface
+def Move_To_UCI(move:Move) -> str:
+
+    StartSquare  = Index_to_square[ move.Source ]
+    TargetSquare = Index_to_square[ move.Target ]
+    Promotion    = move.Promotion if move.Promotion != False else ''
+
+    return f'{StartSquare}{TargetSquare}{Promotion}'

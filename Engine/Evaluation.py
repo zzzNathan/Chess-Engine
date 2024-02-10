@@ -3,10 +3,10 @@
 #            - - - - - - - - - - - 
 #\*******************************************/
 
-from ConstantsAndTables import *
-from Utilities          import *
-from MoveGenerator      import *
-from PieceSquareTables  import *
+from Engine.ConstantsAndTables import *
+from Engine.Utilities          import *
+from Engine.MoveGenerator      import *
+from Engine.PieceSquareTables  import *
 
 INF = 20_000
 
@@ -114,5 +114,6 @@ def Evaluate(Game:GameState) -> int:
     
     return Score
 
-# IN PROGRESS
-print( Evaluate(STARTING_GAME) )
+if __name__ == '__main__':
+    # IN PROGRESS
+    print( Evaluate(STARTING_GAME) )

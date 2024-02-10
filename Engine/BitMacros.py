@@ -3,7 +3,7 @@
 #             - - -   - - - - - - 
 #\********************************************/
 from textwrap           import wrap
-from ConstantsAndTables import *
+from Engine.ConstantsAndTables import *
 import numpy as np
 from math import log2
 
@@ -21,10 +21,9 @@ def Set_bit(Bitboard:i64, SquareNum:int) -> i64: return Bitboard | i64(2**Square
 def Delete_bit(Bitboard:i64, SquareNum:int) -> i64: return Bitboard ^ i64(2**SquareNum)
 
 # Gets the least significant bit (bit worth the lowest value)
-def Get_LSB(Bitboard:i64) -> i64 | int:
+def Get_LSB(Bitboard:i64) -> i64:
     if Bitboard:return Bitboard & (~Bitboard + i64(1))
-    # No bits on bitboard so return -1
-    return -1
+    return i64(0)
 
 # Checks if given bitboard resides on the 2nd rank (used to validate pawn moves)
 def Is_Second_Rank(bitboard:i64) -> i64: return bitboard & Rank2
