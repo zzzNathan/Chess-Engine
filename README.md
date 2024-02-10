@@ -1,20 +1,21 @@
 # Simple Python chess engine
 
-### Description:
+### :page_with_curl: Description:
 This repository is a simple chess engine written in python, for the UK's 2025 Computer Science NEA component exam *(OCR)*.
 
-### Dependencies:
-- Must have python installed `https://www.python.org/downloads/`
+### :clipboard: Dependencies:
+- Must have python installed (https://www.python.org/downloads/)
 - Must have the python chess library installed to run the tests cases: `pip install chess` *(Ignore if you do not wish to run the test cases)*
 - Must have numpy installed `pip install numpy`
 
-### Features:
+### :white_check_mark: Features:
 - [x] __Hyperbola quintessence__ for move generation (https://www.chessprogramming.org/Hyperbola_Quintessence)
 - [ ] Alpha-Beta search -*Todo* 
 - [ ] User Interface -*Todo*
 - [ ] Testing framework -*Todo*
 - [x] Piece square tables for evaluation
 
+### Usage:
 In order to run the testing scripts or any other desired script within this repository, ensure first that you have cloned this repository with:
 ```
 git clone https://github.com/zzzNathan/Chess-Engine.git
