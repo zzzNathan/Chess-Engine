@@ -34,7 +34,7 @@ class Move():
 
 # Class for storing all gamestate variables in one place
 class GameState():
-
+    
     # Initialises bitboards representing the game
     def InitBoards(self):
         # White pieces
@@ -114,6 +114,7 @@ class GameState():
 
         self.InitBoards()
         self.Parse_FEN( Pos )
+        self.Game_Update()
     
     # Adds piece to bitboard
     def AddPiece(self,piece,square):
@@ -200,6 +201,10 @@ class GameState():
         Name = Ascii_To_Name[ Piece ]
         setattr( self,Name,Board )
 
+        # Record previous move and board state
+        self.PreviousPositions.append( self )
+        self.PreviousMoves.append( move )
+
     # Updates all the GameState varibles
     def Game_Update(self):
         
@@ -210,6 +215,7 @@ class GameState():
         self.WhiteCheckMask = Is_Check('w', self)
         self.BlackCheckMask = Is_Check('b', self)
 
+        # Check for any en passant squares
 
 # Determines whether there is a check or not if so returns a bitboard of the attacking ray
 # (Used in legal move generation)
@@ -238,17 +244,21 @@ def Is_Check(col:str, Game:GameState):
 
     # Checking for enemy knight attacks
     if EnemyKnight: masks.append( EnemyKnight )
+    
+    # The occupancy bitboard must not have the bit where the king is set to one otherwise the
+    # algorithm for  slider piece move generation doesn't return any moves
+    Occupancy = Game.AllPieces ^ KingBoard
 
     # Checking for enemy bishop attacks
-    Checking_Piece = (Compute_Bishop_attacks( KingBoard,Game.AllPieces ) & Ascii_To_Board(Game,EnemyBishop))
+    Checking_Piece = (Compute_Bishop_attacks( KingBoard,Occupancy ) & Ascii_To_Board(Game,EnemyBishop))
     if Checking_Piece: masks.append( Build_Ray( Checking_Piece,KingBoard ) ^ KingBoard )
 
     # Checking for enemy rook attacks
-    Checking_Piece =  (Compute_Rook_attacks( KingBoard,Game.AllPieces ) & Ascii_To_Board(Game,EnemyRook))
+    Checking_Piece =  (Compute_Rook_attacks( KingBoard,Occupancy ) & Ascii_To_Board(Game,EnemyRook))
     if Checking_Piece: masks.append( Build_Ray( Checking_Piece,KingBoard ) ^ KingBoard )
 
     # Checking for enemy queen attacks
-    Checking_Piece = (Compute_Queen_attacks( KingBoard,Game.AllPieces ) & Ascii_To_Board(Game,EnemyQueen))
+    Checking_Piece = (Compute_Queen_attacks( KingBoard,Occupancy ) & Ascii_To_Board(Game,EnemyQueen))
     if Checking_Piece: masks.append( Build_Ray( Checking_Piece,KingBoard ) ^ KingBoard )
 
     # Return False if there is no check
@@ -370,5 +380,6 @@ def Fen_to_GameState(fen:str) -> GameState:
     
     # Creates a copy of the starting position then parses the custom fen
     New_Game = deepcopy(STARTING_GAME)
+    New_Game.InitBoards()
     New_Game.Parse_FEN(fen)
     return New_Game

@@ -20,6 +20,10 @@ Ascii_To_Name = {'P':'WhitePawn', 'p':'BlackPawn', 'N':'WhiteKnight', 'n':'Black
 # Presents the board with all bitboards combined
 def Show_Board(Game:GameState) -> str:
     Board = []
+    
+    # Each rank must be reversed to show board correctly (because of reverse little-endian mapping)
+    Reverse_Str = lambda s:s[::-1]
+
     # Iterates over board ranks
     for rank in range(7,-1,-1):
         result = ''
@@ -43,7 +47,7 @@ def Show_Board(Game:GameState) -> str:
             else: result = f'. {result}'
 
         # Add this rank to the board with the number on the beginning
-        result = f'{rank+1}| {result}'
+        result = f'{rank+1}| {Reverse_Str(result)}'
 
         # Add to Board
         Board.append(result)

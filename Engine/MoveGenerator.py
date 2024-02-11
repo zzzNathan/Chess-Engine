@@ -101,15 +101,15 @@ def Find_Move_Table(Game:GameState, char:str) -> Callable:
 
     # Bishops
     if char == 'B': 
-        return lambda bitboard : Compute_Bishop_attacks(bitboard,Game.AllPieces) 
+        return lambda bitboard : Compute_Bishop_attacks(bitboard, Game.AllPieces^bitboard) 
     
     # Rooks
     if char == 'R':
-        return lambda bitboard : Compute_Rook_attacks(bitboard,Game.AllPieces)
+        return lambda bitboard : Compute_Rook_attacks(bitboard,Game.AllPieces^bitboard)
     
     # Queens
     if char == 'Q':
-        return lambda bitboard : Compute_Queen_attacks(bitboard,Game.AllPieces)
+        return lambda bitboard : Compute_Queen_attacks(bitboard,Game.AllPieces^bitboard)
 
 # Take in a given piece bitboard and generate all pseudo-legal moves
 # (For all pieces except pawns and king)
@@ -125,7 +125,7 @@ def Gen_Pseudo_legal_Moves(Game:GameState, board:i64, char:str) -> list[Move]:
 
     # Gets location of all friendly pieces
     FriendlyAll = Game.WhiteAll if (White) else Game.BlackAll
-    #print(FriendlyAll)
+
     # Iterate through all pieces on the board
     while board:
 
