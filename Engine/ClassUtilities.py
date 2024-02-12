@@ -38,30 +38,33 @@ class GameState():
     # Initialises bitboards representing the game
     def InitBoards(self):
         # White pieces
-        self.WhitePawn   = i64(0)
-        self.WhiteKnight = i64(0)
-        self.WhiteBishop = i64(0)
-        self.WhiteRook   = i64(0)
-        self.WhiteQueen  = i64(0)
-        self.WhiteKing   = i64(0)
+        self.WhitePawn   = NoBits
+        self.WhiteKnight = NoBits
+        self.WhiteBishop = NoBits
+        self.WhiteRook   = NoBits
+        self.WhiteQueen  = NoBits
+        self.WhiteKing   = NoBits
         # Black pieces
-        self.BlackPawn   = i64(0)
-        self.BlackKnight = i64(0)
-        self.BlackBishop = i64(0)
-        self.BlackRook   = i64(0)
-        self.BlackQueen  = i64(0)
-        self.BlackKing   = i64(0)
+        self.BlackPawn   = NoBits
+        self.BlackKnight = NoBits
+        self.BlackBishop = NoBits
+        self.BlackRook   = NoBits
+        self.BlackQueen  = NoBits
+        self.BlackKing   = NoBits
+        # Names of attributes
+        self.WhitePieceNames = ['WhitePawn', 'WhiteKnight', 'WhiteBishop', 'WhiteRook',
+                                'WhiteQueen', 'WhiteKing']
+        self.BlackPieceNames = ['BlackPawn', 'BlackKnight', 'BlackBishop', 'BlackRook',
+                                'BlackQueen', 'BlackKing']
     
     # (The decorator @property allows this attribute to automatically update when one of the attributes in the list changes)
     # Piece combinations 
     @property
     def WhiteAll(self): 
         return (self.WhitePawn | self.WhiteKnight | self.WhiteBishop | self.WhiteRook | self.WhiteQueen | self.WhiteKing)
-
     @property
     def BlackAll(self):
         return (self.BlackPawn | self.BlackKnight | self.BlackBishop | self.BlackRook | self.BlackQueen | self.BlackKing)
-
     @property
     def AllPieces(self): return (self.WhiteAll | self.BlackAll)
 
@@ -69,48 +72,42 @@ class GameState():
     @property
     def WhitePieces(self):
         return [self.WhitePawn, self.WhiteKnight, self.WhiteBishop, self.WhiteRook, self.WhiteQueen, self.WhiteKing]
-
     @property
     def BlackPieces(self):
         return [self.BlackPawn, self.BlackKnight, self.BlackBishop, self.BlackRook, self.BlackQueen, self.BlackKing]
-
     @property
     def Pieces(self): return [*self.WhitePieces, *self.BlackPieces]
 
     # Initialising all attributes for the game
     def __init__(self,side:str,Pos:str,EnPassant:str|None,CastleRights:i8,HalfMove:int,FullMove:int):
-        # Either 'w' or 'b' , signifying white or black respectively
-        self.Side_To_Move    = side
-
-        # Fen string with normal FEN-notation https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
-        self.FEN             = Pos
-
-        # Stored as a string of the referenced square (e.g. 'e4')
-        self.En_Passant      = EnPassant
-
-        # 4-bit binary number (First 2 bits are white's queenside and kingside castle rights respectively)
-        #                     (Last 2 bits are black's queenside and kingside castle rights respectively) 
-        self.Castle_Rights   = CastleRights
-
-        # The number of halfmoves since the last capture or pawn advance, used for the fifty-move rule.
-        self.Half_Move_Clock = HalfMove
-
-        # The number of the full moves. It starts at 1 and is incremented after Black's move
-        self.Full_Move_Clock = FullMove
-
-        # A mask containing the attack rays of any checks on the white king
-        self.WhiteCheckMask  = AllBits
-
-        # A mask containing the attack rays of any checks on the black king
-        self.BlackCheckMask = AllBits
-
-        # A dictionary mapping bitboard squares to their relevant attack rays if this piece is pinned
-        # (Pinned pieces can only move along the attack ray)
-        self.Pins           = {}
         
-        # Lists to hold previous positons and moves respectively
+        # Explanation of all attributes
+        # ------------------------------
+        # Side_To_Move:  Either 'w' or 'b' , signifying white or black respectively
+        # FEN:  Fen string with normal FEN-notation 
+        # En_Passant:  A target en-passant square stored as a string of the referenced square (e.g. 'e4')
+        # Castle_Rights:  4-bit binary number (First 2 bits are white's queenside and kingside castle rights respectively)
+        #                                     (Last 2 bits are black's queenside and kingside castle rights respectively) 
+        # Half_Move_Clock:  The number of halfmoves since the last capture or pawn advance, used for the fifty-move rule.
+        # Full_Move_Clock:  The number of the full moves. It starts at 1 and is incremented after Black's move
+        # WhiteCheckMask:  A mask containing the attack rays of any checks on the white king
+        # BlackCheckMask:  A mask containing the attack rays of any checks on the black king
+        # Pins:  A dictionary mapping bitboard squares to their relevant attack rays if this piece is pinned
+        #        (Pinned pieces can only move along the attack ray)
+        # PreviousPositions:  List of previous board states
+        # PreviousMoves:  List of previous moves
+
+        self.Side_To_Move      = side
+        self.FEN               = Pos
+        self.En_Passant        = EnPassant
+        self.Castle_Rights     = CastleRights
+        self.Half_Move_Clock   = HalfMove
+        self.Full_Move_Clock   = FullMove
+        self.WhiteCheckMask    = AllBits
+        self.BlackCheckMask    = AllBits 
+        self.Pins              = {}
         self.PreviousPositions = []
-        self.PreviousMoves = []
+        self.PreviousMoves     = []
 
         self.InitBoards()
         self.Parse_FEN( Pos )
@@ -119,17 +116,11 @@ class GameState():
     # Adds piece to bitboard
     def AddPiece(self,piece,square):
 
-        # Get name of board's variable
-        Name = Ascii_To_Name[ piece ]
-
-        # Get board to add piece to 
-        Board  = Ascii_To_Board( self,piece )
-
-        # Add piece to board
-        Board = Set_bit( Board,square )
+        # Get board then add piece to board
+        Board = Set_bit( Ascii_To_Board(self,piece),square )
 
         # Update board attribute
-        setattr( self,Name,Board )
+        setattr( self, Ascii_To_Name[ piece ], Board )
 
     def Initialise_GameState_Variables(self,fen:str, Side:str, En_Passant:str|None, Half_Move:int, Full_Move:int, Castle:str):
         
@@ -141,14 +132,10 @@ class GameState():
         self.Half_Move_Clock = Half_Move
         self.Full_Move_Clock = Full_Move
         if Castle == '-': return
-        for letter in Castle:
-            match letter:
-                 
-                case 'K': self.Castle_Rights != W_KingSide
-                case 'Q': self.Castle_Rights |= W_QueenSide
-                case 'k': self.Castle_Rights |= B_KingSide
-                case 'q': self.Castle_Rights |= B_QueenSide
+        Get_Rights = {'K':W_KingSide, 'Q':W_QueenSide, 'k':B_KingSide, 'q':B_QueenSide}
 
+        for letter in Castle: self.Castle_Rights |= Get_Rights[letter]
+            
     # Takes a Forsyth-edwards notation string and prints the relevant game state
     def Parse_FEN(self,fen:str):
         # Separate fen into separate strings based on what information they have
@@ -177,29 +164,23 @@ class GameState():
     # Plays a given move onto the board
     def Make_Move(self,move:Move):
 
-        # Get side to move
-        Colour = move.Side
-
-        # Gets correct piece representation
-        Piece = move.Piece
-
         # Get source and target bitboards
         Source = i64( 2**move.Source )
         Target = i64( 2**move.Target )
         
         # Handle castling moves
-        if move.Castle == True: Make_Castle( self,Source,Target,Colour )
+        if move.Castle == True: 
+            Make_Castle( self,Source,Target,move.Side )
+            return
 
         # Handle captures
-        if move.Capture == True: Make_Capture( self,Target,Colour )
+        if move.Capture == True: Make_Capture( self,Target,move.Side )
 
-        # Update actual bitboard
-        Board  = Ascii_To_Board( self,Piece )
-        Board ^= ( Source | Target )
+        # Update actual bitboard                   Removes ↓  //  ↓ Adds 
+        Board  = Ascii_To_Board( self,move.Piece ) ^ ( Source | Target )
 
         # Update the attribute to the new bitboard
-        Name = Ascii_To_Name[ Piece ]
-        setattr( self,Name,Board )
+        setattr( self, Ascii_To_Name[move.Piece], Board )
 
         # Record previous move and board state
         self.PreviousPositions.append( self )
@@ -223,53 +204,45 @@ def Is_Check(col:str, Game:GameState):
     # Will store rays or locations of checking pieces
     masks = []
 
-    # Shorthand for colour checks 
-    Colour = True if col == 'w' else False
-    
     # Select correct king bitboard
-    KingBoard  = Game.WhiteKing if Colour else Game.BlackKing
+    KingBoard  = Game.WhiteKing if (col=='w') else Game.BlackKing
     KingSquare = GetIndex(KingBoard) 
 
     # Get enemy pieces
-    EnemyBishop = 'b' if Colour else 'B'
-    EnemyRook   = 'r' if Colour else 'R'
-    EnemyQueen  = 'q' if Colour else 'Q'
-    EnemyPawn   = ( (WHITE_PAWN_ATKS[ KingSquare ] & Game.BlackPawn) if Colour else 
+    EnemyBishop = 'b' if (col=='w') else 'B'
+    EnemyRook   = 'r' if (col=='w') else 'R'
+    EnemyQueen  = 'q' if (col=='w') else 'Q'
+    EnemyPawn   = ( (WHITE_PAWN_ATKS[ KingSquare ] & Game.BlackPawn) if (col=='w') else 
                     (BLACK_PAWN_ATKS[ KingSquare ] & Game.WhitePawn) )
-    EnemyKnight = ( (KNIGHT_MOVES[ KingSquare ] & Game.BlackKnight) if Colour else 
+    EnemyKnight = ( (KNIGHT_MOVES[ KingSquare ] & Game.BlackKnight) if (col=='w') else 
                     (KNIGHT_MOVES[ KingSquare ] & Game.WhiteKnight) )
 
-    # Checking for enemy pawn attacks
-    if EnemyPawn: masks.append( EnemyPawn )
-
-    # Checking for enemy knight attacks
+    # Checking for enemy pawn and knight attacks
+    if EnemyPawn:   masks.append( EnemyPawn )
     if EnemyKnight: masks.append( EnemyKnight )
     
     # The occupancy bitboard must not have the bit where the king is set to one otherwise the
-    # algorithm for  slider piece move generation doesn't return any moves
+    # algorithm for slider piece move generation doesn't return any moves
     Occupancy = Game.AllPieces ^ KingBoard
 
     # Checking for enemy bishop attacks
-    Checking_Piece = (Compute_Bishop_attacks( KingBoard,Occupancy ) & Ascii_To_Board(Game,EnemyBishop))
-    if Checking_Piece: masks.append( Build_Ray( Checking_Piece,KingBoard ) ^ KingBoard )
+    Checking_Piece = (Compute_Bishop_attacks(KingBoard, Occupancy) & Ascii_To_Board(Game,EnemyBishop))
+    if Checking_Piece: masks.append( Build_Ray(Checking_Piece,KingBoard) ^ KingBoard )
 
     # Checking for enemy rook attacks
-    Checking_Piece =  (Compute_Rook_attacks( KingBoard,Occupancy ) & Ascii_To_Board(Game,EnemyRook))
-    if Checking_Piece: masks.append( Build_Ray( Checking_Piece,KingBoard ) ^ KingBoard )
+    Checking_Piece =  (Compute_Rook_attacks(KingBoard, Occupancy) & Ascii_To_Board(Game,EnemyRook))
+    if Checking_Piece: masks.append( Build_Ray(Checking_Piece,KingBoard) ^ KingBoard )
 
     # Checking for enemy queen attacks
-    Checking_Piece = (Compute_Queen_attacks( KingBoard,Occupancy ) & Ascii_To_Board(Game,EnemyQueen))
-    if Checking_Piece: masks.append( Build_Ray( Checking_Piece,KingBoard ) ^ KingBoard )
+    Checking_Piece = (Compute_Queen_attacks(KingBoard, Occupancy) & Ascii_To_Board(Game,EnemyQueen))
+    if Checking_Piece: masks.append( Build_Ray(Checking_Piece,KingBoard) ^ KingBoard )
 
     # Return False if there is no check
     if len(masks) == 0: return False
-
-    # Return the singular masks if one piece is checking
-    if len(masks) == 1: return masks[0]
-
-    # Return the string "Double" to signify multiple piece are checking the king
-    if len(masks) > 1: return 'Double'
-
+    
+    # Return the mask if only one piece is checking otherwise return string: "Double"
+    return masks[0] if (len(masks)==0) else 'Double'
+    
 # Returns a dictionary mapping the bitboards of pinned pieces to their relevant filters,
 # filters are the attacking rays of the attacker, (pinned pieces may only move along this ray or capture said piece)
 def Get_Pinned_Pieces(col:str, Game:GameState) -> dict:
@@ -281,7 +254,6 @@ def Get_Pinned_Pieces(col:str, Game:GameState) -> dict:
     EnemyQueen   = Game.BlackQueen  if col == 'w' else Game.WhiteQueen
     EnemyRook    = Game.BlackRook   if col == 'w' else Game.WhiteRook
     EnemyBishop  = Game.BlackBishop if col == 'w' else Game.WhiteBishop
-
 
     # Get location of all enemy slider pieces aligned with our king
     Pinners = ( 
@@ -299,11 +271,8 @@ def Get_Pinned_Pieces(col:str, Game:GameState) -> dict:
         # Gets potentially pinning piece
         Attacker = Get_LSB( Pinners )
 
-        # Build the ray that joins the King and the potential pinner
-        Ray = Build_Ray( FriendlyKing, Attacker ) ^ FriendlyKing # (Removes bit on the king)
-
-        # Gets potentially pinned piece
-        Pinned = FriendlyAll & Ray
+        # Finds potentially pinned piece, || ↓(Removes king bit) || lying on ray joining king and attacker  
+        Pinned = FriendlyAll      &      Delete_bit(Build_Ray(FriendlyKing, Attacker), GetIndex(FriendlyKing))
 
         # Note that if there is more than 1 bit this isn't a pin 
         # because either piece may move without leaving the king in check
@@ -322,40 +291,48 @@ def Get_Pinned_Pieces(col:str, Game:GameState) -> dict:
            
 # Plays a castling move onto the game board
 def Make_Castle(Game:GameState, Source:i64, Target:i64, Colour:str):
-    # Get correct king bitboard
+    
+    # Get correct king and rook bitboards
     King = Game.WhiteKing if Colour == 'w' else Game.BlackKing
-
-    # Get correct rook bitboard
     Rook = Game.WhiteRook if Colour == 'w' else Game.BlackRook
 
     # True if the king moves to the right
     Right = True if (Target < Source) else False
 
-    # Move king
+    # Move king to correct square
     King ^= ( Source | Target )
+    
+    # Move rook to correct square
+    if Colour=='w':  Rook ^= (SquareH1|SquareF1) if (Right) else (SquareA1|SquareD1)
+    #                         Current -> Target        ///        Current -> Target
 
-    # Move rook
-    if Right:
-        if Colour == 'w': Rook ^= ( SquareH1 | SquareF1 )
-        else:             Rook ^= ( SquareH8 | SquareF8 )
-    else:
-        if Colour == 'w': Rook ^= ( SquareA1 | SquareD1 )
-        else:             Rook ^= ( SquareA8 | SquareD8 )
+    else:            Rook ^= (SquareH8|SquareF8) if (Right) else (SquareA8|SquareD8)
+    #                         Current -> Target        ///        Current -> Target
 
+    # Set correct attributes
+    if Colour == 'w':
+        setattr(Game, 'WhiteKing', King)
+        setattr(Game, 'WhiteRook', Rook)
+    else: 
+        setattr(Game, 'BlackKing', King)
+        setattr(Game, 'BlackRook', Rook)
+    
 # Plays a capture onto the game board
-def Make_Capture(Game:GameState, Target:i64, Colour:str):
+def Make_Capture(Game:GameState, Target:i64, Colour:str) -> None:
 
-    # Gets the list of enemy bitboards
-    EnemyBoards = Game.BlackPieces if Colour == 'w' else Game.WhitePieces
+    # Gets the list of the names of enemy bitboards
+    EnemyBoardNames = Game.BlackPieceNames if (Colour == 'w') else Game.WhitePieceNames
 
     # Iterate through enemy bitboards until we find the correct one
-    for EnemyPiece in EnemyBoards:
+    for PieceName in EnemyBoardNames:
 
+        EnemyBoard = vars(Game)[PieceName]
+        
         # If this enemy bitboard contains the piece we captured
-        if Remove := (EnemyPiece & Target): 
-
-            # Remove this piece from the board
-            EnemyPiece ^= Remove
+        if Remove := (EnemyBoard & Target): 
+            
+            EnemyBoard = Delete_bit(EnemyBoard, GetIndex(Remove))
+            setattr(Game, PieceName, EnemyBoard)
             break
 
 # Takes in an ascii representation and returns relevant bitboard
@@ -368,18 +345,3 @@ def Ascii_To_Board(Game:GameState, piece:str) -> i64:
 
     # Return the board that was required
     return Char_To_Board[ piece ]
-
-# Checks whether the given square bitboard is obstructed by any piece
-def Is_Obstructed(Game:GameState,bitboard:i64): return Game.AllPieces & bitboard
-
-STARTING_FEN  = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-STARTING_GAME = GameState('w',STARTING_FEN,None,i8(0b1111),0,1)
-
-# Takes a fen string and creates a gamestate object from it
-def Fen_to_GameState(fen:str) -> GameState:
-    
-    # Creates a copy of the starting position then parses the custom fen
-    New_Game = deepcopy(STARTING_GAME)
-    New_Game.InitBoards()
-    New_Game.Parse_FEN(fen)
-    return New_Game

@@ -12,11 +12,6 @@ from Engine.BitMacros          import *
 i64 = np.uint64
 i8  = np.uint8  
 
-# Helper dictionary that maps piece ascii codes to their human readable names
-Ascii_To_Name = {'P':'WhitePawn', 'p':'BlackPawn', 'N':'WhiteKnight', 'n':'BlackKnight',
-                 'B':'WhiteBishop', 'b':'BlackBishop', 'R':'WhiteRook', 'r':'BlackRook',
-                 'Q':'WhiteQueen', 'q':'BlackQueen', 'K':'WhiteKing', 'k':'BlackKing'}
-
 # Presents the board with all bitboards combined
 def Show_Board(Game:GameState) -> str:
     Board = []
@@ -211,3 +206,18 @@ def Move_To_UCI(move:Move) -> str:
     Promotion    = move.Promotion if move.Promotion != False else ''
 
     return f'{StartSquare}{TargetSquare}{Promotion}'
+
+# Checks whether the given square bitboard is obstructed by any piece
+def Is_Obstructed(Game:GameState,bitboard:i64): return Game.AllPieces & bitboard
+
+# Takes a fen string and creates a gamestate object from it
+def Fen_to_GameState(fen:str) -> GameState:
+    
+    # Creates a copy of the starting position then parses the custom fen
+    New_Game = deepcopy(STARTING_GAME)
+    New_Game.InitBoards()
+    New_Game.Parse_FEN(fen)
+    return New_Game
+
+STARTING_FEN  = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+STARTING_GAME = GameState('w',STARTING_FEN,None,i8(0b1111),0,1)
