@@ -33,6 +33,7 @@ without a '.py' extension. Example: `python -m Tests.Legal_Moves`
 .
 ├── Engine
 │   ├── BitMacros.py
+│   ├── Build_Ray.py
 │   ├── ClassUtilities.py
 │   ├── ConstantsAndTables.py
 │   ├── Evaluation.py
@@ -40,14 +41,15 @@ without a '.py' extension. Example: `python -m Tests.Legal_Moves`
 │   ├── PieceSquareTables.py
 │   ├── Search.py
 │   ├── Utilities.py
-│   ├── __init__.py
+│   └── __init__.py 
 │
 ├── README.md
 │
-├── Tests
-│   ├── Legal_Moves.py
-│   ├──_init__.py
-└── __init__.py
+└── Tests
+    ├── Legal_Moves.py
+    ├── PGN_Game_Files
+    │   └── tatamast24.pgn
+    └── __init__.py
 ```
 
 May re-write in a faster language like c++ in the future.
