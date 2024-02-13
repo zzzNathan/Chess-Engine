@@ -4,7 +4,6 @@
 #\*******************************************/
 
 import numpy as np
-from copy import deepcopy
 from Engine.ConstantsAndTables import *
 from Engine.BitMacros          import *
 
@@ -254,7 +253,7 @@ def Get_Pinned_Pieces(col:str, Game:GameState) -> dict:
     EnemyQueen   = Game.BlackQueen  if col == 'w' else Game.WhiteQueen
     EnemyRook    = Game.BlackRook   if col == 'w' else Game.WhiteRook
     EnemyBishop  = Game.BlackBishop if col == 'w' else Game.WhiteBishop
-
+    
     # Get location of all enemy slider pieces aligned with our king
     Pinners = ( 
 
@@ -264,7 +263,7 @@ def Get_Pinned_Pieces(col:str, Game:GameState) -> dict:
         # Enemy pieces on bishop rays (diagonal / anti-diagonal)
         ( Compute_Bishop_attacks( FriendlyKing, NoBits ) & ( EnemyQueen | EnemyBishop ) ) 
               )
-    
+
     # Iterate through all potential pinners and check if a pinned piece is on this ray
     while Pinners:
 

@@ -2,8 +2,9 @@
 #             B I T   M A C R O S      
 #             - - -   - - - - - - 
 #\********************************************/
-from textwrap           import wrap
+from textwrap                  import wrap
 from Engine.ConstantsAndTables import *
+from Engine.Build_Ray          import Build_Ray 
 import numpy as np
 from math import log2
 
@@ -72,18 +73,47 @@ def Show_bitboard(bb:i64) -> str:
 # we can get n simply by taking logarithm base 2 of the bitboard given
 def Board_To_Square(bb:i64) -> int: return int(log2(bb))
 
-# Builds an attacking ray between 2 squares if the 2 squares are in line 
-# horizontally, vertically or diagonally (Used in Is_Check function)
-# could potentially be precomputed should only be 64^2 of mem
+'''
+# The following is the code used to generate the file "Build_Ray.py"
 def Build_Ray(Square1:i64, Square2:i64) -> i64:
+    
+    if Square1 == Square2: return Square1
+    # Pre-computed by searching for the other square in all 8 directions
+    moves = [8, -1, -8, 1, 7, -9, -7, 9]
+    def edge(dir, square):
+        if square % 8 == 0 and dir==7: return False
+        if square % 8 == 0 and dir==-9: return False
+        if square % 8 == 0 and dir==-1: return False
 
-    # Empty board for generating ray attacks without obstructions
-    Empty = i64(0)
+        if 56 <= square <= 63 and dir==7: return False
+        if 56 <= square <= 63 and dir==9: return False
+        if 56 <= square <= 63 and dir==8: return False
 
-    # The bits where 2 rays intersect will be kept by the 'AND (&)' and everything else will become 0
-    Ray = Compute_Queen_attacks( Square1,Empty ) & Compute_Queen_attacks( Square2,Empty )
+        if square in set([7,15,23,31,39,47,55,63]) and dir==1: return False
+        if square in set([7,15,23,31,39,47,55,63]) and dir==9: return False
+        if square in set([7,15,23,31,39,47,55,63]) and dir==-7: return False
 
-    # Add both source squares to the ray
-    Ray |= (Square1 | Square2)
+        if 0<=square<=7 and dir==-8: return False
+        if 0<=square<=7 and dir==-9: return False
+        if 0<=square<=7 and dir==-7: return False
+        return True
 
-    return Ray
+    for direction in moves:
+        loc = Square1
+        trail = [loc]
+        while 1:
+            if edge(direction, loc): loc += direction
+            else: break
+            trail.append(loc)
+            if loc == Square2:
+                bb = i64(0)
+                for sq in trail: bb |= i64(2**sq)
+                return bb
+    return i64(0)
+
+if __name__ == '__main__':
+    memo = {}
+    for sq1 in range(0,64):
+        for sq2 in range(0,64):
+            if sq1!=sq2: memo[ frozenset([sq1,sq2]) ] = Build_Ray(sq1, sq2)
+    print( memo )'''

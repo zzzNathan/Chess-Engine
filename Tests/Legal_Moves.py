@@ -106,8 +106,10 @@ if __name__ == "__main__":
     # - Same bug as before but just making the fix in the move generator file
 
     # r1bqk2r/pppn1p2/5n1p/3p2p1/1b1P3B/2N1PN2/PP3PPP/R2QKB1R w KQkq - 0 9
-    # - Get pinned pieces function is broken
-   
+    # - Get pinned pieces function is broken, error was in ray building,
+    # ended up precomputing the ~2000 possible inputs for a space/time tradeoff, (at least its correct now)
+    
+    '''
     # For debugging:
     bugfen = r'r1bqk2r/pppn1p2/5n1p/3p2p1/1b1P3B/2N1PN2/PP3PPP/R2QKB1R w KQkq - 0 9'
     
@@ -123,4 +125,4 @@ if __name__ == "__main__":
     
     print('-'*20)
     print( Show_Board(bd) ) 
-    print( bd.Pins, Get_Pinned_Pieces('w',bd) )
+    print( bd.Pins, Get_Pinned_Pieces('w',bd) ) '''

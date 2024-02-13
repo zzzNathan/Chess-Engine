@@ -3,6 +3,7 @@
 #      - - - - - - -  - - - - - - - - -
 #\*******************************************/
 import numpy as np
+from copy import deepcopy
 from Engine.ConstantsAndTables import *
 from Engine.ClassUtilities     import *
 from Engine.PieceSquareTables  import *
@@ -217,6 +218,7 @@ def Fen_to_GameState(fen:str) -> GameState:
     New_Game = deepcopy(STARTING_GAME)
     New_Game.InitBoards()
     New_Game.Parse_FEN(fen)
+    New_Game.Game_Update()
     return New_Game
 
 STARTING_FEN  = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
