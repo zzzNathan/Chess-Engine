@@ -18,7 +18,7 @@ def Show_Board(Game:GameState) -> str:
     Board = []
     
     # Each rank must be reversed to show board correctly (because of reverse little-endian mapping)
-    Reverse_Str = lambda s:s[::-1]
+    Reverse_Str = lambda s:s[::-1][1:]
 
     # Iterates over board ranks
     for rank in range(7,-1,-1):

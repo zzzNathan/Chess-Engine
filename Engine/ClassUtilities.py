@@ -236,8 +236,8 @@ def Is_Check(col:str, Game:GameState):
     Checking_Piece = (Compute_Queen_attacks(KingBoard, Occupancy) & Ascii_To_Board(Game,EnemyQueen))
     if Checking_Piece: masks.append( Build_Ray(Checking_Piece,KingBoard) ^ KingBoard )
 
-    # Return False if there is no check
-    if len(masks) == 0: return False
+    # Return Allbits if there is no check, to allow all moves
+    if len(masks) == 0: return AllBits
     
     # Return the mask if only one piece is checking otherwise return string: "Double"
     return masks[0] if (len(masks)==0) else 'Double'

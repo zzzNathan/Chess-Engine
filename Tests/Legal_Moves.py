@@ -108,10 +108,15 @@ if __name__ == "__main__":
     # r1bqk2r/pppn1p2/5n1p/3p2p1/1b1P3B/2N1PN2/PP3PPP/R2QKB1R w KQkq - 0 9
     # - Get pinned pieces function is broken, error was in ray building,
     # ended up precomputing the ~2000 possible inputs for a space/time tradeoff, (at least its correct now)
+   
+    # r2q1rk1/ppp1bppp/2n2n2/2Pp3b/3P4/3BBN1P/PP1N1PP1/R2Q1RK1 b - - 4 11
+    # - Pawns can jump over other pieces, fixed obstruction checks for pawns 
+
+    # 2kr1b1r/1p3p1p/p7/5p2/8/4P1N1/PPn2PPP/R1B1K2R w KQ - 2 19
+    # - King is still able to caste during check added better conditions to check for castles
     
-    '''
     # For debugging:
-    bugfen = r'r1bqk2r/pppn1p2/5n1p/3p2p1/1b1P3B/2N1PN2/PP3PPP/R2QKB1R w KQkq - 0 9'
+    bugfen = r'2kr1b1r/1p3p1p/p7/5p2/8/4P1N1/PPn2PPP/R1B1K2R w KQ - 2 19'
     
     valid = chess.Board()
     valid.set_fen( bugfen )
@@ -125,4 +130,3 @@ if __name__ == "__main__":
     
     print('-'*20)
     print( Show_Board(bd) ) 
-    print( bd.Pins, Get_Pinned_Pieces('w',bd) ) '''
