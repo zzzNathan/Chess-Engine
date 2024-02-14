@@ -3,11 +3,8 @@
 #   - - - -  - - - - - - - - - -  - - - - -      
 #\*******************************************/
 
-# The following code aims to test if the file
+# The following code aims to test if the file 
 # "MoveGenerator.py" generates legal, playable moves
-
-# https://chess.stackexchange.com/questions/40089/uniformly-generate-random-chess-positions
-
 from Engine.MoveGenerator import *
 import chess
 import chess.pgn
@@ -16,8 +13,7 @@ import os
 LOCAL_DIR = os.path.dirname(__file__)
 TATA_STEEL_MASTERS_86TH = os.path.join(LOCAL_DIR ,r'PGN_Game_Files/tatamast24.pgn')
 
-# Takes in one chess.pgn.Game and generates fen strings of all
-# uniqe positions
+# Takes in one chess.pgn.Game and generates fen strings of all unique positions
 def Get_Fen_From_Game(Game:chess.pgn.Game) -> set:
     
     fens = set()
@@ -29,34 +25,30 @@ def Get_Fen_From_Game(Game:chess.pgn.Game) -> set:
 
     return fens
 
-# Takes in a PGN file and generates fen strings of all 
-# unique positions
+# Takes in a PGN file and generates fen strings of all unique positions
 def Get_Fen_Strings(file:str) -> list:
     
     fens  = set()
     PGN   = open(file,'r')
     Games = []
-    
+   
     # Parse all games from PGN file
-    while 1:
+    CurrentGame = chess.pgn.read_game(PGN)
+
+    while CurrentGame != None:
+        Games.append( CurrentGame )
         CurrentGame = chess.pgn.read_game(PGN)
-        if CurrentGame == None: break
-        else: Games.append(CurrentGame)
 
     # Iterate over all games and get all unique postions
-    for Board in Games:
-       
-        fens.update( Get_Fen_From_Game(Board) )
+    for Board in Games: fens.update( Get_Fen_From_Game(Board) )
 
     return list( fens )
 
 # Takes in a list of the moves that we have generated and 
-# checks to see if they are also in the moves that our validator 
-# has generated
+# checks to see if they are also in the moves that our validator has generated
 def All_Moves_Valid(Our_Moves:list, Validator_Moves:chess.LegalMoveGenerator) -> bool:
     
-    # Check if all the move we have generator exist in the 
-    # validator's move list
+    # Check if all the move we have generator exist in the validator's move list
     for move in Our_Moves:
         
         # Convert our move object into a PyChess move object
@@ -114,19 +106,34 @@ if __name__ == "__main__":
 
     # 2kr1b1r/1p3p1p/p7/5p2/8/4P1N1/PPn2PPP/R1B1K2R w KQ - 2 19
     # - King is still able to caste during check added better conditions to check for castles
+
+    # rnb1k2r/ppppqppp/4pn2/8/1bPP4/5N2/PP1BPPPP/RN1QKB1R w KQkq - 4 5
+    # - Issues with pinned piece detection where we now have the pin function return all bits
+    # if their is no check instead of False
+
+    # 2rR2k1/1b3p2/p3pn2/1p2n1p1/4P2p/1NN1KP1P/PP2B1P1/2R5 b - - 0 23
+    # Silly bug in Is_Check function, accidentally put a 0 instead of a 1
+
+    # 5r2/8/4Rb1k/4p2P/6B1/4P3/5PK1/8 b - - 6 46
+    # - Can't have king capture a protected piece, related to the occupancy bug where no moves will be generated 
+    # if slider piece itself is part of occupancy
+
+    # 5rn1/5pk1/p5pB/8/1R6/P3N3/5r1P/3B2K1 b - - 0 29
+    # - Some king moves haven't be generated
     
     # For debugging:
-    bugfen = r'2kr1b1r/1p3p1p/p7/5p2/8/4P1N1/PPn2PPP/R1B1K2R w KQ - 2 19'
-    
+    bugfen = r'5rn1/5pk1/p5pB/8/1R6/P3N3/5r1P/3B2K1 b - - 0 29'
     valid = chess.Board()
     valid.set_fen( bugfen )
     valids = [chess.Move.uci(move) for move in valid.legal_moves] 
     
     bd = Fen_to_GameState( bugfen )
-    for move in Generate_Moves( bd, bd.Side_To_Move ):
+    me = [Move_To_UCI(x) for x in Generate_Moves( bd, bd.Side_To_Move )]
+    for move in valids:
 
-        if Move_To_UCI(move) not in valids: print( Move_To_UCI(move) )
+        if move not in me: print(move) 
         #print( Move_To_UCI(move) )
     
     print('-'*20)
-    print( Show_Board(bd) ) 
+    print( Show_Board(bd),sep='\n' ) 
+    print('-'*20) 

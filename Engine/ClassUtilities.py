@@ -240,7 +240,7 @@ def Is_Check(col:str, Game:GameState):
     if len(masks) == 0: return AllBits
     
     # Return the mask if only one piece is checking otherwise return string: "Double"
-    return masks[0] if (len(masks)==0) else 'Double'
+    return masks[0] if (len(masks)==1) else 'Double'
     
 # Returns a dictionary mapping the bitboards of pinned pieces to their relevant filters,
 # filters are the attacking rays of the attacker, (pinned pieces may only move along this ray or capture said piece)
@@ -270,12 +270,14 @@ def Get_Pinned_Pieces(col:str, Game:GameState) -> dict:
         # Gets potentially pinning piece
         Attacker = Get_LSB( Pinners )
 
-        # Finds potentially pinned piece, || ↓(Removes king bit) || lying on ray joining king and attacker  
-        Pinned = FriendlyAll      &      Delete_bit(Build_Ray(FriendlyKing, Attacker), GetIndex(FriendlyKing))
+        # Finds potentially pinned pieces by looking for pieces on the attacking ray
+        Pinned  = Delete_bit( Build_Ray(FriendlyKing, Attacker), GetIndex(FriendlyKing) )
+        Pinned  = Delete_bit( Pinned, GetIndex(Attacker) ) 
+        Pinned &= Game.AllPieces
 
-        # Note that if there is more than 1 bit this isn't a pin 
+        # Note that if there is more than 1 bit this isn't a pin
         # because either piece may move without leaving the king in check
-        if BitCount( Pinned ) == 1: 
+        if BitCount(Pinned) == 1 and (FriendlyAll & Pinned): # Only our colour pieces may be pinned
             
             # Get the attacking ray from pinned piece to the attacker
             Filter = Build_Ray( Pinned, Attacker ) ^ Pinned # (Removes bit on the pinned piece)

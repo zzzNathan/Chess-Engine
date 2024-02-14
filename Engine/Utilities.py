@@ -70,6 +70,8 @@ def Is_square_attacked(SquareNum:int|i64, colour:str, Game:GameState) -> bool:
     Attacking_Queen    = Game.WhiteQueen  if (colour == 'w') else Game.BlackQueen
     Opposite_Pawn_Atks = BLACK_PAWN_ATKS[SquareNum] if (colour == 'w') else WHITE_PAWN_ATKS[SquareNum]
 
+    # If this square's bit is 1 on the all pieces bitboard, we should remove it
+
     # Does a king attack this square?
     if KING_MOVES[SquareNum] & Attacking_King: return True 
 
@@ -79,14 +81,16 @@ def Is_square_attacked(SquareNum:int|i64, colour:str, Game:GameState) -> bool:
     # Does a knight attack this square?
     if KNIGHT_MOVES[SquareNum] & Attacking_Knight: return True
 
+    Occupancy = Game.AllPieces
+    if Game.AllPieces & bitboard: Occupancy ^= bitboard
     # Does a bishop attack this square?
-    if Compute_Bishop_attacks( bitboard, Game.AllPieces ) & Attacking_Bishop: return True
+    if Compute_Bishop_attacks( bitboard, Occupancy ) & Attacking_Bishop: return True
 
     # Does a rook attack this square?
-    if Compute_Rook_attacks( bitboard, Game.AllPieces ) & Attacking_Rook: return True
+    if Compute_Rook_attacks( bitboard, Occupancy ) & Attacking_Rook: return True
 
     # Does a queen attack this square?
-    if Compute_Queen_attacks( bitboard, Game.AllPieces ) & Attacking_Queen: return True
+    if Compute_Queen_attacks( bitboard, Occupancy ) & Attacking_Queen: return True
 
     # Return false if no pieces attack this square
     return False
@@ -223,3 +227,11 @@ def Fen_to_GameState(fen:str) -> GameState:
 
 STARTING_FEN  = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 STARTING_GAME = GameState('w',STARTING_FEN,None,i8(0b1111),0,1)
+
+if __name__ == '__main__':
+
+    ga = Fen_to_GameState(r'5r2/8/4Rb1k/4p2P/6B1/4P3/5PK1/8 b - - 6 46')
+
+    print( Show_Board(ga) )
+    print('-'*20)
+    print( Show_bitboard(All_Attacked_squares('w',ga)) )

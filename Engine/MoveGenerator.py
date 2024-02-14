@@ -37,10 +37,7 @@ def Create_Moves_From_Board(Game:GameState,source:i64,bitboard:i64,col:str,piece
             MoveList.append( Move(col,SourceIndex,TargetIndex,True,False,piece,False) )
 
         # Non-Capture moves
-        else:
-            
-            # Add to movelist
-            MoveList.append( Move(col,SourceIndex,TargetIndex,False,False,piece,False) )
+        else: MoveList.append( Move(col,SourceIndex,TargetIndex,False,False,piece,False) )
 
         # Remove this bit from the board
         bitboard ^= CurrentBB
@@ -58,7 +55,7 @@ def Generate_Filter(Game:GameState, move:Move) -> i64:
     CheckMask = Game.WhiteCheckMask if move.Side == 'w' else Game.BlackCheckMask
 
     # Checks if there is a check on the piece's king
-    if Is_Check(move.Side, Game): return CheckMask
+    if Is_Check(move.Side, Game) != AllBits: return CheckMask
     
     # Checks if this piece is pinned
     if SourceBB in Game.Pins: return Game.Pins[ SourceBB ]
@@ -83,10 +80,9 @@ def Filter_Move(Game:GameState, move:Move) -> Move | bool:
 def Filter_All_Moves(Game:GameState, movelist:list[Move]) -> list[Move]:
     FilteredMoveList = []
 
-    # Iterate through all given moves
+    # Iterate through all given moves and add them to list if they pass the filter
     for move in movelist:
 
-        # If this move passed the filter add it to the list
         if Filter_Move( Game,move ):FilteredMoveList.append(move)
 
     return FilteredMoveList
