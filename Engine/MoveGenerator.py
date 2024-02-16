@@ -377,9 +377,15 @@ def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
 
     # Non-Castling Moves
     # ---------------------------------------------------------------------------
+    
+    IllegalSquares = All_Attacked_squares('b', Game)
+
+    # If the king is in check the attacked squares bitboard includes the location of our king
+    # then the removing of illegal moves will fail
+    if IllegalSquares & board_copy: IllegalSquares = Delete_bit(IllegalSquares, Index)
 
     # Filter out illegal moves (can't move into check / cant capture your own piece)
-    Target ^= (Target & All_Attacked_squares('b',Game)) | (Target & Game.WhiteAll)
+    Target ^= (Target & IllegalSquares) | (Target & Game.WhiteAll)
 
     # Add in all regular moves
     MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'w','K') )
@@ -438,8 +444,13 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
     # Non-Castling Moves
     # ---------------------------------------------------------------------------
 
-    # Filter out illegal moves (can't move into check / cant capture your own piece)
-    Target ^= (Target & All_Attacked_squares('w',Game)) | (Target & Game.BlackAll)
+    IllegalSquares = All_Attacked_squares('w', Game)
+
+    # If the king is in check the attacked squares bitboard includes the location of our king
+    # then the removing of illegal moves will fail
+    if IllegalSquares & board_copy: IllegalSquares = Delete_bit(IllegalSquares, Index)
+
+    Target ^= (Target & IllegalSquares) | (Target & Game.BlackAll)
 
     # Add in all regular moves
     MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'b','k') )
@@ -555,6 +566,12 @@ def Generate_Moves(Game:GameState, col:str) -> list:
     return Filter_All_Moves( Game,MoveList )
 
 # TESTING CODE
+ga = Fen_to_GameState(r'5rn1/5pk1/p5pB/8/1R6/P3N3/5r1P/3B2K1 b - - 0 29')
+print( Show_Board(ga) )
+print('\n\n')
+for move in Generate_Moves(ga, 'b'):
+    print( Move_To_UCI(move) )
+
 '''
 print( len(Generate_Moves(STARTING_GAME,'b') ))
 for move in Generate_Moves(STARTING_GAME,'b'):
