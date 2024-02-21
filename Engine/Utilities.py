@@ -70,8 +70,6 @@ def Is_square_attacked(SquareNum:int|i64, colour:str, Game:GameState) -> bool:
     Attacking_Queen    = Game.WhiteQueen  if (colour == 'w') else Game.BlackQueen
     Opposite_Pawn_Atks = BLACK_PAWN_ATKS[SquareNum] if (colour == 'w') else WHITE_PAWN_ATKS[SquareNum]
 
-    # If this square's bit is 1 on the all pieces bitboard, we should remove it
-
     # Does a king attack this square?
     if KING_MOVES[SquareNum] & Attacking_King: return True 
 
@@ -81,6 +79,7 @@ def Is_square_attacked(SquareNum:int|i64, colour:str, Game:GameState) -> bool:
     # Does a knight attack this square?
     if KNIGHT_MOVES[SquareNum] & Attacking_Knight: return True
 
+    # If this square's bit is 1 on the all pieces bitboard, we should remove it
     Occupancy = Game.AllPieces
     if Game.AllPieces & bitboard: Occupancy ^= bitboard
     # Does a bishop attack this square?

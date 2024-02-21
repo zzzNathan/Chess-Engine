@@ -166,6 +166,8 @@ class GameState():
         # Get source and target bitboards
         Source = i64( 2**move.Source )
         Target = i64( 2**move.Target )
+
+        # Invalidate castling moves if rook or king moves
         
         # Handle castling moves
         if move.Castle == True: 

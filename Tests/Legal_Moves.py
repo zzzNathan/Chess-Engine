@@ -119,21 +119,27 @@ if __name__ == "__main__":
     # if slider piece itself is part of occupancy
 
     # 5rn1/5pk1/p5pB/8/1R6/P3N3/5r1P/3B2K1 b - - 0 29
-    # - Some king moves haven't be generated
+    # - Some king moves haven't be generated, king moves should be ignored 
+    # during filter generation
+
+    # 4r2k/6p1/5q1p/8/2B5/KQ1NR3/5P2/r7 w - - 15 69
+    # - If king is along line of attack from a rook or bishop
+    # it must move off this line
     
     # For debugging:
-    bugfen = r'5rn1/5pk1/p5pB/8/1R6/P3N3/5r1P/3B2K1 b - - 0 29'
+    ''' 
+    bugfen = r'4r2k/6p1/5q1p/8/2B5/KQ1NR3/5P2/r7 w - - 15 69'
     valid = chess.Board()
     valid.set_fen( bugfen )
     valids = [chess.Move.uci(move) for move in valid.legal_moves] 
     
     bd = Fen_to_GameState( bugfen )
     me = [Move_To_UCI(x) for x in Generate_Moves( bd, bd.Side_To_Move )]
-    for move in valids:
+    for move in me:
 
-        if move not in me: print(move) 
-        #print( Move_To_UCI(move) )
+        #if move not in me: print(move) 
+        if move not in valids: print( move )
     
     print('-'*20)
     print( Show_Board(bd),sep='\n' ) 
-    print('-'*20) 
+    print('-'*20)''' 
