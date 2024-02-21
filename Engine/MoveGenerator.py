@@ -446,7 +446,7 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
         # If the checkmask has more than 1 bit this is a check made by a slider piece
         if Game.BlackCheckMask != 'Double' and BitCount(Game.BlackCheckMask) > 1:
             # If a slider piece is checking ensure that we make the squares behind the king illegal to move to
-            CheckingPiece = Game.BlackCheckMask & Game.BlackAll
+            CheckingPiece = Game.BlackCheckMask & Game.WhiteAll
              
             DiagonalCheck = Compute_Bishop_attacks(Source, Game.AllPieces) & (Game.WhiteBishop | Game.WhiteQueen)
 

@@ -82,7 +82,7 @@ def Run_Tests(fens:list) -> None:
     print('All Tests Passed! :)')
         
 if __name__ == "__main__":
-    #Run_Tests( Get_Fen_Strings(TATA_STEEL_MASTERS_86TH) )
+    Run_Tests( Get_Fen_Strings(TATA_STEEL_MASTERS_86TH) )
     
     # List of fen strings that made the tests fail:
     # -----------------------------------------------
