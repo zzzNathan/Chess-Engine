@@ -281,8 +281,8 @@ def Get_Pinned_Pieces(col:str, Game:GameState) -> dict:
         # because either piece may move without leaving the king in check
         if BitCount(Pinned) == 1 and (FriendlyAll & Pinned): # Only our colour pieces may be pinned
             
-            # Get the attacking ray from pinned piece to the attacker
-            Filter = Build_Ray( Pinned, Attacker ) ^ Pinned # (Removes bit on the pinned piece)
+            # Get the attacking ray from king to the attacker
+            Filter = Build_Ray(FriendlyKing, Attacker) ^ FriendlyKing # (Removes bit on the king)
 
             # Map this location to the calculated filter
             Pins[ Pinned ] = Filter

@@ -164,17 +164,17 @@ def GeneratePromotions(Source:i64, Target:i64, col:str, Capture:bool) -> list:
     piece = 'P' if col == 'w' else 'p'
 
     MoveList = []
-    # Adding knight promotion    //    Evaluates to 1 if 'col'='w' (white) otherwise 0 and indexes at this number   
-    MoveList.append( Move(col,SourceIndex,TargetIndex,Capture,False,piece,'nN'[col=='w']) )
+    # Adding knight promotion        
+    MoveList.append( Move(col,SourceIndex,TargetIndex,Capture,False,piece,'n') )
     
-    # Adding bishop promotion    //    Evaluates to 1 if 'col'='w' (white) otherwise 0 and indexes at this number  
-    MoveList.append( Move(col,SourceIndex,TargetIndex,Capture,False,piece,'bB'[col=='w']) )
+    # Adding bishop promotion    
+    MoveList.append( Move(col,SourceIndex,TargetIndex,Capture,False,piece,'b') )
 
-    # Adding rook promotion      //    Evaluates to 1 if 'col'='w' (white) otherwise 0 and indexes at this number  
-    MoveList.append( Move(col,SourceIndex,TargetIndex,Capture,False,piece,'rR'[col=='w']) )
+    # Adding rook promotion      
+    MoveList.append( Move(col,SourceIndex,TargetIndex,Capture,False,piece,'r') )
 
-    # Adding queen promotion     //    Evaluates to 1 if 'col'='w' (white) otherwise 0 and indexes at this number  
-    MoveList.append( Move(col,SourceIndex,TargetIndex,Capture,False,piece,'qQ'[col=='w']) )
+    # Adding queen promotion     
+    MoveList.append( Move(col,SourceIndex,TargetIndex,Capture,False,piece,'q') )
 
     return MoveList
 
@@ -194,16 +194,20 @@ def Generate_White_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
         # -----------------------------------------------------------------------
         Target = i64(0) # Initialise target variable
 
-        # Obstruction check for one square up
-        if not Is_Obstructed( Game,SourceUpOne ):
+        # Obstruction check for one square up / Cannot move without promotion on 7th rank
+        if not Is_Obstructed(Game, SourceUpOne) and not Is_Seventh_Rank(Source):
 
             Target = WHITE_PAWN_MOVES[Index] 
 
             # Obstruction check for two square up              Remove this bit if obstructed
             if Is_Second_Rank(Source) and Is_Obstructed( Game,SourceUpTwo ): Target ^= SourceUpTwo
 
-        # Add these moves to the list
         MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'w','P') )
+
+        # Add all non-capture promotions 
+        if Is_Seventh_Rank(Source) and (not Is_Obstructed(Game,SourceUpOne)):
+
+            MoveList.extend( GeneratePromotions(Source,SourceUpOne,'w',False) )
 
         # Attacking Moves
         # -----------------------------------------------------------------------
@@ -232,19 +236,12 @@ def Generate_White_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
         # Special Moves
         # -----------------------------------------------------------------------
 
-        # Add all non-capture promotions 
-        if Is_Seventh_Rank(Source) and (not Is_Obstructed(Game,SourceUpOne)):
-
-            # Add moves to list
-            MoveList.extend( GeneratePromotions(Source,SourceUpOne,'w',False) )
-
         # Add en passant moves
         if Game.En_Passant != None:
 
             # Get index of en passant square and check if a pawn can capture it
             if BLACK_PAWN_ATKS[ Square_to_index[Game.En_Passant] ] & Source:
 
-                # Add to movelist
                 MoveList.append( Move('w',Index,Square_to_index[Game.En_Passant],True,False,'P',False) )
 
         # Remove this bit from the board
@@ -268,16 +265,20 @@ def Generate_Black_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
         # -----------------------------------------------------------------------
         Target = i64(0) # Initialise target variable
 
-        # Obstruction check for one square up
-        if not Is_Obstructed(Game,SourceUpOne): 
+        # Obstruction check for one square up / Cannot move without promotion on 2nd rank
+        if not Is_Obstructed(Game,SourceUpOne) and (not Is_Second_Rank(Source)): 
 
             Target = BLACK_PAWN_MOVES[Index]
 
             # Obstruction check for two square up             Remove this bit if obstructed ↓
             if Is_Seventh_Rank(Source) and Is_Obstructed(Game,SourceUpTwo): Target ^= SourceUpTwo
 
-        # Add these moves to the list
         MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'b','p') )
+
+        # Add all non-capture promotions 
+        if Is_Second_Rank(Source) and (not Is_Obstructed(Game,SourceUpOne)):
+        
+            MoveList.extend( GeneratePromotions(Source,SourceUpOne,'b',False) )
 
         # Attacking Moves
         # -----------------------------------------------------------------------
@@ -306,19 +307,12 @@ def Generate_Black_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
         # Special Moves
         # -----------------------------------------------------------------------
 
-        # Add all non-capture promotions 
-        if Is_Second_Rank(Source) and (not Is_Obstructed(Game,SourceUpOne)):
-
-            # Add moves to list
-            MoveList.extend( GeneratePromotions(Source,SourceUpOne,'b',False) )
-
         # Add en passant moves
         if Game.En_Passant != None:
 
             # Get index of en passant square and check if a pawn can capture it
             if WHITE_PAWN_ATKS[ Square_to_index[Game.En_Passant] ] & Source:
 
-                # Add to movelist
                 MoveList.append( Move('b',Index,Square_to_index[Game.En_Passant],True,False,'p',False) )    
     
         # Remove this bit from the board
@@ -396,7 +390,7 @@ def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
     # Castles can only take place on E1
     if Source == SquareE1:
         KingRightCastle = (Source >> i64(1)) | (Source >> i64(2)) 
-        KingLeftCastle  = (Source << i64(1)) | (Source << i64(2)) 
+        KingLeftCastle  = (Source << i64(1)) | (Source << i64(2)) | (Source << i64(3))
         
         #     Validate kingside castle rights      //      Verify there are no obstructions
         if ( (Game.Castle_Rights & W_KingSide) and (not Is_Obstructed(Game,KingRightCastle)) and
@@ -444,7 +438,7 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
     # Castles can only take place on E8
     if Source == SquareE8:
         KingRightCastle = (Source >> i64(1)) | (Source >> i64(2)) 
-        KingLeftCastle  = (Source << i64(1)) | (Source << i64(2)) 
+        KingLeftCastle  = (Source << i64(1)) | (Source << i64(2)) | (Source << i64(3))
 
         #     Validate kingside castle rights      //      Verify there are no obstructions
         if ( (Game.Castle_Rights & B_KingSide) and (not Is_Obstructed(Game,KingRightCastle)) and

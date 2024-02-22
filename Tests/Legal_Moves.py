@@ -62,6 +62,7 @@ def All_Moves_Valid(Our_Moves:list, Validator_Moves:chess.LegalMoveGenerator) ->
 # our move generator generates legal and correct moves each time
 def Run_Tests(fens:list) -> None:
     
+    print('Running ...')
     for fen in fens:
         
         # Get both relevant board representations
@@ -128,20 +129,30 @@ if __name__ == "__main__":
 
     # r2qk2r/pp3p2/2pbbn1p/3p3R/3PP1p1/P1NB2P1/1P1NQPP1/R3K3 w Qkq - 1 18
     # - Queenside castle not generating correctly because of a typo
+
+    # rn2k2r/pp2qppp/2n1p3/2PpPb2/8/N4N2/PPP1BPPP/R2Q1RK1 b kq - 1 10
+    # - Queenside castle obstruction is missing a square
+
+    # 4k3/2R5/4p2p/P4PpP/8/3bP3/2p2K2/8 b - - 0 62
+    # - Upon reaching the last rank we must only show promotion moves cant move
+    # to last rank without picking a promo
+
+    # 1R6/5K2/2k5/5P2/8/8/1p6/5r2 w - - 2 78
+    # - Pinmasks should reach the square infront of the king
+
+    # 2r4k/5pbp/6p1/8/PQ3P2/1PNR4/2K3qP/7R w - - 5 32
+    # - Knight is able to move of the pinned ray
     
     # For debugging:
-    bugfen = r'r2qk2r/pp3p2/2pbbn1p/3p3R/3PP1p1/P1NB2P1/1P1NQPP1/R3K3 w Qkq - 1 18'
-    valid = chess.Board()
-    valid.set_fen( bugfen )
+    bugfen = r'2r4k/5pbp/6p1/8/PQ3P2/1PNR4/2K3qP/7R w - - 5 32'
+    valid = chess.Board();valid.set_fen( bugfen )
     valids = [chess.Move.uci(move) for move in valid.legal_moves] 
     
     bd = Fen_to_GameState( bugfen )
     me = [Move_To_UCI(x) for x in Generate_Moves( bd, bd.Side_To_Move )]
-    for move in valids:
+    for move in me:
+        #if move not in me: print(move) 
+        if move not in valids: print( move )
 
-        if move not in me: print(move) 
-        #if move not in valids: print( move )
-    
-    print('-'*20)
-    print( Show_Board(bd),sep='\n' ) 
-    print('-'*20) 
+    print('-'*20,Show_Board(bd),'-'*20,sep='\n' ) 
+    if set(valids)==set(me):print('Fixed :)')
