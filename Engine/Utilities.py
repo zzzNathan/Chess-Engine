@@ -55,7 +55,7 @@ def Show_Board(Game:GameState) -> str:
     return '\n'.join(Board)
   
 # Returns true if square is attacked by given colour
-def Is_square_attacked(SquareNum:int|i64, colour:str, Game:GameState) -> bool:
+def Is_square_attacked(SquareNum:int|i64, colour:str, Game:GameState, RemoveBit:i64|None = None) -> bool:
     # If a bitboard was passed in then change it to a square 
     if type( SquareNum ) == i64: SquareNum = GetIndex( SquareNum )
 
@@ -82,6 +82,8 @@ def Is_square_attacked(SquareNum:int|i64, colour:str, Game:GameState) -> bool:
     # If this square's bit is 1 on the all pieces bitboard, we should remove it
     Occupancy = Game.AllPieces
     if Game.AllPieces & bitboard: Occupancy ^= bitboard
+    if (RemoveBit != None) and (Occupancy & RemoveBit): Occupancy ^= RemoveBit 
+
     # Does a bishop attack this square?
     if Compute_Bishop_attacks( bitboard, Occupancy ) & Attacking_Bishop: return True
 
@@ -95,13 +97,13 @@ def Is_square_attacked(SquareNum:int|i64, colour:str, Game:GameState) -> bool:
     return False
 
 # Returns a bitboard with all of the squares that the given colour attacks
-def All_Attacked_squares(col:str, Game:GameState) -> i64:
+def All_Attacked_squares(col:str, Game:GameState, RemoveBit:i64|None = None) -> i64:
     bitboard = i64(0)
     # Loop over all squares
     for square in range(0,64):
 
         # If we attack this square add it to the bitboard
-        if Is_square_attacked(square, col, Game): bitboard = Set_bit(bitboard, square)
+        if Is_square_attacked(square, col, Game, RemoveBit): bitboard = Set_bit(bitboard, square)
 
     return bitboard        
 

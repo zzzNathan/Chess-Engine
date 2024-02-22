@@ -82,7 +82,7 @@ def Run_Tests(fens:list) -> None:
     print('All Tests Passed! :)')
         
 if __name__ == "__main__":
-    Run_Tests( Get_Fen_Strings(TATA_STEEL_MASTERS_86TH) )
+    #Run_Tests( Get_Fen_Strings(TATA_STEEL_MASTERS_86TH) )
     
     # List of fen strings that made the tests fail:
     # -----------------------------------------------
@@ -125,21 +125,23 @@ if __name__ == "__main__":
     # 4r2k/6p1/5q1p/8/2B5/KQ1NR3/5P2/r7 w - - 15 69
     # - If king is along line of attack from a rook or bishop
     # it must move off this line
+
+    # r2qk2r/pp3p2/2pbbn1p/3p3R/3PP1p1/P1NB2P1/1P1NQPP1/R3K3 w Qkq - 1 18
+    # - Queenside castle not generating correctly because of a typo
     
     # For debugging:
-    ''' 
-    bugfen = r'4r2k/6p1/5q1p/8/2B5/KQ1NR3/5P2/r7 w - - 15 69'
+    bugfen = r'r2qk2r/pp3p2/2pbbn1p/3p3R/3PP1p1/P1NB2P1/1P1NQPP1/R3K3 w Qkq - 1 18'
     valid = chess.Board()
     valid.set_fen( bugfen )
     valids = [chess.Move.uci(move) for move in valid.legal_moves] 
     
     bd = Fen_to_GameState( bugfen )
     me = [Move_To_UCI(x) for x in Generate_Moves( bd, bd.Side_To_Move )]
-    for move in me:
+    for move in valids:
 
-        #if move not in me: print(move) 
-        if move not in valids: print( move )
+        if move not in me: print(move) 
+        #if move not in valids: print( move )
     
     print('-'*20)
     print( Show_Board(bd),sep='\n' ) 
-    print('-'*20)''' 
+    print('-'*20) 

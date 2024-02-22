@@ -378,25 +378,13 @@ def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
 
     # Non-Castling Moves
     # ---------------------------------------------------------------------------
-    
-    IllegalSquares = All_Attacked_squares('b', Game)
+    # Get squares that are illegal to move to 
+    IllegalSquares = All_Attacked_squares('b', Game, Source)
 
-    if IllegalSquares & Source: 
-        # If the checkmask has more than 1 bit this is a check made by a slider piece
-        if Game.WhiteCheckMask != 'Double' and BitCount(Game.WhiteCheckMask) > 1:
-            # If a slider piece is checking ensure that we make the squares behind the king illegal to move to
-            CheckingPiece = Game.WhiteCheckMask & Game.BlackAll
-
-            DiagonalCheck = Compute_Bishop_attacks(Source, Game.AllPieces) & (Game.BlackBishop | Game.BlackQueen)
-
-            IllegalSquares ^= ( (Compute_Bishop_attacks(CheckingPiece, NoBits) if (DiagonalCheck) else 
-                                Compute_Rook_attacks(CheckingPiece, NoBits)) ^ (IllegalSquares) )
-
-        # If the attacked squares includes the location of our king then the removing of illegal moves will fail
-        IllegalSquares = Delete_bit(IllegalSquares, Index)
+    # If the attacked squares includes the location of our king then the removing of illegal moves will fail
+    IllegalSquares = Delete_bit(IllegalSquares, Index)
 
     # Filter out illegal moves (can't move into check / cant capture your own piece)
-    IllegalSquares |= All_Attacked_squares('b', Game)
     Target ^= (Target & IllegalSquares) | (Target & Game.WhiteAll)
 
     # Add in all regular moves
@@ -419,7 +407,7 @@ def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
 
         
         #     Validate queenside castle rights      //      Verify there are no obstructions
-        if ( (Game.Castle_Rights & W_KingSide) and (not Is_Obstructed(Game,KingLeftCastle)) and
+        if ( (Game.Castle_Rights & W_QueenSide) and (not Is_Obstructed(Game,KingLeftCastle)) and
         #             Ensure these squares arent attacked       //       Ensure there is no check   
              (not(All_Attacked_squares('b',Game) & KingLeftCastle)) and (Game.WhiteCheckMask == AllBits) ):
 
@@ -438,26 +426,13 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
 
     # Non-Castling Moves
     # ---------------------------------------------------------------------------
-
-    IllegalSquares = All_Attacked_squares('w', Game)
+    # Get square that are illegal to move to 
+    IllegalSquares = All_Attacked_squares('w', Game, Source)
     
-    if IllegalSquares & Source:
-        
-        # If the checkmask has more than 1 bit this is a check made by a slider piece
-        if Game.BlackCheckMask != 'Double' and BitCount(Game.BlackCheckMask) > 1:
-            # If a slider piece is checking ensure that we make the squares behind the king illegal to move to
-            CheckingPiece = Game.BlackCheckMask & Game.WhiteAll
-             
-            DiagonalCheck = Compute_Bishop_attacks(Source, Game.AllPieces) & (Game.WhiteBishop | Game.WhiteQueen)
-
-            IllegalSquares ^= ( (Compute_Bishop_attacks(CheckingPiece, NoBits) if (DiagonalCheck) else 
-                                Compute_Rook_attacks(CheckingPiece, NoBits)) ^ (IllegalSquares) )
-
-        # If the attacked squares includes the location of our king then the removing of illegal moves will fail
-        IllegalSquares = Delete_bit(IllegalSquares, Index)
+    # If the attacked squares includes the location of our king then the removing of illegal moves will fail
+    IllegalSquares = Delete_bit(IllegalSquares, Index)
     
     # Filter out illegal moves (can't move into check / cant capture your own piece)
-    IllegalSquares |= All_Attacked_squares('w', Game)
     Target ^= (Target & IllegalSquares) | (Target & Game.BlackAll)
 
     # Add in all regular moves
@@ -479,7 +454,7 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
             MoveList.append( Move('b',Index,Index - 2,False,True,'k',False) )
 
         #     Validate queenside castle rights      //      Verify there are no obstructions
-        if ( (Game.Castle_Rights & B_KingSide) and (not Is_Obstructed(Game,KingLeftCastle)) and
+        if ( (Game.Castle_Rights & B_QueenSide) and (not Is_Obstructed(Game,KingLeftCastle)) and
         #             Ensure these squares arent attacked       //       Ensure there is no check   
              (not(All_Attacked_squares('w',Game) & KingLeftCastle)) and (Game.BlackCheckMask == AllBits) ):
 
@@ -559,7 +534,8 @@ def Generate_Moves(Game:GameState, col:str) -> list:
 
 # TESTING CODE
 if __name__ == "__main__":
-    ga = Fen_to_GameState(r'4r2k/6p1/5q1p/8/2B5/KQ1NR3/5P2/r7 w - - 15 69')
+    bug = r'r2qk2r/pp3p2/2pbbn1p/3p3R/3PP1p1/P1NB2P1/1P1NQPP1/R3K3 w Qkq - 1 18'
+    ga = Fen_to_GameState(bug)
     print( Show_Board(ga) )
     print('\n\n')
     for move in Generate_Moves(ga, 'b'):
