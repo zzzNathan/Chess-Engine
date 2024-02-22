@@ -144,6 +144,7 @@ if __name__ == "__main__":
     # - Knight is able to move of the pinned ray
     
     # For debugging:
+    '''
     bugfen = r'2r4k/5pbp/6p1/8/PQ3P2/1PNR4/2K3qP/7R w - - 5 32'
     valid = chess.Board();valid.set_fen( bugfen )
     valids = [chess.Move.uci(move) for move in valid.legal_moves] 
@@ -155,4 +156,4 @@ if __name__ == "__main__":
         if move not in valids: print( move )
 
     print('-'*20,Show_Board(bd),'-'*20,sep='\n' ) 
-    if set(valids)==set(me):print('Fixed :)')
+    if set(valids)==set(me):print('Fixed :)')'''

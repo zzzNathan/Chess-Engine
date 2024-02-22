@@ -58,12 +58,12 @@ def Generate_Filter(Game:GameState, move:Move) -> i64:
     # Generates relevant checkmask
     CheckMask = Game.WhiteCheckMask if move.Side == 'w' else Game.BlackCheckMask
 
-    # Checks if there is a check on the piece's king
-    if Is_Check(move.Side, Game) != AllBits: return CheckMask
-    
     # Checks if this piece is pinned
     if SourceBB in Game.Pins: return Game.Pins[ SourceBB ]
 
+    # Checks if there is a check on the piece's king
+    if Is_Check(move.Side, Game) != AllBits: return CheckMask
+    
     # If this piece is neither pinned or has a king in check then return the move
     return TargetBB
 
@@ -475,60 +475,51 @@ def Generate_Moves(Game:GameState, col:str) -> list:
     for bitboard in BOARDS:
         # Create a copy of the bitboard
         board_copy = bitboard
-
-        # Generate white pawn moves
-        if bitboard == Game.WhitePawn:
-            MoveList.extend( Generate_White_Pawn_Moves(board_copy,Game) )
-
-        # Generate black pawn moves
-        elif bitboard == Game.BlackPawn:
-            MoveList.extend( Generate_Black_Pawn_Moves(board_copy,Game) )
-
-        # Generate white knight moves
-        elif bitboard == Game.WhiteKnight:
-            MoveList.extend( Generate_White_Knight_Moves(board_copy,Game) )
         
-        # Generate black knight moves
-        elif bitboard == Game.BlackKnight:
-            MoveList.extend( Generate_Black_Knight_Moves(board_copy,Game) )
+        # Generate move based on the current bitboard
+        match bitboard:
 
-        # Generate white bishop moves
-        elif bitboard == Game.WhiteBishop:
-            MoveList.extend( Generate_White_Bishop_Moves(board_copy,Game) )
+            case Game.WhitePawn:
+                MoveList.extend( Generate_White_Pawn_Moves(board_copy,Game) ) 
 
-        # Generate black bishop moves
-        elif bitboard == Game.BlackBishop:
-            MoveList.extend( Generate_Black_Bishop_Moves(board_copy,Game) )
+            case Game.BlackPawn:
+                MoveList.extend( Generate_Black_Pawn_Moves(board_copy,Game) ) 
 
-        # Generate white rook moves
-        elif bitboard == Game.WhiteRook:
-            MoveList.extend( Generate_White_Rook_Moves(board_copy,Game) )
+            case Game.WhiteKnight:
+                MoveList.extend( Generate_White_Knight_Moves(board_copy,Game) )
 
-        # Generate black rook moves 
-        elif bitboard == Game.BlackRook:
-            MoveList.extend( Generate_Black_Rook_Moves(board_copy,Game) )
+            case Game.BlackKnight:
+                MoveList.extend( Generate_Black_Knight_Moves(board_copy,Game) )
 
-        # Generate white queen moves
-        elif bitboard == Game.WhiteQueen:
-            MoveList.extend( Generate_White_Queen_Moves(board_copy,Game) )
+            case Game.WhiteBishop:
+                MoveList.extend( Generate_White_Bishop_Moves(board_copy,Game) )
+
+            case Game.BlackBishop:
+                MoveList.extend( Generate_Black_Bishop_Moves(board_copy,Game) )
+
+            case Game.WhiteRook:
+                MoveList.extend( Generate_White_Rook_Moves(board_copy,Game) )
+
+            case Game.BlackRook:
+                MoveList.extend( Generate_Black_Rook_Moves(board_copy,Game) )
+            
+            case Game.WhiteQueen:
+                 MoveList.extend( Generate_White_Queen_Moves(board_copy,Game) )   
+
+            case Game.BlackQueen:
+                MoveList.extend( Generate_Black_Queen_Moves(board_copy,Game) )
+
+            case Game.WhiteKing:
+                MoveList.extend( Generate_White_King_Moves(board_copy,Game) )
+
+            case Game.BlackKing:
+                MoveList.extend( Generate_Black_King_Moves(board_copy,Game) )         
         
-        # Generate black queen moves
-        elif bitboard == Game.BlackQueen:
-            MoveList.extend( Generate_Black_Queen_Moves(board_copy,Game) )
-
-        # Generate white king moves
-        elif bitboard == Game.WhiteKing:
-            MoveList.extend( Generate_White_King_Moves(board_copy,Game) )
-        
-        # Generate black king moves
-        elif bitboard == Game.BlackKing:
-            MoveList.extend( Generate_Black_King_Moves(board_copy,Game) )
-
     return Filter_All_Moves( Game,MoveList )
 
 # TESTING CODE
 if __name__ == "__main__":
-    bug = r'r2qk2r/pp3p2/2pbbn1p/3p3R/3PP1p1/P1NB2P1/1P1NQPP1/R3K3 w Qkq - 1 18'
+    bug = r'2r4k/5pbp/6p1/8/PQ3P2/1PNR4/2K3qP/7R w - - 5 32'
     ga = Fen_to_GameState(bug)
     print( Show_Board(ga) )
     print('\n\n')
