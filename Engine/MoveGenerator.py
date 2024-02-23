@@ -56,12 +56,15 @@ def Generate_Filter(Game:GameState, move:Move) -> i64:
     TargetBB = i64( 2**move.Target )
 
     # Generates relevant checkmask
-    CheckMask = Game.WhiteCheckMask if move.Side == 'w' else Game.BlackCheckMask
+    CheckMask = Game.WhiteCheckMask if (move.Side == 'w') else Game.BlackCheckMask
+    
+    # If there is a check and piece is pinned piece must move to a square where both
+    # filters are satisfied
+    if SourceBB in Game.Pins: 
+        if not Is_Check(move.Side, Game): return Game.Pins[ SourceBB ] 
+        else: return ( (Game.Pins[SourceBB] & CheckMask) if (CheckMask != 'Double')
+                        else (Game.Pins[SourceBB]) )
 
-    # Checks if this piece is pinned
-    if SourceBB in Game.Pins: return Game.Pins[ SourceBB ]
-
-    # Checks if there is a check on the piece's king
     if Is_Check(move.Side, Game) != AllBits: return CheckMask
     
     # If this piece is neither pinned or has a king in check then return the move
@@ -391,6 +394,7 @@ def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
     if Source == SquareE1:
         KingRightCastle = (Source >> i64(1)) | (Source >> i64(2)) 
         KingLeftCastle  = (Source << i64(1)) | (Source << i64(2)) | (Source << i64(3))
+        KingLeftAtkVerify = KingLeftCastle ^ (Source << i64(3))
         
         #     Validate kingside castle rights      //      Verify there are no obstructions
         if ( (Game.Castle_Rights & W_KingSide) and (not Is_Obstructed(Game,KingRightCastle)) and
@@ -403,7 +407,7 @@ def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
         #     Validate queenside castle rights      //      Verify there are no obstructions
         if ( (Game.Castle_Rights & W_QueenSide) and (not Is_Obstructed(Game,KingLeftCastle)) and
         #             Ensure these squares arent attacked       //       Ensure there is no check   
-             (not(All_Attacked_squares('b',Game) & KingLeftCastle)) and (Game.WhiteCheckMask == AllBits) ):
+             (not(All_Attacked_squares('b',Game) & KingLeftAtkVerify)) and (Game.WhiteCheckMask == AllBits) ):
 
             MoveList.append( Move('w',Index,Index + 2,False,True,'K',False) )
 
@@ -439,6 +443,7 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
     if Source == SquareE8:
         KingRightCastle = (Source >> i64(1)) | (Source >> i64(2)) 
         KingLeftCastle  = (Source << i64(1)) | (Source << i64(2)) | (Source << i64(3))
+        KingLeftAtkVerify = KingLeftCastle ^ (Source << i64(3))
 
         #     Validate kingside castle rights      //      Verify there are no obstructions
         if ( (Game.Castle_Rights & B_KingSide) and (not Is_Obstructed(Game,KingRightCastle)) and
@@ -450,7 +455,7 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
         #     Validate queenside castle rights      //      Verify there are no obstructions
         if ( (Game.Castle_Rights & B_QueenSide) and (not Is_Obstructed(Game,KingLeftCastle)) and
         #             Ensure these squares arent attacked       //       Ensure there is no check   
-             (not(All_Attacked_squares('w',Game) & KingLeftCastle)) and (Game.BlackCheckMask == AllBits) ):
+             (not(All_Attacked_squares('w',Game) & KingLeftAtkVerify)) and (Game.BlackCheckMask == AllBits) ):
 
             MoveList.append( Move('b',Index,Index + 2,False,True,'k',False) )
 
@@ -519,7 +524,7 @@ def Generate_Moves(Game:GameState, col:str) -> list:
 
 # TESTING CODE
 if __name__ == "__main__":
-    bug = r'2r4k/5pbp/6p1/8/PQ3P2/1PNR4/2K3qP/7R w - - 5 32'
+    bug = r'1r4k1/p6p/1n4pP/2b2pP1/2p1KP2/8/1P1R4/7R w - f6 0 36'
     ga = Fen_to_GameState(bug)
     print( Show_Board(ga) )
     print('\n\n')

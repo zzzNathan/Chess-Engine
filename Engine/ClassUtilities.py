@@ -197,7 +197,15 @@ class GameState():
         self.WhiteCheckMask = Is_Check('w', self)
         self.BlackCheckMask = Is_Check('b', self)
 
-        # Check for any en passant squares
+        # Check for any en passant squares   //   Was last move by a pawn ?
+        if (self.PreviousMoves != []) and (self.PreviousMoves[-1].Piece in ['P','p']):
+            LastMove = self.PreviousMoves[-1]
+            
+            # Was this a double move ? 
+            if abs(LastMove.Target - LastMove.Source) == 16:
+                self.En_Passant = (Index_to_square[LastMove.Target + 8] if (LastMove.Side == 'w')
+                                   else Index_to_square[LastMove.Target + 8])
+
 
 # Determines whether there is a check or not if so returns a bitboard of the attacking ray
 # (Used in legal move generation)

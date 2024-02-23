@@ -82,6 +82,7 @@ def Run_Tests(fens:list) -> None:
 
     print('All Tests Passed! :)')
         
+
 if __name__ == "__main__":
     #Run_Tests( Get_Fen_Strings(TATA_STEEL_MASTERS_86TH) )
     
@@ -142,18 +143,27 @@ if __name__ == "__main__":
 
     # 2r4k/5pbp/6p1/8/PQ3P2/1PNR4/2K3qP/7R w - - 5 32
     # - Knight is able to move of the pinned ray
+
+    # 5r1k/pp4pp/8/5P2/P2NB2q/3P4/1P3K1N/3R4 w - - 3 28
+    # - If piece is pinned and their is check combine the masks
+
+    # r1b1r1k1/p2p1pbp/nppB1np1/2P2qN1/Q2P3P/8/PP2PNP1/R3KB1R w KQ - 2 16
+    # - Misunderstood rule for disallowing queenside castles
+
+    # 1r4k1/p6p/1n4pP/2b2pP1/2p1KP2/8/1P1R4/7R w - f6 0 36
+    # - Haven't implemented en passant detection yet
     
     # For debugging:
-    '''
-    bugfen = r'2r4k/5pbp/6p1/8/PQ3P2/1PNR4/2K3qP/7R w - - 5 32'
+    bugfen = r'1r4k1/p6p/1n4pP/2b2pP1/2p1KP2/8/1P1R4/7R w - f6 0 36'
     valid = chess.Board();valid.set_fen( bugfen )
     valids = [chess.Move.uci(move) for move in valid.legal_moves] 
     
     bd = Fen_to_GameState( bugfen )
     me = [Move_To_UCI(x) for x in Generate_Moves( bd, bd.Side_To_Move )]
-    for move in me:
-        #if move not in me: print(move) 
-        if move not in valids: print( move )
+    for move in valids:
+        if move not in me: print(move) 
+        #if move not in valids: print( move )
 
     print('-'*20,Show_Board(bd),'-'*20,sep='\n' ) 
-    if set(valids)==set(me):print('Fixed :)')'''
+    print(bd.En_Passant)
+    if set(valids)==set(me):print('Fixed :)')
