@@ -22,14 +22,15 @@ Ascii_To_Name = {'P':'WhitePawn', 'p':'BlackPawn', 'N':'WhiteKnight', 'n':'Black
 # Class to give structure and order to moves and other relevant information
 class Move():
 
-    def __init__(self,side,source,target,capture,castle,piece,promo):
-        self.Side      = side    # 'w' signifies white, 'b' signifies black
-        self.Source    = source  # The index of the source square
-        self.Target    = target  # The index of the target square
-        self.Capture   = capture # Is this move a capture ?
-        self.Castle    = castle  # Is this move a castle ?
-        self.Piece     = piece   # Standard chess notation applies (Capital = white, Lowercase = black)
-        self.Promotion = promo   # Is this move a promotion ? (False or piece name)
+    def __init__(self,side,source,target,capture,castle,piece,promo,EnPassant=False):
+        self.Side      = side      # 'w' signifies white, 'b' signifies black
+        self.Source    = source    # The index of the source square
+        self.Target    = target    # The index of the target square
+        self.Capture   = capture   # Is this move a capture ?
+        self.Castle    = castle    # Is this move a castle ?
+        self.Piece     = piece     # Standard chess notation applies (Capital = white, Lowercase = black)
+        self.Promotion = promo     # Is this move a promotion ? (False or piece name)
+        self.EnPassant = EnPassant # Is this move an en passant ?
 
 # Class for storing all gamestate variables in one place
 class GameState():
@@ -186,6 +187,20 @@ class GameState():
         # Record previous move and board state
         self.PreviousPositions.append( self )
         self.PreviousMoves.append( move )
+    
+    # Updates the current en passant square
+    def Get_En_Passant(self):
+        # Check for any en passant squares   //   Was last move by a pawn ?
+        if (self.PreviousMoves != []) and (self.PreviousMoves[-1].Piece in ['P','p']):
+            LastMove = self.PreviousMoves[-1]
+            
+            # Was this a double move ? 
+            if abs(LastMove.Target - LastMove.Source) == 16:
+                self.En_Passant = (Index_to_square[LastMove.Target - 8]
+                                   if (LastMove.Side == 'w')
+                                   else Index_to_square[LastMove.Target + 8])
+            else: self.En_Passant = None
+        else: self.En_Passant = None
 
     # Updates all the GameState varibles
     def Game_Update(self):
@@ -196,17 +211,11 @@ class GameState():
         # If there is check update the check mask
         self.WhiteCheckMask = Is_Check('w', self)
         self.BlackCheckMask = Is_Check('b', self)
+        
+        # Only get new en passant squares upon the event that a move was played
+        if self.PreviousMoves != []: self.En_Passant = self.Get_En_Passant()
 
-        # Check for any en passant squares   //   Was last move by a pawn ?
-        if (self.PreviousMoves != []) and (self.PreviousMoves[-1].Piece in ['P','p']):
-            LastMove = self.PreviousMoves[-1]
-            
-            # Was this a double move ? 
-            if abs(LastMove.Target - LastMove.Source) == 16:
-                self.En_Passant = (Index_to_square[LastMove.Target + 8] if (LastMove.Side == 'w')
-                                   else Index_to_square[LastMove.Target + 8])
-
-
+        
 # Determines whether there is a check or not if so returns a bitboard of the attacking ray
 # (Used in legal move generation)
 def Is_Check(col:str, Game:GameState):

@@ -84,7 +84,7 @@ def Run_Tests(fens:list) -> None:
         
 
 if __name__ == "__main__":
-    #Run_Tests( Get_Fen_Strings(TATA_STEEL_MASTERS_86TH) )
+    Run_Tests( Get_Fen_Strings(TATA_STEEL_MASTERS_86TH) )
     
     # List of fen strings that made the tests fail:
     # -----------------------------------------------
@@ -152,18 +152,5 @@ if __name__ == "__main__":
 
     # 1r4k1/p6p/1n4pP/2b2pP1/2p1KP2/8/1P1R4/7R w - f6 0 36
     # - Haven't implemented en passant detection yet
-    
-    # For debugging:
-    bugfen = r'1r4k1/p6p/1n4pP/2b2pP1/2p1KP2/8/1P1R4/7R w - f6 0 36'
-    valid = chess.Board();valid.set_fen( bugfen )
-    valids = [chess.Move.uci(move) for move in valid.legal_moves] 
-    
-    bd = Fen_to_GameState( bugfen )
-    me = [Move_To_UCI(x) for x in Generate_Moves( bd, bd.Side_To_Move )]
-    for move in valids:
-        if move not in me: print(move) 
-        #if move not in valids: print( move )
-
-    print('-'*20,Show_Board(bd),'-'*20,sep='\n' ) 
-    print(bd.En_Passant)
-    if set(valids)==set(me):print('Fixed :)')
+   
+    # All positions from PGN file generate correct moves :)
