@@ -44,7 +44,7 @@ def Get_LSB_and_Index(bitboard:i64) -> tuple[i64,int]:
     return LSB, GetIndex( LSB )
 
 # Returns index of the one bit on the given bitboard
-def GetIndex(bitboard:i64) -> int: return int( math.log2(bitboard) )
+def GetIndex(bitboard:i64) -> int: return int( log2(bitboard) )
 
 # Checks whether the given board has bits within the mask
 def In_Mask(bitboard:i64, mask:i64) -> i64: return bitboard & mask 

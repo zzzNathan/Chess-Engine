@@ -65,14 +65,13 @@ def Generate_Filter(Game:GameState, move:Move) -> i64:
         if move.EnPassant == False: return CheckMask
         
         # Ensure that the pawn being captured is in the check mask
-        else: 
-            CapturedPassant = (i64(2**(Square_to_index[Game.En_Passant] - 8))
-                   if (move.Side == 'w') else
-                   i64(2**(Square_to_index[Game.En_Passant] + 8)) )
-            
-            return (TargetBB
-                   if (CapturedPassant & CheckMask)
-                   else NoBits)
+        CapturedPassant = (i64(2**(Square_to_index[Game.En_Passant] - 8))
+               if (move.Side == 'w') else
+               i64(2**(Square_to_index[Game.En_Passant] + 8)) )
+        
+        return (TargetBB
+               if (CapturedPassant & CheckMask)
+               else NoBits)
 
     # If this piece is neither pinned or has a king in check then return the move
     return TargetBB
@@ -153,8 +152,8 @@ https://github.com/Avo-k/black_numba/blob/master/attack_tables.py
 
 def GeneratePromotions(Source:i64, Target:i64, col:str, Capture:bool) -> list:
     # Getting index of promotion squares
-    SourceIndex = int( math.log2(Source) )
-    TargetIndex = int( math.log2(Target) )
+    SourceIndex = int( log2(Source) )
+    TargetIndex = int( log2(Target) )
 
     # Get pawn's piece representation
     piece = 'P' if (col == 'w') else 'p'

@@ -2,8 +2,9 @@
 #      C O N S T A N T S  &  T A B L E S
 #      - - - - - - - - -  -  - - - - - -
 #\********************************************/
-import math
+from math import log2
 import numpy as np
+from functools import cache
 
 # Shorthand
 i64 = np.uint64
@@ -40,6 +41,7 @@ credits = https://www.chessprogramming.org/Little-endian
 
 # Reverses a set of bits e.g. 1011 -> 1101 (Used for hyperbols quintessence)
 # https://chess.stackexchange.com/questions/37309/move-generation-for-sliding-pieces-and-hyperbola-quintessence
+@cache
 def Reverse_bits(b:i64) -> i64:
     b = (b & i64(0x5555555555555555)) << i64(1) | ((b >> i64(1)) & i64(0x5555555555555555))
     b = (b & i64(0x3333333333333333)) << i64(2) | ((b >> i64(2)) & i64(0x3333333333333333))
@@ -184,6 +186,7 @@ B_QueenSide = i8( 0b0010 )
 
 # Implementation of hyperbola quintessence for sliding move generation    
 # https://www.chessprogramming.org/Hyperbola_Quintessence
+@cache
 def Sliding_Moves(Location:i64, blockers:i64, mask:i64) -> i64:    
     o = blockers & i64(mask)
     r = Reverse_bits(o)
@@ -194,23 +197,26 @@ def Sliding_Moves(Location:i64, blockers:i64, mask:i64) -> i64:
 
     return o
 
+@cache
 def Compute_Rook_attacks(RookLocation:i64, blockers:i64) -> i64:
     # Piece bitboards are in the form 2^n, to find n we take log base 2 of this bitboard
-    SquareNum = int( math.log2(RookLocation) )
+    SquareNum = int( log2(RookLocation) )
     Rank = (SquareNum // 8) + 1 # Calculates rank index
     File = SquareNum % 8        # Calculates file index
     return (Sliding_Moves(RookLocation, blockers, RANKS[Rank]) |
             Sliding_Moves(RookLocation, blockers, FILES[File]) )
 
+@cache
 def Compute_Bishop_attacks(BishopLocation:i64, blockers:i64)->i64:
     # Piece bitboards are in the form 2^n, to find n we take log base 2 of this bitboard
-    SquareNum = int( math.log2(BishopLocation) )
+    SquareNum = int( log2(BishopLocation) )
     return (Sliding_Moves(BishopLocation, blockers, DIAGONALS[SquareNum]) |
             Sliding_Moves(BishopLocation, blockers, ANTI_DIAGONALS[SquareNum] ))
 
+@cache
 def Compute_Queen_attacks(QueenLocation:i64, blockers:i64)->i64:
     # Piece bitboards are in the form 2^n, to find n we take log base 2 of this bitboard
-    SquareNum = int( math.log2(QueenLocation) )
+    SquareNum = int( log2(QueenLocation) )
     Rank = (SquareNum // 8) + 1
     File = SquareNum % 8
 
@@ -228,8 +234,8 @@ def Compute_Queen_attacks(QueenLocation:i64, blockers:i64)->i64:
 # The positions varible is simply a list of all square indexes 0..63 and can be expressed as 'list(range(0,64))'
 
 # Precomputed with the following expression:
-# 'np.array( [Compute_King_Moves( i64(2**pos) ) for pos in positions] )'
-KING_MOVES = np.array([i64(0x302), i64(0x705), i64(0xe0a), i64(0x1c14), i64(0x3828), 
+# '[Compute_King_Moves( i64(2**pos) ) for pos in positions]'
+KING_MOVES = [i64(0x302), i64(0x705), i64(0xe0a), i64(0x1c14), i64(0x3828), 
     i64(0x7050), i64(0xe0a0), i64(0xc040), i64(0x30203), i64(0x70507), 
     i64(0xe0a0e), i64(0x1c141c), i64(0x382838), i64(0x705070), i64(0xe0a0e0),
     i64(0xc040c0), i64(0x3020300), i64(0x7050700), i64(0xe0a0e00),
@@ -246,11 +252,11 @@ KING_MOVES = np.array([i64(0x302), i64(0x705), i64(0xe0a), i64(0x1c14), i64(0x38
     i64(0x1c141c0000000000), i64(0x3828380000000000), i64(0x7050700000000000),
     i64(0xe0a0e00000000000), i64(0xc040c00000000000), i64(0x203000000000000),
     i64(0x507000000000000), i64(0xa0e000000000000), i64(0x141c000000000000), 
-    i64(0x2838000000000000), i64(0x5070000000000000), i64(0xa0e0000000000000), i64(0x40c0000000000000)] )
+    i64(0x2838000000000000), i64(0x5070000000000000), i64(0xa0e0000000000000), i64(0x40c0000000000000)]
 
 # Precomputed with the following expression:
-# 'np.array( [Compute_Knight_Moves( i64(2**pos) ) for pos in positions] )'
-KNIGHT_MOVES = np.array([i64(0x20400), i64(0x50800), i64(0xa1100), i64(0x142200), i64(0x284400),
+# '[Compute_Knight_Moves( i64(2**pos) ) for pos in positions]'
+KNIGHT_MOVES = [i64(0x20400), i64(0x50800), i64(0xa1100), i64(0x142200), i64(0x284400),
     i64(0x508800), i64(0xa01000), i64(0x402000), i64(0x2040004), i64(0x5080008), 
     i64(0xa110011), i64(0x14220022), i64(0x28440044), i64(0x50880088), i64(0xa0100010),
     i64(0x40200020), i64(0x204000402), i64(0x508000805), i64(0xa1100110a),
@@ -267,11 +273,11 @@ KNIGHT_MOVES = np.array([i64(0x20400), i64(0x50800), i64(0xa1100), i64(0x142200)
     i64(0x4400442800000000), i64(0x8800885000000000), i64(0x100010a000000000), 
     i64(0x2000204000000000), i64(0x4020000000000), i64(0x8050000000000),
     i64(0x110a0000000000), i64(0x22140000000000), i64(0x44280000000000), 
-    i64(0x88500000000000), i64(0x10a00000000000), i64(0x20400000000000)] )
+    i64(0x88500000000000), i64(0x10a00000000000), i64(0x20400000000000)]
 
 # Precomputed with the following expression:
-# 'np.array( [Compute_Pawn_Moves( i64(2**pos), 'w' ) for pos in positions] )'
-WHITE_PAWN_MOVES = np.array([i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0),
+# '[Compute_Pawn_Moves( i64(2**pos), 'w' ) for pos in positions]' 
+WHITE_PAWN_MOVES = [i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0),
     i64(0x0), i64(0x0), i64(0x0), i64(0x1010000), i64(0x2020000),i64(0x4040000),
     i64(0x8080000), i64(0x10100000), i64(0x20200000), i64(0x40400000), i64(0x80800000),
     i64(0x1000000), i64(0x2000000), i64(0x4000000), i64(0x8000000), i64(0x10000000), 
@@ -283,11 +289,11 @@ WHITE_PAWN_MOVES = np.array([i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0),
     i64(0x10000000000000), i64(0x20000000000000), i64(0x40000000000000), i64(0x80000000000000), 
     i64(0x100000000000000), i64(0x200000000000000), i64(0x400000000000000), i64(0x800000000000000), 
     i64(0x1000000000000000), i64(0x2000000000000000), i64(0x4000000000000000), i64(0x8000000000000000), 
-    i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0)] )
+    i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0)]
 
 # Precomputed with the following expression:
-# 'np.array( [Compute_Pawn_Moves( i64(2**pos), 'b' ) for pos in positions] )'
-BLACK_PAWN_MOVES = np.array([i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), 
+# '[Compute_Pawn_Moves( i64(2**pos), 'b' ) for pos in positions]'
+BLACK_PAWN_MOVES = [i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), 
     i64(0x0), i64(0x0), i64(0x0), i64(0x1), i64(0x2), i64(0x4), 
     i64(0x8), i64(0x10), i64(0x20), i64(0x40), i64(0x80), i64(0x100),
     i64(0x200), i64(0x400), i64(0x800), i64(0x1000), i64(0x2000), i64(0x4000), 
@@ -298,10 +304,10 @@ BLACK_PAWN_MOVES = np.array([i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0),
     i64(0x800000000), i64(0x1000000000), i64(0x2000000000), i64(0x4000000000),
     i64(0x8000000000), i64(0x10100000000), i64(0x20200000000), i64(0x40400000000),
     i64(0x80800000000), i64(0x101000000000), i64(0x202000000000), i64(0x404000000000), 
-    i64(0x808000000000), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0)] )
+    i64(0x808000000000), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0)]
 
 # Precomputed with the following expression:
-# 'np.array( [Compute_Pawn_attacks( i64(2**pos), 'w') for pos in positions] )'
+# '[Compute_Pawn_attacks( i64(2**pos), 'w') for pos in positions]'
 WHITE_PAWN_ATKS = np.array([i64(0x200), i64(0x500), i64(0xa00), i64(0x1400), i64(0x2800), 
     i64(0x5000), i64(0xa000), i64(0x4000), i64(0x20000), i64(0x50000), i64(0xa0000), 
     i64(0x140000), i64(0x280000), i64(0x500000), i64(0xa00000), i64(0x400000), i64(0x2000000), 
@@ -315,8 +321,8 @@ WHITE_PAWN_ATKS = np.array([i64(0x200), i64(0x500), i64(0xa00), i64(0x1400), i64
     i64(0x4000000000000000), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0)] )
 
 # Precomputed with the following expression:
-# 'np.array( [Compute_Pawn_attacks( i64(2**pos),'b' ) for pos in positions] )'
-BLACK_PAWN_ATKS = np.array( [i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), 
+# '[Compute_Pawn_attacks( i64(2**pos),'b' ) for pos in positions]'
+BLACK_PAWN_ATKS = [i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), 
     i64(0x2), i64(0x5), i64(0xa), i64(0x14), i64(0x28), i64(0x50), i64(0xa0), i64(0x40), i64(0x200), 
     i64(0x500), i64(0xa00), i64(0x1400), i64(0x2800), i64(0x5000), i64(0xa000), i64(0x4000), i64(0x20000), 
     i64(0x50000), i64(0xa0000), i64(0x140000), i64(0x280000), i64(0x500000), i64(0xa00000), i64(0x400000), 
@@ -325,4 +331,4 @@ BLACK_PAWN_ATKS = np.array( [i64(0x0), i64(0x0), i64(0x0), i64(0x0), i64(0x0), i
     i64(0x2800000000), i64(0x5000000000), i64(0xa000000000), i64(0x4000000000), i64(0x20000000000), i64(0x50000000000), 
     i64(0xa0000000000), i64(0x140000000000), i64(0x280000000000), i64(0x500000000000), i64(0xa00000000000), i64(0x400000000000),
     i64(0x2000000000000), i64(0x5000000000000), i64(0xa000000000000), i64(0x14000000000000), i64(0x28000000000000), 
-    i64(0x50000000000000), i64(0xa0000000000000), i64(0x40000000000000)] )
+    i64(0x50000000000000), i64(0xa0000000000000), i64(0x40000000000000)]

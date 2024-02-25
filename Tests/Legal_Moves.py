@@ -9,23 +9,26 @@ from Engine.MoveGenerator import *
 import chess
 import chess.pgn
 from os import path
+from functools import cache
 
 LOCAL_DIR = path.dirname(__file__)
 TATA_STEEL_MASTERS_86TH = path.join(LOCAL_DIR ,r'PGN_Game_Files/tatamast24.pgn')
 
 # Takes in one chess.pgn.Game and generates fen strings of all unique positions
+@cache
 def Get_Fen_From_Game(Game:chess.pgn.Game) -> set:
     
-    fens = set()
+    fens  = []
     Board = Game.board()
     for move in Game.mainline_moves():
 
         Board.push(move)
-        fens.add( Board.fen() )
+        fens.append( Board.fen() )
 
-    return fens
+    return set(fens)
 
 # Takes in a PGN file and generates fen strings of all unique positions
+@cache
 def Get_Fen_Strings(file:str) -> list:
     
     fens  = set()
@@ -42,6 +45,7 @@ def Get_Fen_Strings(file:str) -> list:
     # Iterate over all games and get all unique postions
     for Board in Games: fens.update( Get_Fen_From_Game(Board) )
 
+    PGN.close()
     return list( fens )
 
 # Takes in a list of the moves that we have generated and 
