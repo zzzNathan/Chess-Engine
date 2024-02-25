@@ -7,7 +7,6 @@
 "We should forget about small efficiencies, say about 97% of the time: 
  PREMATURE OPTIMISATION IS THE ROOT OF ALL EVIL."
 ''' 
-# Chess engine in Python
 import numpy as np
 from typing import Callable
 from Engine.ConstantsAndTables import *
@@ -21,19 +20,17 @@ i8  = np.uint8
 def Create_Moves_From_Board(Game:GameState,source:i64,bitboard:i64,col:str,piece:str) -> list:
     MoveList    = []
     SourceIndex = GetIndex( source )
+
     # Get enemy piece bitboard in order to determine whether a move is a capture
     EnemyPieces = Game.WhiteAll if col == 'b' else Game.BlackAll
 
     # Loop over all precomputed moves and add them to the move list
     while bitboard:
-
-        # Get source bitboard and it's index
+        
         CurrentBB, TargetIndex = Get_LSB_and_Index( bitboard )
 
         # Capture moves
         if CurrentBB & EnemyPieces:
-
-            # Add to movelist
             MoveList.append( Move(col,SourceIndex,TargetIndex,True,False,piece,False) )
 
         # Non-Capture moves
@@ -70,12 +67,12 @@ def Generate_Filter(Game:GameState, move:Move) -> i64:
         # Ensure that the pawn being captured is in the check mask
         else: 
             CapturedPassant = (i64(2**(Square_to_index[Game.En_Passant] - 8))
-                               if (move.Side == 'w') else
-                               i64(2**(Square_to_index[Game.En_Passant] + 8)) )
+                   if (move.Side == 'w') else
+                   i64(2**(Square_to_index[Game.En_Passant] + 8)) )
             
             return (TargetBB
-                    if (CapturedPassant & CheckMask)
-                    else NoBits)
+                   if (CapturedPassant & CheckMask)
+                   else NoBits)
 
     # If this piece is neither pinned or has a king in check then return the move
     return TargetBB
@@ -83,23 +80,17 @@ def Generate_Filter(Game:GameState, move:Move) -> i64:
 # Will take in a given move and check if its legal
 def Filter_Move(Game:GameState, move:Move) -> Move | bool:
 
-    # Get target square bitboards
     TargetBB = i64( 2**move.Target )
-
-    # Generate relevant filter
-    Filter = Generate_Filter( Game,move )
+    Filter   = Generate_Filter( Game,move )
 
     # If the move has passed through the filter return it, otherwise return false
-    if TargetBB & Filter: return move
-    else: return False
-
+    return move if (TargetBB & Filter) else False
+    
 # Goes through all moves and ensures that they are all legal
 def Filter_All_Moves(Game:GameState, movelist:list[Move]) -> list[Move]:
     FilteredMoveList = []
 
-    # Iterate through all given moves and add them to list if they pass the filter
     for move in movelist:
-
         if Filter_Move( Game,move ):FilteredMoveList.append(move)
 
     return FilteredMoveList
@@ -127,31 +118,23 @@ def Find_Move_Table(Game:GameState, char:str) -> Callable:
 # Take in a given piece bitboard and generate all pseudo-legal moves
 # (For all pieces except pawns and king)
 def Gen_Pseudo_legal_Moves(Game:GameState, board:i64, char:str) -> list[Move]:
-    MoveList = []
-
-    # Is piece white?
-    White       = char.isupper() 
-    colour      = 'w' if (White) else 'b'
+    MoveList    = []
+    colour      = 'w' if (char.isupper()) else 'b'
 
     # Gets a function that returns relevant moves for specified piece
     MoveFinder  = Find_Move_Table(Game, char)
 
-    # Gets location of all friendly pieces
-    FriendlyAll = Game.WhiteAll if (White) else Game.BlackAll
+    FriendlyAll = Game.WhiteAll if (colour == 'w') else Game.BlackAll
 
     # Iterate through all pieces on the board
     while board:
 
-        # Get lowest bit on the board
         Current = Get_LSB(board)
-
-        # Get all target moves
-        Target = MoveFinder(Current)
+        Target  = MoveFinder(Current)
 
         # Filter out all moves that capture friendly pieces
         Target ^=  (Target & FriendlyAll)
 
-        # Add moves to list
         MoveList.extend( Create_Moves_From_Board(Game,Current,Target,colour,char) )
 
         # Remove this bit from the board
@@ -174,7 +157,7 @@ def GeneratePromotions(Source:i64, Target:i64, col:str, Capture:bool) -> list:
     TargetIndex = int( math.log2(Target) )
 
     # Get pawn's piece representation
-    piece = 'P' if col == 'w' else 'p'
+    piece = 'P' if (col == 'w') else 'p'
 
     MoveList = []
     # Adding knight promotion        
@@ -193,10 +176,10 @@ def GeneratePromotions(Source:i64, Target:i64, col:str, Capture:bool) -> list:
 
 def Generate_White_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
     MoveList = []
+
     # Loop over all white pawns in the WhitePawns bitboard
     while board_copy:
 
-        # Get source bitboard and it's index
         Source, Index = Get_LSB_and_Index(board_copy) 
 
         # Bitboards to indicate the piece being one and two squares up
@@ -209,7 +192,7 @@ def Generate_White_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
 
         # Obstruction check for one square up / Cannot move without promotion on 7th rank
         if not Is_Obstructed(Game, SourceUpOne) and not Is_Seventh_Rank(Source):
-
+            
             Target = WHITE_PAWN_MOVES[Index] 
 
             # Obstruction check for two square up              Remove this bit if obstructed
@@ -219,13 +202,10 @@ def Generate_White_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
 
         # Add all non-capture promotions 
         if Is_Seventh_Rank(Source) and (not Is_Obstructed(Game,SourceUpOne)):
-
             MoveList.extend( GeneratePromotions(Source,SourceUpOne,'w',False) )
 
         # Attacking Moves
         # -----------------------------------------------------------------------
-
-        # Add all attacking moves
         Target = WHITE_PAWN_ATKS[Index] & Game.BlackAll
 
         # Handle capture promotions
@@ -234,10 +214,7 @@ def Generate_White_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
             # Loop through all bits and add these individual moves
             while Target:
 
-                # Get target square bitboard
                 CurrentBB = Get_LSB(Target)
-
-                # Add these capture promotions to the movelist
                 MoveList.append( GeneratePromotions(Source,CurrentBB,'w',True) )
 
                 # Remove this bit from the bitboard
@@ -248,12 +225,10 @@ def Generate_White_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
 
         # Special Moves
         # -----------------------------------------------------------------------
-        # Add en passant moves
         if Game.En_Passant != None:
 
             # Get index of en passant square and check if a pawn can capture it
             if BLACK_PAWN_ATKS[ Square_to_index[Game.En_Passant] ] & Source:
-
                 MoveList.append( Move('w',Index,Square_to_index[Game.En_Passant],True,False,'P',False,True) )
 
         # Remove this bit from the board
@@ -266,7 +241,6 @@ def Generate_Black_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
     # Loop over black pawns in the BlackPawns bitboard
     while board_copy:
         
-        # Get source bitboard and it's index
         Source, Index = Get_LSB_and_Index(board_copy)
 
         # Bitboards to indicate the piece being one and two squares up
@@ -289,13 +263,10 @@ def Generate_Black_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
 
         # Add all non-capture promotions 
         if Is_Second_Rank(Source) and (not Is_Obstructed(Game,SourceUpOne)):
-        
             MoveList.extend( GeneratePromotions(Source,SourceUpOne,'b',False) )
 
         # Attacking Moves
         # -----------------------------------------------------------------------
-
-        # Add all attacking moves
         Target = BLACK_PAWN_ATKS[Index] & Game.WhiteAll
 
         # Handle capture promotions
@@ -304,10 +275,7 @@ def Generate_Black_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
             # Loop through all bits and add these individual moves
             while Target:
 
-                # Get target square bitboard
                 CurrentBB = Get_LSB(Target)
-
-                # Add these capture promotions to the movelist
                 MoveList.append( GeneratePromotions(Source,CurrentBB,'b',True) )
 
                 # Remove this bit from the bitboard
@@ -318,13 +286,10 @@ def Generate_Black_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
         
         # Special Moves
         # -----------------------------------------------------------------------
-
-        # Add en passant moves
         if Game.En_Passant != None:
 
             # Get index of en passant square and check if a pawn can capture it
             if WHITE_PAWN_ATKS[ Square_to_index[Game.En_Passant] ] & Source:
-
                 MoveList.append( Move('b',Index,Square_to_index[Game.En_Passant],True,False,'p',False,True) )    
     
         # Remove this bit from the board
@@ -374,17 +339,14 @@ def Generate_Black_Queen_Moves(board_copy:i64, Game:GameState) -> list:
     return Gen_Pseudo_legal_Moves(Game,board_copy,'q')
 
 def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
-
     MoveList = []
-    Source = board_copy
-    Index = Board_To_Square(Source)
+    Source   = board_copy
+    Index    = Board_To_Square(Source)
 
-    # Generate pseudo-legal moves
     Target = KING_MOVES[Index]
 
     # Non-Castling Moves
     # ---------------------------------------------------------------------------
-    # Get squares that are illegal to move to 
     IllegalSquares = All_Attacked_squares('b', Game, Source)
 
     # If the attacked squares includes the location of our king then the removing of illegal moves will fail
@@ -393,7 +355,6 @@ def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
     # Filter out illegal moves (can't move into check / cant capture your own piece)
     Target ^= (Target & IllegalSquares) | (Target & Game.WhiteAll)
 
-    # Add in all regular moves
     MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'w','K') )
 
     # Castling Moves
@@ -403,37 +364,33 @@ def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
     if Source == SquareE1:
         KingRightCastle = (Source >> i64(1)) | (Source >> i64(2)) 
         KingLeftCastle  = (Source << i64(1)) | (Source << i64(2)) | (Source << i64(3))
-        KingLeftAtkVerify = KingLeftCastle ^ (Source << i64(3))
-        
-        #     Validate kingside castle rights      //      Verify there are no obstructions
-        if ( (Game.Castle_Rights & W_KingSide) and (not Is_Obstructed(Game,KingRightCastle)) and
-        #             Ensure these squares arent attacked       //       Ensure there is no check   
-             (not(All_Attacked_squares('b',Game) & KingRightCastle)) and (Game.WhiteCheckMask == AllBits) ):
+        KingLeftAtkVerify = (Source << i64(1)) | (Source << i64(2)) | (Source)
 
+        # Validate kingside castle rights      ⇒ Verify there are no obstructions ⇒
+        # Ensure these squares aren't attacked ⇒ Ensure there is no check
+        if ( (Game.Castle_Rights & W_KingSide) and (not Is_Obstructed(Game,KingRightCastle)) and
+             (not(All_Attacked_squares('b',Game) & KingRightCastle)) and (Game.WhiteCheckMask == AllBits) ):
+       
             MoveList.append( Move('w',Index,Index - 2,False,True,'K',False) )
 
-        
-        #     Validate queenside castle rights      //      Verify there are no obstructions
+        # Validate queenside castle rights     ⇒ Verify there are no obstructions ⇒
+        # Ensure these squares aren't attacked ⇒ Ensure there is no check
         if ( (Game.Castle_Rights & W_QueenSide) and (not Is_Obstructed(Game,KingLeftCastle)) and
-        #             Ensure these squares arent attacked       //       Ensure there is no check   
-             (not(All_Attacked_squares('b',Game) & KingLeftAtkVerify)) and (Game.WhiteCheckMask == AllBits) ):
-
+             (not(All_Attacked_squares('b',Game) & KingLeftAtkVerify)) ):
+            
             MoveList.append( Move('w',Index,Index + 2,False,True,'K',False) )
 
     return MoveList
 
 def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
-    
     MoveList = []
-    Source = board_copy
-    Index = Board_To_Square(Source)
+    Source   = board_copy
+    Index    = Board_To_Square(Source)
 
-    # Generate pseudo-legal moves
     Target = KING_MOVES[Index]
 
     # Non-Castling Moves
     # ---------------------------------------------------------------------------
-    # Get square that are illegal to move to 
     IllegalSquares = All_Attacked_squares('w', Game, Source)
     
     # If the attacked squares includes the location of our king then the removing of illegal moves will fail
@@ -442,7 +399,6 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
     # Filter out illegal moves (can't move into check / cant capture your own piece)
     Target ^= (Target & IllegalSquares) | (Target & Game.BlackAll)
 
-    # Add in all regular moves
     MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'b','k') )
 
     # Castling Moves
@@ -452,29 +408,26 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
     if Source == SquareE8:
         KingRightCastle = (Source >> i64(1)) | (Source >> i64(2)) 
         KingLeftCastle  = (Source << i64(1)) | (Source << i64(2)) | (Source << i64(3))
-        KingLeftAtkVerify = KingLeftCastle ^ (Source << i64(3))
+        KingLeftAtkVerify = (Source << i64(1)) | (Source << i64(2)) | (Source)
 
-        #     Validate kingside castle rights      //      Verify there are no obstructions
+        # Validate kingside castle rights      ⇒ Verify there are no obstructions ⇒
+        # Ensure these squares aren't attacked ⇒ Ensure there is no check
         if ( (Game.Castle_Rights & B_KingSide) and (not Is_Obstructed(Game,KingRightCastle)) and
-        #             Ensure these squares arent attacked       //       Ensure there is no check   
              (not(All_Attacked_squares('w',Game) & KingRightCastle)) and (Game.BlackCheckMask == AllBits) ):
 
             MoveList.append( Move('b',Index,Index - 2,False,True,'k',False) )
 
-        #     Validate queenside castle rights      //      Verify there are no obstructions
+        # Validate queenside castle rights     ⇒ Verify there are no obstructions ⇒
+        # Ensure these squares aren't attacked ⇒ Ensure there is no check
         if ( (Game.Castle_Rights & B_QueenSide) and (not Is_Obstructed(Game,KingLeftCastle)) and
-        #             Ensure these squares arent attacked       //       Ensure there is no check   
-             (not(All_Attacked_squares('w',Game) & KingLeftAtkVerify)) and (Game.BlackCheckMask == AllBits) ):
+             (not(All_Attacked_squares('w',Game) & KingLeftAtkVerify)) ):
 
             MoveList.append( Move('b',Index,Index + 2,False,True,'k',False) )
 
     return MoveList
 
 def Generate_Moves(Game:GameState, col:str) -> list:
-    # List of all legal move in position
     MoveList = []
-
-    # Is there currently a check ?
     Check = Is_Check(col,Game)
     
     # If there is a double check only the king may move
@@ -508,21 +461,3 @@ def Generate_Moves(Game:GameState, col:str) -> list:
                     Generate_Black_King_Moves(Game.BlackKing, Game))
 
     return Filter_All_Moves( Game,MoveList )
-
-# TESTING CODE
-
-if __name__ == "__main__":
-    bug = r'1r4k1/p6p/1n4pP/2b2pP1/2p1KP2/8/1P1R4/7R w - f6 0 36'
-    ga = Fen_to_GameState(bug)
-    print( Show_Board(ga) )
-    print('\n\n')
-    print([Move_To_UCI(m) for m in Filter_All_Moves(ga,Generate_White_Pawn_Moves(ga.WhitePawn, ga))])
-
-'''
-print( len(Generate_Moves(STARTING_GAME,'b') ))
-for move in Generate_Moves(STARTING_GAME,'b'):
-    print( Show_bitboard(i64(2**move.Source)) , '\n\n')
-    print( Show_bitboard(i64(2**move.Target)) , '\n\n')
-print('\n\n')
-#print( len(Generate_Moves(STARTING_GAME,'b')) )
-#for move in Generate_Moves(STARTING_GAME,'b'): print( move.__dict__ )'''

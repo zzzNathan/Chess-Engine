@@ -8,10 +8,10 @@
 from Engine.MoveGenerator import *
 import chess
 import chess.pgn
-import os
+from os import path
 
-LOCAL_DIR = os.path.dirname(__file__)
-TATA_STEEL_MASTERS_86TH = os.path.join(LOCAL_DIR ,r'PGN_Game_Files/tatamast24.pgn')
+LOCAL_DIR = path.dirname(__file__)
+TATA_STEEL_MASTERS_86TH = path.join(LOCAL_DIR ,r'PGN_Game_Files/tatamast24.pgn')
 
 # Takes in one chess.pgn.Game and generates fen strings of all unique positions
 def Get_Fen_From_Game(Game:chess.pgn.Game) -> set:
@@ -48,15 +48,11 @@ def Get_Fen_Strings(file:str) -> list:
 # checks to see if they are also in the moves that our validator has generated
 def All_Moves_Valid(Our_Moves:list, Validator_Moves:chess.LegalMoveGenerator) -> bool:
     
-    # Check if all the move we have generator exist in the validator's move list
-    for move in Our_Moves:
-        
-        # Convert our move object into a PyChess move object
-        PyChessMove = chess.Move.from_uci(Move_To_UCI(move))
-        if PyChessMove not in Validator_Moves: return False
+    Valid_UCI = [chess.Move.uci(move) for move in Validator_Moves]
+    Our_Moves_UCI = [Move_To_UCI(move) for move in Our_Moves]
     
-    # If all moves are found inside the validator return true
-    return True
+    # If the set of both moves are equal we have generate all correct moves
+    return True if (set(Valid_UCI) == set(Our_Moves_UCI)) else False
 
 # Takes in a list of unique fen strings and checks that 
 # our move generator generates legal and correct moves each time
@@ -75,13 +71,12 @@ def Run_Tests(fens:list) -> None:
         Validator_Moves = Validator_Board.legal_moves
         
         # Ensure that both the right number of moves has been generated and that all generated moves are legal
-        if len(Our_Moves) != Validator_Moves.count(): print(fen)
-        assert len(Our_Moves) == Validator_Moves.count(), 'Error! Wrong number of moves generated.'
-
+        No_Of_LegalMoves = Validator_Moves.count()
+        if len(Our_Moves) != No_Of_LegalMoves: print(fen)
+        assert len(Our_Moves) == No_Of_LegalMoves,          'Error! Wrong number of moves generated.'
         assert All_Moves_Valid(Our_Moves, Validator_Moves), 'Error! Illegal moves generated.'
 
     print('All Tests Passed! :)')
-        
 
 if __name__ == "__main__":
     Run_Tests( Get_Fen_Strings(TATA_STEEL_MASTERS_86TH) )
