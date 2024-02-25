@@ -62,7 +62,7 @@ def All_Moves_Valid(Our_Moves:list, Validator_Moves:chess.LegalMoveGenerator) ->
 # our move generator generates legal and correct moves each time
 def Run_Tests(fens:list) -> None:
     
-    print('Running ...')
+    print(f'Testing {len(fens)} positions...')
     for fen in fens:
         
         # Get both relevant board representations

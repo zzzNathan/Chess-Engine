@@ -159,17 +159,11 @@ def GeneratePromotions(Source:i64, Target:i64, col:str, Capture:bool) -> list:
     piece = 'P' if (col == 'w') else 'p'
 
     MoveList = []
-    # Adding knight promotion        
-    MoveList.append( Move(col,SourceIndex,TargetIndex,Capture,False,piece,'n') )
-    
-    # Adding bishop promotion    
-    MoveList.append( Move(col,SourceIndex,TargetIndex,Capture,False,piece,'b') )
 
-    # Adding rook promotion      
-    MoveList.append( Move(col,SourceIndex,TargetIndex,Capture,False,piece,'r') )
-
-    # Adding queen promotion     
-    MoveList.append( Move(col,SourceIndex,TargetIndex,Capture,False,piece,'q') )
+    MoveList.append(Move(col,SourceIndex,TargetIndex,Capture,False,piece,'n')) # Knight
+    MoveList.append(Move(col,SourceIndex,TargetIndex,Capture,False,piece,'b')) # Bishop
+    MoveList.append(Move(col,SourceIndex,TargetIndex,Capture,False,piece,'r')) # Rook 
+    MoveList.append(Move(col,SourceIndex,TargetIndex,Capture,False,piece,'q')) # Queen
 
     return MoveList
 
@@ -297,44 +291,28 @@ def Generate_Black_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
     return MoveList
 
 def Generate_White_Knight_Moves(board_copy:i64, Game:GameState) -> list: 
-    
-    # Return pseudo-legal moves
     return Gen_Pseudo_legal_Moves(Game,board_copy,'N')
     
 
 def Generate_Black_Knight_Moves(board_copy:i64, Game:GameState) -> list:
-    
-    # Return pseudo-legal moves
     return Gen_Pseudo_legal_Moves(Game,board_copy,'n')
 
 def Generate_White_Bishop_Moves(board_copy:i64, Game:GameState) -> list:
-     
-    # Return pseudo-legal moves
     return Gen_Pseudo_legal_Moves(Game,board_copy,'B')
 
 def Generate_Black_Bishop_Moves(board_copy:i64, Game:GameState) -> list:
-    
-    # Return pseudo-legal moves
     return Gen_Pseudo_legal_Moves(Game,board_copy,'b')
 
 def Generate_White_Rook_Moves(board_copy:i64, Game:GameState) -> list:
-    
-    # Return pseudo-legal moves
     return Gen_Pseudo_legal_Moves(Game,board_copy,'R')
 
 def Generate_Black_Rook_Moves(board_copy:i64, Game:GameState) -> list:
-    
-    # Return pseudo-legal moves
     return Gen_Pseudo_legal_Moves(Game,board_copy,'r')
 
 def Generate_White_Queen_Moves(board_copy:i64, Game:GameState) -> list:
-    
-    # Return pseudo-legal moves
     return Gen_Pseudo_legal_Moves(Game,board_copy,'Q')
 
 def Generate_Black_Queen_Moves(board_copy:i64, Game:GameState) -> list:
-    
-    # Return pseudo-legal moves
     return Gen_Pseudo_legal_Moves(Game,board_copy,'q')
 
 def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
@@ -361,21 +339,22 @@ def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
     
     # Castles can only take place on E1
     if Source == SquareE1:
-        KingRightCastle = (Source >> i64(1)) | (Source >> i64(2)) 
-        KingLeftCastle  = (Source << i64(1)) | (Source << i64(2)) | (Source << i64(3))
+        KingRightCastle   = (Source >> i64(1)) | (Source >> i64(2)) 
+        KingLeftCastle    = (Source << i64(1)) | (Source << i64(2)) | (Source << i64(3))
         KingLeftAtkVerify = (Source << i64(1)) | (Source << i64(2)) | (Source)
+        AttackedSquares   = All_Attacked_squares('b',Game)
 
         # Validate kingside castle rights      ⇒ Verify there are no obstructions ⇒
         # Ensure these squares aren't attacked ⇒ Ensure there is no check
         if ( (Game.Castle_Rights & W_KingSide) and (not Is_Obstructed(Game,KingRightCastle)) and
-             (not(All_Attacked_squares('b',Game) & KingRightCastle)) and (Game.WhiteCheckMask == AllBits) ):
+             (not(AttackedSquares & KingRightCastle)) and (Game.WhiteCheckMask == AllBits) ):
        
             MoveList.append( Move('w',Index,Index - 2,False,True,'K',False) )
 
         # Validate queenside castle rights     ⇒ Verify there are no obstructions ⇒
         # Ensure these squares aren't attacked ⇒ Ensure there is no check
         if ( (Game.Castle_Rights & W_QueenSide) and (not Is_Obstructed(Game,KingLeftCastle)) and
-             (not(All_Attacked_squares('b',Game) & KingLeftAtkVerify)) ):
+             (not(AttackedSquares & KingLeftAtkVerify)) ):
             
             MoveList.append( Move('w',Index,Index + 2,False,True,'K',False) )
 
@@ -405,21 +384,22 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
     
     # Castles can only take place on E8
     if Source == SquareE8:
-        KingRightCastle = (Source >> i64(1)) | (Source >> i64(2)) 
-        KingLeftCastle  = (Source << i64(1)) | (Source << i64(2)) | (Source << i64(3))
+        KingRightCastle   = (Source >> i64(1)) | (Source >> i64(2)) 
+        KingLeftCastle    = (Source << i64(1)) | (Source << i64(2)) | (Source << i64(3))
         KingLeftAtkVerify = (Source << i64(1)) | (Source << i64(2)) | (Source)
+        AttackedSquares   = All_Attacked_squares('w',Game)
 
         # Validate kingside castle rights      ⇒ Verify there are no obstructions ⇒
         # Ensure these squares aren't attacked ⇒ Ensure there is no check
         if ( (Game.Castle_Rights & B_KingSide) and (not Is_Obstructed(Game,KingRightCastle)) and
-             (not(All_Attacked_squares('w',Game) & KingRightCastle)) and (Game.BlackCheckMask == AllBits) ):
+             (not(AttackedSquares & KingRightCastle)) and (Game.BlackCheckMask == AllBits) ):
 
             MoveList.append( Move('b',Index,Index - 2,False,True,'k',False) )
 
         # Validate queenside castle rights     ⇒ Verify there are no obstructions ⇒
         # Ensure these squares aren't attacked ⇒ Ensure there is no check
         if ( (Game.Castle_Rights & B_QueenSide) and (not Is_Obstructed(Game,KingLeftCastle)) and
-             (not(All_Attacked_squares('w',Game) & KingLeftAtkVerify)) ):
+             (not(AttackedSquares & KingLeftAtkVerify)) ):
 
             MoveList.append( Move('b',Index,Index + 2,False,True,'k',False) )
 

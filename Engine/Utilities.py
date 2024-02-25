@@ -20,22 +20,17 @@ def Show_Board(Game:GameState) -> str:
     # Each rank must be reversed to show board correctly (because of reverse little-endian mapping)
     Reverse_Str = lambda s:s[::-1][1:]
 
-    # Iterates over board ranks
     for rank in range(7,-1,-1):
         result = ''
-
-        # Iterates over board files
         for file in range(7,-1,-1):
 
             # Calculates square number
             SquareNum = rank * 8 + file
 
-            # Iterates over all piece bitboards
             for piece in Game.Pieces:
 
                 # If this bit is set add the piece's ascii representation
                 if Get_bit( piece,SquareNum ):
-
                     result = f'{ Board_To_Ascii(Game,piece) } {result}'
                     break
 
@@ -45,7 +40,6 @@ def Show_Board(Game:GameState) -> str:
         # Add this rank to the board with the number on the beginning
         result = f'{rank+1}| {Reverse_Str(result)}'
 
-        # Add to Board
         Board.append(result)
 
     # Adds the letters on the bottom
@@ -60,43 +54,42 @@ def Is_square_attacked(SquareNum:int|i64, colour:str, Game:GameState, RemoveBit:
     if type( SquareNum ) == i64: SquareNum = GetIndex( SquareNum )
 
     bitboard = i64(2**SquareNum)
-
-    # Get relevant piece bitboards
-    Attacking_King     = Game.WhiteKing   if (colour == 'w') else Game.BlackKing
-    Attacking_Pawn     = Game.WhitePawn   if (colour == 'w') else Game.BlackPawn
-    Attacking_Knight   = Game.WhiteKnight if (colour == 'w') else Game.BlackKnight
-    Attacking_Bishop   = Game.WhiteBishop if (colour == 'w') else Game.BlackBishop
-    Attacking_Rook     = Game.WhiteRook   if (colour == 'w') else Game.BlackRook
-    Attacking_Queen    = Game.WhiteQueen  if (colour == 'w') else Game.BlackQueen
     Opposite_Pawn_Atks = BLACK_PAWN_ATKS[SquareNum] if (colour == 'w') else WHITE_PAWN_ATKS[SquareNum]
 
-    # Does a king attack this square?
-    if KING_MOVES[SquareNum] & Attacking_King: return True 
+    # Does a king attack this square? // Evaluates to 1 if col == white otherwise 0 and indexes at this number
+    if KING_MOVES[SquareNum] & [Game.BlackKing, Game.WhiteKing][colour == 'w']:
+        return True 
 
-    # Does a pawn attack this square?
-    if Opposite_Pawn_Atks & Attacking_Pawn: return True
+    # Does a pawn attack this square? // Evaluates to 1 if col == white otherwise 0 and indexes at this number
+    if Opposite_Pawn_Atks & [Game.BlackPawn, Game.WhitePawn][colour == 'w']: 
+        return True
 
-    # Does a knight attack this square?
-    if KNIGHT_MOVES[SquareNum] & Attacking_Knight: return True
+    # Does a knight attack this square? // Evaluates to 1 if col == white otherwise 0 and indexes at this number
+    if KNIGHT_MOVES[SquareNum] & [Game.BlackKnight, Game.WhiteKnight][colour == 'w']: 
+        return True
 
     # If this square's bit is 1 on the all pieces bitboard, we should remove it
     Occupancy = Game.AllPieces
     if Game.AllPieces & bitboard: Occupancy ^= bitboard
     if (RemoveBit != None) and (Occupancy & RemoveBit): Occupancy ^= RemoveBit 
 
-    # Does a bishop attack this square?
-    if Compute_Bishop_attacks( bitboard, Occupancy ) & Attacking_Bishop: return True
+    # Does a bishop attack this square? // Evaluates to 1 if col == white otherwise 0 and indexes at this number
+    if Compute_Bishop_attacks(bitboard, Occupancy) & [Game.BlackBishop, Game.WhiteBishop][colour == 'w']:
+        return True
 
-    # Does a rook attack this square?
-    if Compute_Rook_attacks( bitboard, Occupancy ) & Attacking_Rook: return True
+    # Does a rook attack this square? // Evaluates to 1 if col == white otherwise 0 and indexes at this number
+    if Compute_Rook_attacks(bitboard, Occupancy) & [Game.BlackRook, Game.WhiteRook][colour == 'w']:
+        return True
 
-    # Does a queen attack this square?
-    if Compute_Queen_attacks( bitboard, Occupancy ) & Attacking_Queen: return True
+    # Does a queen attack this square? // Evaluates to 1 if col == white otherwise 0 and indexes at this number
+    if Compute_Queen_attacks(bitboard, Occupancy) & [Game.BlackQueen, Game.WhiteQueen][colour == 'w']: 
+        return True
 
     # Return false if no pieces attack this square
     return False
 
 # Returns a bitboard with all of the squares that the given colour attacks
+@cache
 def All_Attacked_squares(col:str, Game:GameState, RemoveBit:i64|None = None) -> i64:
     bitboard = i64(0)
     # Loop over all squares

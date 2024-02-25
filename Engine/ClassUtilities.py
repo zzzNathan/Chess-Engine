@@ -160,7 +160,37 @@ class GameState():
         Full_Move = int(Full_Move)
         # Initialise gamestate varaibles
         self.Initialise_GameState_Variables(fen, Side, En_Passant, Half_Move, Full_Move, Castle)
-        
+       
+    # Invalidates castling rights if rook or king moves
+    def Update_Castle_Rights(self, move):
+        Source = i64(2**move.Source)
+
+        if (move.Side == 'w') and (self.Castle_Rights & (W_KingSide | W_QueenSide)):
+            KingsideRights  = True if (self.Castle_Rights & W_KingSide)  else False
+            QueensideRights = True if (self.Castle_Rights & W_QueenSide) else False
+
+            # Remove these rights if they exist
+            if move.Piece == 'K': 
+                self.Castle_Rights ^= W_KingSide  if (KingsideRights)  else NoBits
+                self.Castle_Rights ^= W_QueenSide if (QueensideRights) else NoBits
+
+            if move.Piece == 'R':
+                self.Castle_Rights ^= W_KingSide  if (KingsideRights)  and (Source == SquareH1) else NoBits
+                self.Castle_Rights ^= W_QueenSide if (QueensideRights) and (Source == SquareA1) else NoBits
+                        
+        if (move.Side == 'b') and (self.Castle_Rights & (B_KingSide | B_QueenSide)):
+            KingsideRights  = True if (self.Castle_Rights & B_KingSide)  else False
+            QueensideRights = True if (self.Castle_Rights & B_QueenSide) else False 
+
+            # Remove these rights if they exist
+            if move.Piece == 'k': 
+                self.Castle_Rights ^= B_KingSide  if (KingsideRights)  else NoBits
+                self.Castle_Rights ^= B_QueenSide if (QueensideRights) else NoBits
+
+            if move.Piece == 'r':
+                self.Castle_Rights ^= B_KingSide  if (KingsideRights)  and (Source == SquareH8) else NoBits
+                self.Castle_Rights ^= B_QueenSide if (QueensideRights) and (Source == SquareA8) else NoBits
+
     # Plays a given move onto the board
     def Make_Move(self,move:Move):
 
@@ -168,8 +198,12 @@ class GameState():
         Source = i64( 2**move.Source )
         Target = i64( 2**move.Target )
 
-        # Invalidate castling moves if rook or king moves
-        
+        # Promotion move handler
+
+        # Invalidate castling rights if rook or king moves
+        if move.Piece in ['K','k','R','r']:
+            self.Update_Castle_Rights(move)
+            
         # Handle castling moves
         if move.Castle == True: 
             Make_Castle( self,Source,Target,move.Side )
@@ -214,7 +248,6 @@ class GameState():
         
         # Only get new en passant squares upon the event that a move was played
         if self.PreviousMoves != []: self.En_Passant = self.Get_En_Passant()
-
         
 # Determines whether there is a check or not if so returns a bitboard of the attacking ray
 # (Used in legal move generation)
