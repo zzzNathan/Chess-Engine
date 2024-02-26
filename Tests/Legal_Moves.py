@@ -3,8 +3,7 @@
 #   - - - -  - - - - - - - - - -  - - - - -      
 #\*******************************************/
 
-# The following code aims to test if the file 
-# "MoveGenerator.py" generates legal, playable moves
+# The following code aims to test if the file "MoveGenerator.py" generates legal, playable moves
 from Engine.MoveGenerator import *
 import chess
 import chess.pgn
@@ -23,7 +22,7 @@ def Get_Fen_From_Game(Game:chess.pgn.Game) -> set:
     for move in Game.mainline_moves():
 
         Board.push(move)
-        fens.append( Board.fen() )
+        fens.append(Board.fen())
 
     return set(fens)
 
@@ -37,7 +36,6 @@ def Get_Fen_Strings(file:str) -> list:
    
     # Parse all games from PGN file
     CurrentGame = chess.pgn.read_game(PGN)
-
     while CurrentGame != None:
         Games.append( CurrentGame )
         CurrentGame = chess.pgn.read_game(PGN)
@@ -48,12 +46,11 @@ def Get_Fen_Strings(file:str) -> list:
     PGN.close()
     return list( fens )
 
-# Takes in a list of the moves that we have generated and 
-# checks to see if they are also in the moves that our validator has generated
+# Checks to see if we generate the same moves as the chess module
 def All_Moves_Valid(Our_Moves:list, Validator_Moves:chess.LegalMoveGenerator) -> bool:
     
-    Valid_UCI = [chess.Move.uci(move) for move in Validator_Moves]
-    Our_Moves_UCI = [Move_To_UCI(move) for move in Our_Moves]
+    Valid_UCI     = [chess.Move.uci(move) for move in Validator_Moves]
+    Our_Moves_UCI = [Move_To_UCI(move)    for move in Our_Moves]
     
     # If the set of both moves are equal we have generate all correct moves
     return True if (set(Valid_UCI) == set(Our_Moves_UCI)) else False

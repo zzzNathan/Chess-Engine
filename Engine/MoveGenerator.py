@@ -90,7 +90,7 @@ def Filter_All_Moves(Game:GameState, movelist:list[Move]) -> list[Move]:
     FilteredMoveList = []
 
     for move in movelist:
-        if Filter_Move( Game,move ):FilteredMoveList.append(move)
+        if Filter_Move(Game, move):FilteredMoveList.append(move)
 
     return FilteredMoveList
 

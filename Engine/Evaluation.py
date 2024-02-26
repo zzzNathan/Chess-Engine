@@ -2,51 +2,44 @@
 #            E V A L U A T I O N S  
 #            - - - - - - - - - - - 
 #\*******************************************/
-
 from Engine.ConstantsAndTables import *
 from Engine.Utilities          import *
 from Engine.MoveGenerator      import *
 from Engine.PieceSquareTables  import *
 
-INF = 20_000
+# Reference:
+# ----------
+# https://www.chessprogramming.org/Simplified_Evaluation_Function
+# https://chess.stackexchange.com/questions/17957/how-to-write-a-chess-evaluation-function
 
-# Centipawn piece values 
-# (values from Claude Shannon's MIT paper "Programming a computer to play chess")
-WEIGHTS = { 
-'K' : INF, # King weight
-'Q' : 900, # Queen weight
-'N' : 320, # Knight weight
-'B' : 330, # Bishop weight
-'R' : 500, # Rook weight
-'P' : 100, # Pawn weight
-}
+INF          = 1_000_000
+PAWN_VALUE   = 100
+KNIGHT_VALUE = 320
+BISHOP_VALUE = 330
+ROOK_VALUE   = 500
+QUEEN_VALUE  = 900
+KING_VALUE   = 20_000
 
 # Values to increase or decrease evaluation scores based on their importance to the game
-Damping = {}
+DAMPING = {}
 
-# Heuristic to determine centipawn value of white's material 
+# Computes the amount of material the given side has
 def Material(Game:GameState, col:str) -> int:
     Score = 0
+    Boards = Game.WhitePieces if (col == 'w') else Game.BlackPieces
 
-    Boards = Game.WhitePieces if (col=='w') else Game.BlackPieces
     for board in Boards:
-
-        # Get piece name 
-        name = Board_To_Ascii( Game,board )
-
-        # Iterate through this board and add the relevant centipawn value to score
-        Score += Add_Weighted_Material( board,Ascii_To_Table(name,Game),col=='b' )
+        name   = Board_To_Ascii(Game, board)
+        Score += Add_Weighted_Material(board, Ascii_To_Table(name,Game), col=='b')
 
     return Score
 
-# Gives bonus based on how mnay legal move the given colour can make
-def Mobility(Game:GameState, col:str) -> int:
+# Computes how many legal moves each colour has
+def Mobility(Game:GameState, col:str) -> float:
+    return len(Generate_Moves(Game, col))
 
-    # Return the number of legal moves for given colour
-    return len( Generate_Moves(Game, col) )
-
-# Gives bonus based on how many pawns are connected
-def Connectivity(Game:GameState, col:str) -> int:
+# Gives bonuses based on how many pawns are connected
+def Connectivity(Game:GameState, col:str) -> float:
     
     # Get bitboard of white pawns then AND it with the board shifted left then right (with masking)
     # Then all bits remaining in the and will be connected
@@ -56,64 +49,28 @@ def Connectivity(Game:GameState, col:str) -> int:
 
     Board_Shift_Left  &= Board
     Board_Shift_Right &= Board
-    
+   
     return BitCount( Board_Shift_Left | Board_Shift_Right )
 
-# Gives penalty based on how many pawns are doubled
-def DoubledPawns(Game:GameState, col:str) -> int:
+# Gives a small bonus if this side has the bishop pair
+def BishopPair(Game:GameState, col:str) -> float:
+    Bishops = Game.WhiteBishop if (col == 'w') else Game.BlackBishop
+    return 7.5 if (BitCount(Bishops) >= 2) else 0.0
 
-    # Get bitboard of given coloured pawns then AND it with the same board shifted up by one
-    # Then all the remaining bits will be doubled pawns
-    Board          = Game.WhitePawn if (col=='w') else Game.BlackPawn
-    Board_Shift_Up = Board << i64(8)
-
-    return BitCount( Board & Board_Shift_Up ) 
-
-'''
-Mobility bonus 0.1
-Outpost bonus  
-Attack bonus
-Rook on the seventh rank
-Material advantage
-Minor pieces behind pawn
-'''
-
-'''
-Basic Evaluation Features
-
-Pawn Structure
-Evaluation of Pieces
-Evaluation Patterns
-Center Control
-Trapped Pieces
-King Safety
-Space
-'''
-
-# Returns the evaluation of a position, (how likely white or black is to win)
-#       ( +ve sign signifies an advantage for white )
-#       ( -ve sign signifies an advantage for black )
-def Evaluate(Game:GameState) -> int:
+# Evaluates the current position
+def Evaluate(Game:GameState) -> float:
     Score = 0
 
     # Check if white of black has checkmate
-    if Is_Check('w',Game) and Generate_White_King_Moves(Game.WhiteKing,Game) == []: return -INF
-    if Is_Check('b',Game) and Generate_Black_King_Moves(Game.BlackKing,Game) == []: return INF
+    if Is_Check('w',Game)!=AllBits and Generate_White_King_Moves(Game.WhiteKing,Game) == []: return -INF
+    if Is_Check('b',Game)!=AllBits and Generate_Black_King_Moves(Game.BlackKing,Game) == []: return INF
 
-    # Who has more material ?
-    Score += (Material(Game,'w') - Material(Game,'b')) #*Damping['Material']
-
-    # Who has more legal moves ?
-    Score += (Mobility(Game,'w') - Mobility(Game,'b')) #* Damping['Mobility']
-
-    # Who has more connected pawns ?
-    Score += (Connectivity(Game,'w') - Connectivity(Game,'b')) #* Damping['Connectivity']
-   
-    # Who has less doubled pawns ?
-    Score += (DoubledPawns(Game, 'b') - DoubledPawns(Game, 'w')) #* Damping['DoubledPawns']
-    
+    Score += Material(Game, 'w')     - Material(Game, 'b')
+    Score += Mobility(Game, 'w')     - Mobility(Game, 'b')
+    Score += Connectivity(Game, 'w') - Connectivity(Game, 'w')
     return Score
 
-if __name__ == '__main__':
-    # IN PROGRESS
-    print( Evaluate(STARTING_GAME) )
+# Evaluating this position gives an error ?
+fen = r'rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8'  
+GAME = Fen_to_GameState(fen)
+print(Evaluate(GAME))

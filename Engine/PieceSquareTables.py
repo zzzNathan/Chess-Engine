@@ -4,7 +4,6 @@
 #\*******************************************/
 
 # Values from https://www.chessprogramming.org/Simplified_Evaluation_Function
-# Based of general human knowledge on the game
 
 # Maps positon of a black square to the relevant square from white's perspectived
 Black_To_White = {
