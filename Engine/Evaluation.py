@@ -7,7 +7,7 @@ from Engine.Utilities          import *
 from Engine.MoveGenerator      import *
 from Engine.PieceSquareTables  import *
 
-# Reference:
+# References:
 # ----------
 # https://www.chessprogramming.org/Simplified_Evaluation_Function
 # https://chess.stackexchange.com/questions/17957/how-to-write-a-chess-evaluation-function
@@ -57,6 +57,26 @@ def BishopPair(Game:GameState, col:str) -> float:
     Bishops = Game.WhiteBishop if (col == 'w') else Game.BlackBishop
     return 7.5 if (BitCount(Bishops) >= 2) else 0.0
 
+# Gives a penalty if this side has doubled pawns
+def DoubledPawns(Game:GameState, col:str) -> float:
+
+    # Get bitboard of given coloured pawns then AND it with the same board shifted up by one
+    # Then all the remaining bits will be doubled pawns
+    Board          = Game.WhitePawn if (col=='w') else Game.BlackPawn
+    Board_Shift_Up = Board << i64(8)
+    
+    # Multiplies score by -1 for white because this is a penalty
+    return BitCount( Board & Board_Shift_Up ) * [1,-1][col == 'w']
+
+# Bonuses for passed pawns 
+def PassedPawns(Game:GameState, col:str) -> float: NotImplemented
+
+# Bonuses for rooks on open files
+def OpenRookFiles(Game:GameState, col:str) -> float:
+
+    Rooks = Game.WhiteRook if (col == 'w') else Game.BlackRook
+    NotImplemented
+
 # Evaluates the current position
 def Evaluate(Game:GameState) -> float:
     Score = 0
@@ -67,10 +87,11 @@ def Evaluate(Game:GameState) -> float:
 
     Score += Material(Game, 'w')     - Material(Game, 'b')
     Score += Mobility(Game, 'w')     - Mobility(Game, 'b')
-    Score += Connectivity(Game, 'w') - Connectivity(Game, 'w')
+    Score += Connectivity(Game, 'w') - Connectivity(Game, 'b')
+    Score += DoubledPawns(Game, 'w') - DoubledPawns(Game, 'b')
     return Score
 
-# Evaluating this position gives an error ?
+# Should be favourable for white
 fen = r'rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8'  
 GAME = Fen_to_GameState(fen)
 print(Evaluate(GAME))

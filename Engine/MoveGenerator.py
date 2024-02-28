@@ -17,6 +17,7 @@ i64 = np.uint64
 i8  = np.uint8
 
 # Generates a list of moves that have target squares as the 1's on a given bitboard
+@cache
 def Create_Moves_From_Board(Game:GameState,source:i64,bitboard:i64,col:str,piece:str) -> list:
     MoveList    = []
     SourceIndex = GetIndex( source )
@@ -42,6 +43,7 @@ def Create_Moves_From_Board(Game:GameState,source:i64,bitboard:i64,col:str,piece
     return MoveList
 
 # Will generate correct move filter in case piece is pinned or king is in check
+@cache
 def Generate_Filter(Game:GameState, move:Move) -> i64:
     
     # If this is a king move we dont need to generate a filter
@@ -78,7 +80,7 @@ def Generate_Filter(Game:GameState, move:Move) -> i64:
 
 # Will take in a given move and check if its legal
 def Filter_Move(Game:GameState, move:Move) -> Move | bool:
-
+    
     TargetBB = i64( 2**move.Target )
     Filter   = Generate_Filter( Game,move )
 
@@ -150,6 +152,7 @@ def Gen_Pseudo_legal_Moves(Game:GameState, board:i64, char:str) -> list[Move]:
 https://github.com/Avo-k/black_numba/blob/master/attack_tables.py
 '''
 
+@cache
 def GeneratePromotions(Source:i64, Target:i64, col:str, Capture:bool) -> list:
     # Getting index of promotion squares
     SourceIndex = int( log2(Source) )
@@ -167,9 +170,9 @@ def GeneratePromotions(Source:i64, Target:i64, col:str, Capture:bool) -> list:
 
     return MoveList
 
+@cache
 def Generate_White_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
     MoveList = []
-
     # Loop over all white pawns in the WhitePawns bitboard
     while board_copy:
 
@@ -208,7 +211,7 @@ def Generate_White_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
             while Target:
 
                 CurrentBB = Get_LSB(Target)
-                MoveList.append( GeneratePromotions(Source,CurrentBB,'w',True) )
+                MoveList.extend( GeneratePromotions(Source,CurrentBB,'w',True) )
 
                 # Remove this bit from the bitboard
                 Target ^= CurrentBB
@@ -229,6 +232,7 @@ def Generate_White_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
 
     return MoveList
 
+@cache
 def Generate_Black_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
     MoveList = []
     # Loop over black pawns in the BlackPawns bitboard
@@ -269,7 +273,7 @@ def Generate_Black_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
             while Target:
 
                 CurrentBB = Get_LSB(Target)
-                MoveList.append( GeneratePromotions(Source,CurrentBB,'b',True) )
+                MoveList.extend( GeneratePromotions(Source,CurrentBB,'b',True) )
 
                 # Remove this bit from the bitboard
                 Target ^= CurrentBB
@@ -293,7 +297,6 @@ def Generate_Black_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
 def Generate_White_Knight_Moves(board_copy:i64, Game:GameState) -> list: 
     return Gen_Pseudo_legal_Moves(Game,board_copy,'N')
     
-
 def Generate_Black_Knight_Moves(board_copy:i64, Game:GameState) -> list:
     return Gen_Pseudo_legal_Moves(Game,board_copy,'n')
 
@@ -315,6 +318,7 @@ def Generate_White_Queen_Moves(board_copy:i64, Game:GameState) -> list:
 def Generate_Black_Queen_Moves(board_copy:i64, Game:GameState) -> list:
     return Gen_Pseudo_legal_Moves(Game,board_copy,'q')
 
+@cache
 def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
     MoveList = []
     Source   = board_copy
@@ -360,6 +364,7 @@ def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
 
     return MoveList
 
+@cache
 def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
     MoveList = []
     Source   = board_copy
@@ -405,6 +410,7 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
 
     return MoveList
 
+@cache
 def Generate_Moves(Game:GameState, col:str) -> list:
     MoveList = []
     Check = Is_Check(col,Game)
@@ -439,4 +445,4 @@ def Generate_Moves(Game:GameState, col:str) -> list:
                     if (col=='w') else
                     Generate_Black_King_Moves(Game.BlackKing, Game))
 
-    return Filter_All_Moves( Game,MoveList )
+    return Filter_All_Moves(Game, MoveList)
