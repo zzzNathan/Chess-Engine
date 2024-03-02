@@ -1,2 +1,21 @@
 # Ignore cache folders across repository
-/__pycache__/
+**/__pycache__/
+
+# Ignore all latex files
+**/*.aux
+**/*.lof
+**/*.log
+**/*.lot
+**/*.fls
+**/*.out
+**/*.toc
+**/*.fmt
+**/*.fot
+**/*.cb
+**/*.cb2
+**/*.lb
+**/*.fdb_latexmk
+**/*.dvi
+
+# Ignore pyright config
+*.json
