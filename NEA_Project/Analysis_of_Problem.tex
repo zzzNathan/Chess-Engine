@@ -1,0 +1,24 @@
+\section{Analysis of problem}
+\subsection{Problem Identification}
+This paper will detail my process of coding a chess engine in 
+Python 3.12. The game of chess can be traced back to some 1,500
+years ago to it's origins in India, where it was known as 
+'Chaturanga'. Chess is a hard game to master, with most master
+level players starting to play at the ages of 7-9 years of age. 
+The game not only has a multitude of strategies, openings and 
+tactics, but also is very mentally taxing. In the 1984 world 
+chess championship Anatoly Karpov reportedly lost over 22lbs 
+(roughly 10 kg). The game of chess has a branching factor of 
+35-38 moves per position, which is a lot of moves to consider per
+position. Luckily we now have much better technology than 1984, 
+and computers can now process roughly $~ 10^9 \: \: O(1)$
+operations per second! This plays to the strengths of the 
+modern computer, even though it doesn't posses the human 
+intuition needed to disregard moves that 'look disadvantageous', 
+we can simply check all moves available in a given position then 
+evaluate which move is the most optimal, assuming our opponent 
+always plays the best response.
+
+% https://en.wikipedia.org/wiki/World_Chess_Championship_1984%E2%80%931985
+% https://www.chessprogramming.org/Branching_Factor
+% https://en.wikipedia.org/wiki/History_of_chess
