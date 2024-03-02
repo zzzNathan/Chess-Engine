@@ -319,7 +319,6 @@ def Get_Pinned_Pieces(col:str, Game:GameState) -> dict:
     # Iterate through all potential pinners and check if a pinned piece is on this ray
     while Pinners:
 
-        # Gets potentially pinning piece
         Attacker = Get_LSB( Pinners )
 
         # Finds potentially pinned pieces by looking for pieces on the attacking ray
@@ -333,8 +332,6 @@ def Get_Pinned_Pieces(col:str, Game:GameState) -> dict:
             
             # Get the attacking ray from king to the attacker
             Filter = Build_Ray(FriendlyKing, Attacker) ^ FriendlyKing # (Removes bit on the king)
-
-            # Map this location to the calculated filter
             Pins[ Pinned ] = Filter
 
         # Remove this bit from the bitboard
@@ -352,10 +349,9 @@ def Make_Castle(Game:GameState, Source:i64, Target:i64, Colour:str):
     # True if the king moves to the right
     Right = True if (Target < Source) else False
 
-    # Move king to correct square
+    # Move king and rook to correct square
     King ^= ( Source | Target )
-    
-    # Move rook to correct square
+
     if Colour=='w':  Rook ^= (SquareH1|SquareF1) if (Right) else (SquareA1|SquareD1)
     #                         Current -> Target        ///        Current -> Target
 

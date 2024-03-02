@@ -69,13 +69,63 @@ def DoubledPawns(Game:GameState, col:str) -> float:
     return BitCount( Board & Board_Shift_Up ) * [1,-1][col == 'w']
 
 # Bonuses for passed pawns 
-def PassedPawns(Game:GameState, col:str) -> float: NotImplemented
+def PassedPawns(Game:GameState, col:str) -> float:
+    # Bonuses to be given for how far away the passed pawn is from promoting
+    PassedPawnsBonuses = [0, 90, 60, 40, 25, 15, 15]
+    Score = 0
+    Pawns = Game.WhitePawn if (col == 'w') else Game.BlackPawn
+
+    # Iterate through all pawns on the board and calculate their passed pawn bonuses
+    while Pawns:
+        CurrentPawn, CurrentIndex = Get_LSB_and_Index(Pawns)
+
+        # Get square that will be at the end of the board
+        if (col == 'w'):
+            EndOfBoard = CurrentIndex + 8 * ((63-CurrentIndex)//8)
+            EndOfBoard = i64(2**EndOfBoard)
+        
+        else:
+            EndOfBoard = CurrentIndex - 8 * (CurrentIndex//8)
+            EndOfBoard = i64(2**EndOfBoard)
+
+        PawnUpOne = CurrentPawn << i64(8) if (col == 'w') else CurrentPawn >> i64(8) 
+
+        # Get squares in front of the pawn one to the right and one to the left 
+        mask  = Build_Ray(PawnUpOne, EndOfBoard)
+        mask &= ((mask >> i64(1)) & NotFileA) | ((mask << i64(1)) & NotFileH) 
+
+        # If no pawns in front or 1 right or 1 left this is a passed pawn
+        if (mask & Game.AllPieces == NoBits):
+            Score += PassedPawnsBonuses[ BitCount(Build_Ray(PawnUpOne, EndOfBoard)) ]
+
+        # Remove this bit from the board
+        Pawns ^= CurrentPawn
+
+    return Score
 
 # Bonuses for rooks on open files
 def OpenRookFiles(Game:GameState, col:str) -> float:
-
+    Score = 0.0
     Rooks = Game.WhiteRook if (col == 'w') else Game.BlackRook
-    NotImplemented
+    
+    # Iterate through all rooks on the board and calculate their open file bonuses
+    while Rooks:
+        CurrentRook = Get_LSB(Rooks)
+
+        # Find what file the rook is on 
+        CurrentFile = i64(0)
+        for file in FILES:
+            if CurrentRook & file:
+                CurrentFile = file
+                break
+        
+        # Calculates how many squares are open that the rook can see
+        Score += 8 - BitCount(Compute_Rook_attacks(CurrentRook, Game.AllPieces) & CurrentFile & Game.AllPieces)
+        
+        # Remove this bit from the board
+        Rooks ^= CurrentRook
+
+    return Score
 
 # Evaluates the current position
 def Evaluate(Game:GameState) -> float:
@@ -89,9 +139,12 @@ def Evaluate(Game:GameState) -> float:
     Score += Mobility(Game, 'w')     - Mobility(Game, 'b')
     Score += Connectivity(Game, 'w') - Connectivity(Game, 'b')
     Score += DoubledPawns(Game, 'w') - DoubledPawns(Game, 'b')
+    Score += OpenRookFiles(Game,'w') - OpenRookFiles(Game,'b')
+    Score += PassedPawns(Game ,'w')  - PassedPawns(Game, 'b')
     return Score
 
-# Should be favourable for white
+# Should be favourable for white // TESTS
 fen = r'rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8'  
 GAME = Fen_to_GameState(fen)
 print(Evaluate(GAME))
+print( Show_Board(GAME) )

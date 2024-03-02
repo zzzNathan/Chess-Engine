@@ -49,19 +49,11 @@ def GetIndex(bitboard:i64) -> int: return int( log2(bitboard) )
 # Checks whether the given board has bits within the mask
 def In_Mask(bitboard:i64, mask:i64) -> i64: return bitboard & mask 
 
-# Function to count how many bits are in some binary representation of a number
+# Function to count how many '1' bits are in some binary representation of a number
 def BitCount(n:i64) -> int:
-    count = 0
-    while n:
-
-        # Removes last bit
-        n &= ( n-i64(1) )
-
-        # Increment count by one until no more one bits left
-        count += 1
-
-    return count
-
+    return bin(n).count('1') 
+    
+    
 # Nice way to visualise the board
 def Show_bitboard(bb:i64) -> str:
     # Fills the binary with extra zeros until 64 digits, (8x8 board)  
