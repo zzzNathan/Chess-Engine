@@ -2,7 +2,6 @@
 #   P I E C E  &  S Q U A R E  T A B L E S 
 #   - - - - -  -  - - - - - -  - - - - - -
 #\*******************************************/
-
 # Values from https://www.chessprogramming.org/Simplified_Evaluation_Function
 
 # Maps positon of a black square to the relevant square from white's perspectived

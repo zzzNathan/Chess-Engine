@@ -185,10 +185,7 @@ def Add_Weighted_Material(Board:i64, Table:list, Black=False) -> int:
 
     while Board:
         
-        # Get lowest 1 bit on the board and its relevant index
         current, index = Get_LSB_and_Index(Board)
-        
-        # Add relevant weighting to the score
         score += Table[ Remap(index) ]
 
         # Remove this bit from the board

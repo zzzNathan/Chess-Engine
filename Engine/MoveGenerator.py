@@ -2,7 +2,6 @@
 #        M O V E   G E N E R A T I O N       
 #        - - - -   - - - - - - - - - -
 #\*******************************************/
-
 '''
 "We should forget about small efficiencies, say about 97% of the time: 
  PREMATURE OPTIMISATION IS THE ROOT OF ALL EVIL."
