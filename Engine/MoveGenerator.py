@@ -15,6 +15,13 @@ from Engine.Utilities          import *
 i64 = np.uint64
 i8  = np.uint8
 
+# References:
+# - https://github.com/Avo-k/black_numba/blob/master/attack_tables.py
+
+# To do:
+# - Keep all previous positions in a table to check for 3-fold repitition
+# - Check for all other draws
+
 # Generates a list of moves that have target squares as the 1's on a given bitboard
 @cache
 def Create_Moves_From_Board(Game:GameState,source:i64,bitboard:i64,col:str,piece:str) -> list:
@@ -142,15 +149,6 @@ def Gen_Pseudo_legal_Moves(Game:GameState, board:i64, char:str) -> list[Move]:
         board ^= Current
 
     return MoveList
-
-'''
-- For pins keep a dict in the game class 
-- Ensure to check for pins and checks every game loop
-- If a double check occurs then we will set the mask to 'Double' 
-- Keep all previous positions in a table to check for 3-fold repitition
-
-https://github.com/Avo-k/black_numba/blob/master/attack_tables.py
-'''
 
 @cache
 def GeneratePromotions(Source:i64, Target:i64, col:str, Capture:bool) -> list:
@@ -413,12 +411,12 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
 @cache
 def Generate_Moves(Game:GameState, col:str) -> list:
     MoveList = []
-    Check = Is_Check(col,Game)
+    Check = Game.WhiteCheckMask if (col == 'w') else Game.BlackCheckMask
     
     # If there is a double check only the king may move
     if Check == 'Double':
-        if col == 'w': return Generate_White_King_Moves( Game.WhiteKing,Game )
-        else: return Generate_Black_King_Moves( Game.BlackKing,Game )
+        if col == 'w': return Generate_White_King_Moves(Game.WhiteKing, Game)
+        else:          return Generate_Black_King_Moves(Game.BlackKing, Game)
 
     # Generate all moves
     MoveList.extend(Generate_White_Pawn_Moves(Game.WhitePawn, Game)
