@@ -117,6 +117,7 @@ def Find_Move_Table(Game:GameState, char:str) -> Callable:
 
 # Take in a given piece bitboard and generate all pseudo-legal moves
 # (For all pieces except pawns and king)
+@cache
 def Gen_Pseudo_legal_Moves(Game:GameState, board:i64, char:str) -> list[Move]:
     MoveList    = []
     colour      = 'w' if (char.isupper()) else 'b'

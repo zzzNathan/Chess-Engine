@@ -148,5 +148,5 @@ if __name__ == "__main__":
 
     # 1r4k1/p6p/1n4pP/2b2pP1/2p1KP2/8/1P1R4/7R w - f6 0 36
     # - Haven't implemented en passant detection yet
-   
+
     # All positions from PGN file generate correct moves :)

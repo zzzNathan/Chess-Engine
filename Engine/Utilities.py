@@ -133,8 +133,10 @@ def Ascii_To_Table(piece:str, Game:GameState) -> list:
         'B' : Bishop_SQ_TABLES,
         'R' : Rook_SQ_TABLES,
         'Q' : Queen_SQ_TABLES,
-        'K' : MergeTables(King_SQ_TABLES_mid, King_SQ_TABLES_end
-                          ,Get_GamePhase(Game))
+        'K' : MergeTables(
+                King_SQ_TABLES_mid,
+                King_SQ_TABLES_end, 
+                Get_GamePhase(Game))
     }
 
     return Map[ piece.upper() ]
@@ -213,7 +215,6 @@ def Fen_to_GameState(fen:str) -> GameState:
     New_Game = deepcopy(STARTING_GAME)
     New_Game.InitBoards()
     New_Game.Parse_FEN(fen)
-    New_Game.Game_Update()
     return New_Game
 
 STARTING_FEN  = r'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'

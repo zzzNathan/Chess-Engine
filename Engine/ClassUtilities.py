@@ -12,12 +12,14 @@ i64 = np.uint64
 i8  = np.uint8
 
 # Sets a bit on bitboard, 0 to 1
-def Set_bit(Bitboard:i64, SquareNum:int) -> i64: return Bitboard | i64(2**SquareNum)
+def Set_bit(Bitboard:i64, SquareNum:int) -> i64: 
+    return Bitboard | i64(2**SquareNum)
 
 # Helper dictionary that maps piece ascii codes to their human readable names
-Ascii_To_Name = {'P':'WhitePawn', 'p':'BlackPawn', 'N':'WhiteKnight', 'n':'BlackKnight',
-                 'B':'WhiteBishop', 'b':'BlackBishop', 'R':'WhiteRook', 'r':'BlackRook',
-                 'Q':'WhiteQueen', 'q':'BlackQueen', 'K':'WhiteKing', 'k':'BlackKing'}
+Ascii_To_Name = {
+    'P':'WhitePawn',   'p':'BlackPawn',   'N':'WhiteKnight', 'n':'BlackKnight',
+    'B':'WhiteBishop', 'b':'BlackBishop', 'R':'WhiteRook',   'r':'BlackRook',
+    'Q':'WhiteQueen',  'q':'BlackQueen',  'K':'WhiteKing',   'k':'BlackKing'}
 
 # Class to give structure and order to moves and other relevant information
 class Move():
@@ -34,8 +36,34 @@ class Move():
 
 # Class for storing all gamestate variables in one place
 class GameState():
-    
-    # Initialises bitboards representing the game
+
+    # Bitboard properties and initialisations:
+    # ----------------------------------------
+    # (The decorator @property allows this attribute to automatically update when one of the attributes in the list changes)
+    # Piece combinations 
+    @property
+    def WhiteAll(self): 
+        return (self.WhitePawn | self.WhiteKnight | self.WhiteBishop | self.WhiteRook | self.WhiteQueen | self.WhiteKing)
+
+    @property
+    def BlackAll(self):
+        return (self.BlackPawn | self.BlackKnight | self.BlackBishop | self.BlackRook | self.BlackQueen | self.BlackKing)
+
+    @property
+    def AllPieces(self): return (self.WhiteAll | self.BlackAll)
+
+    # Piece iterators 
+    @property
+    def WhitePieces(self):
+        return [self.WhitePawn, self.WhiteKnight, self.WhiteBishop, self.WhiteRook, self.WhiteQueen, self.WhiteKing]
+
+    @property
+    def BlackPieces(self):
+        return [self.BlackPawn, self.BlackKnight, self.BlackBishop, self.BlackRook, self.BlackQueen, self.BlackKing]
+
+    @property
+    def Pieces(self): return [*self.WhitePieces, *self.BlackPieces]
+
     def InitBoards(self):
         # White pieces
         self.WhitePawn   = NoBits
@@ -52,33 +80,10 @@ class GameState():
         self.BlackQueen  = NoBits
         self.BlackKing   = NoBits
         # Names of attributes
-        self.WhitePieceNames = ['WhitePawn', 'WhiteKnight', 'WhiteBishop', 'WhiteRook',
-                                'WhiteQueen', 'WhiteKing']
-        self.BlackPieceNames = ['BlackPawn', 'BlackKnight', 'BlackBishop', 'BlackRook',
-                                'BlackQueen', 'BlackKing']
+        self.WhitePieceNames = ['WhitePawn', 'WhiteKnight', 'WhiteBishop', 'WhiteRook', 'WhiteQueen', 'WhiteKing']
+        self.BlackPieceNames = ['BlackPawn', 'BlackKnight', 'BlackBishop', 'BlackRook', 'BlackQueen', 'BlackKing']
     
-    # (The decorator @property allows this attribute to automatically update when one of the attributes in the list changes)
-    # Piece combinations 
-    @property
-    def WhiteAll(self): 
-        return (self.WhitePawn | self.WhiteKnight | self.WhiteBishop | self.WhiteRook | self.WhiteQueen | self.WhiteKing)
-    @property
-    def BlackAll(self):
-        return (self.BlackPawn | self.BlackKnight | self.BlackBishop | self.BlackRook | self.BlackQueen | self.BlackKing)
-    @property
-    def AllPieces(self): return (self.WhiteAll | self.BlackAll)
-
-    # Piece iterators 
-    @property
-    def WhitePieces(self):
-        return [self.WhitePawn, self.WhiteKnight, self.WhiteBishop, self.WhiteRook, self.WhiteQueen, self.WhiteKing]
-    @property
-    def BlackPieces(self):
-        return [self.BlackPawn, self.BlackKnight, self.BlackBishop, self.BlackRook, self.BlackQueen, self.BlackKing]
-    @property
-    def Pieces(self): return [*self.WhitePieces, *self.BlackPieces]
-
-    # Initialising all attributes for the game
+    # Initialising all attributes for the game class
     def __init__(self,side:str,Pos:str,EnPassant:str|None,CastleRights:i8,HalfMove:int,FullMove:int):
         
         # Explanation of all attributes
@@ -110,32 +115,8 @@ class GameState():
         self.PreviousMoves     = []
 
         self.InitBoards()
-        self.Parse_FEN( Pos )
-        self.Game_Update()
+        self.Parse_FEN(Pos)
     
-    # Adds piece to bitboard
-    def AddPiece(self,piece,square):
-
-        # Get board then add piece to board then update that board attribute
-        Board = Set_bit( Ascii_To_Board(self,piece),square )
-        setattr( self, Ascii_To_Name[ piece ], Board )
-
-    def Initialise_GameState_Variables(self,fen:str, Side:str, En_Passant:str|None, Half_Move:int, Full_Move:int, Castle:str):
-        
-        # Initialise gamestate attributes
-        self.FEN           = fen
-        self.Side_To_Move  = Side
-        self.Castle_Rights = i8(0)
-        self.En_Passant = None if (En_Passant == '-') else En_Passant
-        self.Half_Move_Clock = Half_Move
-        self.Full_Move_Clock = Full_Move
-        if Castle == '-': return
-        Get_Rights = {'K':W_KingSide, 'Q':W_QueenSide, 'k':B_KingSide, 'q':B_QueenSide}
-
-        for letter in Castle: self.Castle_Rights |= Get_Rights[letter]
-
-        self.PreviousPositions = [deepcopy(self)]
-            
     # Takes a Forsyth-edwards notation string and prints the relevant game state
     def Parse_FEN(self,fen:str):
         # Separate fen into separate strings based on what information they have
@@ -146,44 +127,42 @@ class GameState():
         for rank in Fen.split('/'):
             for piece in rank:
 
-                # If there is a number in the fen, this indicates the number of empty squares found
+                # If there is a number in the fen, this indicates the number of empty squares found so 
+                # move right by this number of squares, otherwise place a piece on the relevant bitboard square
                 if piece.isdigit(): Square -= int( piece )
-
-                # Otherwise place a piece on the relevant bitboard square
                 else: 
                     self.AddPiece(piece, Square)
                     Square -= 1
        
         # Initialise gamestate varaibles
         self.Initialise_GameState_Variables(fen, Side, En_Passant, int(Half_Move), int(Full_Move), Castle)
-       
-    # Invalidates castling rights if rook or king moves
-    def Update_Castle_Rights(self, move):
-        Source = i64(2**move.Source)
-        KingsideFlag  = W_KingSide  if (move.Side == 'w') else B_KingSide
-        QueensideFlag = W_QueenSide if (move.Side == 'w') else B_QueenSide
-
-        KingsideRights  = True if (self.Castle_Rights & KingsideFlag)  else False
-        QueensideRights = True if (self.Castle_Rights & QueensideFlag) else False
+    
+    # Inititalise game state varibles based on the inputted fen string
+    def Initialise_GameState_Variables(self, fen:str, Side:str, En_Passant:str|None, Half_Move:int, Full_Move:int, Castle:str):
+        # Initialise gamestate attributes
+        self.FEN           = fen
+        self.Side_To_Move  = Side
+        self.Castle_Rights = i8(0)
+        self.En_Passant = None if (En_Passant == '-') else En_Passant
+        self.Half_Move_Clock = Half_Move
+        self.Full_Move_Clock = Full_Move
+                
+        # Ensure that we have detected any pins or checks in this position
+        self.PreviousPositions = [deepcopy(self)]
+        self.Pins = Get_Pinned_Pieces('w', self) | Get_Pinned_Pieces('b', self)
+        self.WhiteCheckMask = Is_Check('w', self)
+        self.BlackCheckMask = Is_Check('b', self)
         
-        KingsideRookSQ  = SquareH1 if (move.Side == 'w') else SquareH8
-        QueensideRookSQ = SquareA1 if (move.Side == 'w') else SquareA8
-        
-        # If this colour has no rights then we dont have to do anything
-        if (self.Castle_Rights & (KingsideRights | QueensideRights)): return 
+        # Set relevant castle rights
+        if Castle == '-': return
+        Get_Rights = {'K':W_KingSide, 'Q':W_QueenSide, 'k':B_KingSide, 'q':B_QueenSide}
 
-        # Remove these rights if they exist
-        if move.Piece == 'K': 
-            self.Castle_Rights ^= KingsideFlag  if (KingsideRights)  else NoBits
-            self.Castle_Rights ^= QueensideFlag if (QueensideRights) else NoBits
-
-        if move.Piece == 'R':
-            self.Castle_Rights ^= KingsideFlag  if (KingsideRights)  and (Source == KingsideRookSQ)  else NoBits
-            self.Castle_Rights ^= QueensideFlag if (QueensideRights) and (Source == QueensideRookSQ) else NoBits
-
+        for letter in Castle: self.Castle_Rights |= Get_Rights[letter]
+    
+    # Move handling and state updating
+    # --------------------
     # Plays a given move onto the board
     def Make_Move(self,move:Move):
-
         # Get source and target bitboards
         Source = i64( 2**move.Source )
         Target = i64( 2**move.Target )
@@ -210,6 +189,16 @@ class GameState():
         # Record previous move and board state
         self.PreviousPositions.append(deepcopy(self)) 
         self.PreviousMoves.append(move)
+        
+        # Get new en-passant sqaures
+        self.Get_En_Passant()
+
+        # If this move wasn't made by the king then it could be a check or a piece may become pinned
+        if move.Piece in ['K', 'k']: return 
+
+        if move.Side == 'w': self.BlackCheckMask = Is_Check('w', self)
+        else:                self.WhiteCheckMask = Is_Check('b', self)
+        self.Pins = Get_Pinned_Pieces('w', self) | Get_Pinned_Pieces('b', self)
 
     # Unmakes the move just played
     def Unmake_Move(self):
@@ -219,15 +208,22 @@ class GameState():
         # Set attributes of the current game state to the previous position
         self.PreviousPositions.pop()
         LastPosition = self.PreviousPositions[-1]
-
+        
+        # Iterate through the attributes of last position and make them the current attributes
         for attr in vars(LastPosition):
             if attr == 'PreviousPositions': continue
             vars(self)[attr] = vars(LastPosition)[attr] 
 
+    # Adds piece to bitboard
+    def AddPiece(self,piece,square):
+        # Get board then add piece to board then update that board attribute
+        Board = Set_bit(Ascii_To_Board(self, piece), square)
+        setattr(self, Ascii_To_Name[piece], Board)
+
     # Updates the current en passant square
     def Get_En_Passant(self):
         # Check for any en passant squares   //   Was last move by a pawn ?
-        if (self.PreviousMoves == []) or self.PreviousMoves[-1].Piece not in ['P','p']: return
+        if (self.PreviousMoves == []) or (self.PreviousMoves[-1].Piece not in ['P','p']): return
 
         LastMove = self.PreviousMoves[-1]
 
@@ -238,31 +234,42 @@ class GameState():
 
         else: self.En_Passant = None
 
-    # Updates all the GameState varibles
-    def Game_Update(self):
-        
-        # Update dictionary containing all pins
-        self.Pins = Get_Pinned_Pieces('w', self) | Get_Pinned_Pieces('b', self)
+    # Invalidates castling rights if rook or king moves
+    def Update_Castle_Rights(self, move):
+        Source = i64(2**move.Source)
+        KingsideFlag  = W_KingSide  if (move.Side == 'w') else B_KingSide
+        QueensideFlag = W_QueenSide if (move.Side == 'w') else B_QueenSide
 
-        # If there is check update the check mask
-        self.WhiteCheckMask = Is_Check('w', self)
-        self.BlackCheckMask = Is_Check('b', self)
+        KingsideRights  = True if (self.Castle_Rights & KingsideFlag)  else False
+        QueensideRights = True if (self.Castle_Rights & QueensideFlag) else False
         
-        # Only get new en passant squares upon the event that a move was played
-        if self.PreviousMoves != []: self.En_Passant = self.Get_En_Passant()
+        KingsideRookSQ  = SquareH1 if (move.Side == 'w') else SquareH8
+        QueensideRookSQ = SquareA1 if (move.Side == 'w') else SquareA8
         
+        # If this colour has no rights then we dont have to do anything
+        if (self.Castle_Rights & (KingsideRights | QueensideRights)): return 
+
+        # Remove these rights if they exist
+        if move.Piece == 'K': 
+            self.Castle_Rights ^= KingsideFlag  if (KingsideRights)  else NoBits
+            self.Castle_Rights ^= QueensideFlag if (QueensideRights) else NoBits
+
+        if move.Piece == 'R':
+            self.Castle_Rights ^= KingsideFlag  if (KingsideRights)  and (Source == KingsideRookSQ)  else NoBits
+            self.Castle_Rights ^= QueensideFlag if (QueensideRights) and (Source == QueensideRookSQ) else NoBits
+
+# Check and pin detection
+# ------------------------
 # Determines whether there is a check or not if so returns a bitboard of the attacking ray
 # (Used in legal move generation)
 @cache
 def Is_Check(col:str, Game:GameState):
     # Will store rays or locations of checking pieces
     masks = []
-
-    # Select correct king bitboard
+    
+    # Get relevant piece bitboards
     KingBoard  = Game.WhiteKing if (col=='w') else Game.BlackKing
     KingSquare = GetIndex(KingBoard) 
-
-    # Get enemy pieces
     EnemyBishop = 'b' if (col=='w') else 'B'
     EnemyRook   = 'r' if (col=='w') else 'R'
     EnemyQueen  = 'q' if (col=='w') else 'Q'
@@ -279,13 +286,13 @@ def Is_Check(col:str, Game:GameState):
     # algorithm for slider piece move generation doesn't return any moves
     Occupancy = Game.AllPieces ^ KingBoard
 
-    Checking_Piece = (Compute_Bishop_attacks(KingBoard, Occupancy) & Ascii_To_Board(Game,EnemyBishop))
+    Checking_Piece = Compute_Bishop_attacks(KingBoard, Occupancy) & Ascii_To_Board(Game,EnemyBishop)
     if Checking_Piece: masks.append( Build_Ray(Checking_Piece,KingBoard) ^ KingBoard )
 
-    Checking_Piece =  (Compute_Rook_attacks(KingBoard, Occupancy) & Ascii_To_Board(Game,EnemyRook))
+    Checking_Piece = Compute_Rook_attacks(KingBoard, Occupancy) & Ascii_To_Board(Game,EnemyRook)
     if Checking_Piece: masks.append( Build_Ray(Checking_Piece,KingBoard) ^ KingBoard )
 
-    Checking_Piece = (Compute_Queen_attacks(KingBoard, Occupancy) & Ascii_To_Board(Game,EnemyQueen))
+    Checking_Piece = Compute_Queen_attacks(KingBoard, Occupancy) & Ascii_To_Board(Game,EnemyQueen)
     if Checking_Piece: masks.append( Build_Ray(Checking_Piece,KingBoard) ^ KingBoard )
 
     # Return Allbits if there is no check, to allow all moves
@@ -308,17 +315,15 @@ def Get_Pinned_Pieces(col:str, Game:GameState) -> dict:
     
     # Get location of all enemy slider pieces aligned with our king
     Pinners = ( 
-
         # Enemy pieces on rook rays (horizontal / vertical)
-        ( Compute_Rook_attacks( FriendlyKing, NoBits ) & ( EnemyQueen | EnemyRook ) ) |
+        ( Compute_Rook_attacks(FriendlyKing, NoBits)   & (EnemyQueen | EnemyRook) ) |
 
         # Enemy pieces on bishop rays (diagonal / anti-diagonal)
-        ( Compute_Bishop_attacks( FriendlyKing, NoBits ) & ( EnemyQueen | EnemyBishop ) ) 
+        ( Compute_Bishop_attacks(FriendlyKing, NoBits) & (EnemyQueen | EnemyBishop) ) 
               )
 
     # Iterate through all potential pinners and check if a pinned piece is on this ray
     while Pinners:
-
         Attacker = Get_LSB( Pinners )
 
         # Finds potentially pinned pieces by looking for pieces on the attacking ray
@@ -338,15 +343,16 @@ def Get_Pinned_Pieces(col:str, Game:GameState) -> dict:
         Pinners ^= Attacker
     
     return Pins
-           
+
+# Special move handlers
+# ----------------------
 # Plays a castling move onto the game board
 def Make_Castle(Game:GameState, Source:i64, Target:i64, Colour:str):
-    
     # Get correct king and rook bitboards
     King = Game.WhiteKing if Colour == 'w' else Game.BlackKing
     Rook = Game.WhiteRook if Colour == 'w' else Game.BlackRook
-
-    # True if the king moves to the right
+    
+    # Are we castling to the right?
     Right = True if (Target < Source) else False
 
     # Move king and rook to correct square
@@ -354,7 +360,6 @@ def Make_Castle(Game:GameState, Source:i64, Target:i64, Colour:str):
 
     if Colour=='w':  Rook ^= (SquareH1|SquareF1) if (Right) else (SquareA1|SquareD1)
     #                         Current -> Target        ///        Current -> Target
-
     else:            Rook ^= (SquareH8|SquareF8) if (Right) else (SquareA8|SquareD8)
     #                         Current -> Target        ///        Current -> Target
 
@@ -368,7 +373,6 @@ def Make_Castle(Game:GameState, Source:i64, Target:i64, Colour:str):
     
 # Plays a capture onto the game board
 def Make_Capture(Game:GameState, Target:i64, Colour:str) -> None:
-
     # Gets the list of the names of enemy bitboards
     EnemyBoardNames = Game.BlackPieceNames if (Colour == 'w') else Game.WhitePieceNames
 
@@ -401,8 +405,8 @@ def Make_Promotion(Game:GameState, move:Move) -> None:
 def Ascii_To_Board(Game:GameState, piece:str) -> i64:
     # Map each letter to relevant board
     Char_To_Board = {
-        'P':Game.WhitePawn, 'p':Game.BlackPawn, 'N':Game.WhiteKnight, 'n':Game.BlackKnight,
-        'B':Game.WhiteBishop, 'b':Game.BlackBishop, 'R':Game.WhiteRook, 'r':Game.BlackRook,
-        'Q':Game.WhiteQueen, 'q':Game.BlackQueen, 'K':Game.WhiteKing, 'k':Game.BlackKing }
+        'P':Game.WhitePawn,   'p':Game.BlackPawn,   'N':Game.WhiteKnight, 'n':Game.BlackKnight,
+        'B':Game.WhiteBishop, 'b':Game.BlackBishop, 'R':Game.WhiteRook,   'r':Game.BlackRook,
+        'Q':Game.WhiteQueen,  'q':Game.BlackQueen,  'K':Game.WhiteKing,   'k':Game.BlackKing}
 
-    return Char_To_Board[ piece ]
+    return Char_To_Board[piece]

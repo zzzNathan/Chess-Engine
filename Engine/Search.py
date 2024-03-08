@@ -36,4 +36,3 @@ def Minimax(Game:GameState, depth:int, Maximise:bool) -> float:
             Game.Unmake_Move()
 
         return minEval
-

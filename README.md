@@ -15,7 +15,7 @@ This repository is a simple chess engine written in python, for the UK's 2025 Co
 - [x] Testing framework -*Todo*
 - [x] Piece square tables for evaluation
 - [x] Get master level games in a pgn format for testing
-- [ ] Clean up the ClassUtilities file -*Todo*
+- [x] Clean up the ClassUtilities file 
 - [ ] Handle all types of draws -*Todo*
 
 ### Usage:
