@@ -2,8 +2,7 @@
 #                S E A R C H 
 #                - - - - - - 
 #\*******************************************/
-from Engine.Evaluation    import *
-from Engine.MoveGenerator import *
+from Engine.Evaluation import *
 
 # Reference:
 # ----------

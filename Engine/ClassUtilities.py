@@ -152,7 +152,7 @@ class GameState():
                 
         # Ensure that we have detected any pins or checks in this position
         self.PreviousPositions = [deepcopy(self)]
-        self.GetThreefold()
+        self.Get_Threefold()
         self.Pins = Get_Pinned_Pieces('w', self) | Get_Pinned_Pieces('b', self)
         self.WhiteCheckMask = Is_Check('w', self)
         self.BlackCheckMask = Is_Check('b', self)

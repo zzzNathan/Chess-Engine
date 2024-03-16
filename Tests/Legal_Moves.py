@@ -4,7 +4,7 @@
 #\*******************************************/
 
 # The following code aims to test if the file "MoveGenerator.py" generates legal, playable moves
-from Engine.MoveGenerator import *
+from Engine.MoveGen.MoveGenerator import *
 import chess
 import chess.pgn
 from os import path

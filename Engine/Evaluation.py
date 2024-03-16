@@ -2,10 +2,10 @@
 #            E V A L U A T I O N S  
 #            - - - - - - - - - - - 
 #\*******************************************/
-from Engine.ConstantsAndTables import *
-from Engine.Utilities          import *
-from Engine.MoveGenerator      import *
-from Engine.PieceSquareTables  import *
+from Engine.ConstantsAndTables    import *
+from Engine.Utilities             import *
+from Engine.MoveGen.MoveGenerator import *
+from Engine.PieceSquareTables     import *
 
 # References:
 # ----------
