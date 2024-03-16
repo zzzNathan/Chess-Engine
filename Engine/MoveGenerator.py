@@ -103,6 +103,7 @@ def Filter_All_Moves(Game:GameState, movelist:list[Move]) -> list[Move]:
     return FilteredMoveList
 
 # Takes in a piece's ascii representation and return a funtion that generates their pseudo-legal moves
+@cache
 def Find_Move_Table(Game:GameState, char:str) -> Callable:
     char = char.upper()
 

@@ -12,6 +12,10 @@ from Engine.MoveGenerator import *
 # White will try to maximise evaluation 
 # Black will try to minimise evaluation
 
+# We will iterate through all moves then search through all
+# of them after which we will simply choose to play the move
+# with the best evalation.
+
 def Minimax(Game:GameState, depth:int, Maximise:bool) -> float:
     if depth == 0: return Evaluate(Game)
     

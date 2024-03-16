@@ -3,6 +3,7 @@
 #                - - - - - - - 
 #\*******************************************/
 from copy import deepcopy
+from collections import defaultdict
 import numpy as np
 from Engine.ConstantsAndTables import *
 from Engine.BitMacros          import *
@@ -99,20 +100,22 @@ class GameState():
         # BlackCheckMask:  A mask containing the attack rays of any checks on the black king
         # Pins:  A dictionary mapping bitboard squares to their relevant attack rays if this piece is pinned
         #        (Pinned pieces can only move along the attack ray)
-        # PreviousPositions:  List of previous board states
+        # PreviousPositions:  List of previous board states used to "Unmake" a move
         # PreviousMoves:  List of previous moves
+        # ThreefoldPositions: List of previous board states used to check for a 3-fold or 5-fold draw 
 
-        self.Side_To_Move      = side
-        self.FEN               = Pos
-        self.En_Passant        = EnPassant
-        self.Castle_Rights     = CastleRights
-        self.Half_Move_Clock   = HalfMove
-        self.Full_Move_Clock   = FullMove
-        self.WhiteCheckMask    = AllBits
-        self.BlackCheckMask    = AllBits 
-        self.Pins              = {}
-        self.PreviousPositions = []
-        self.PreviousMoves     = []
+        self.Side_To_Move       = side
+        self.FEN                = Pos
+        self.En_Passant         = EnPassant
+        self.Castle_Rights      = CastleRights
+        self.Half_Move_Clock    = HalfMove
+        self.Full_Move_Clock    = FullMove
+        self.WhiteCheckMask     = AllBits
+        self.BlackCheckMask     = AllBits 
+        self.Pins               = {}
+        self.PreviousPositions  = []
+        self.PreviousMoves      = []
+        self.ThreefoldPositions = defaultdict(int)
 
         self.InitBoards()
         self.Parse_FEN(Pos)
@@ -149,6 +152,7 @@ class GameState():
                 
         # Ensure that we have detected any pins or checks in this position
         self.PreviousPositions = [deepcopy(self)]
+        self.GetThreefold()
         self.Pins = Get_Pinned_Pieces('w', self) | Get_Pinned_Pieces('b', self)
         self.WhiteCheckMask = Is_Check('w', self)
         self.BlackCheckMask = Is_Check('b', self)
@@ -160,7 +164,7 @@ class GameState():
         for letter in Castle: self.Castle_Rights |= Get_Rights[letter]
     
     # Move handling and state updating
-    # --------------------
+    # ---------------------------------
     # Plays a given move onto the board
     def Make_Move(self,move:Move):
         # Get source and target bitboards
@@ -170,7 +174,7 @@ class GameState():
         # Updates to game clocks
         if move.Side == 'b': self.Full_Move_Clock += 1
         self.Half_Move_Clock += 1
-        if move.Piece in ['P', 'p'] or move.Capture == True: self.Half_Move_Clock = 0
+        if (move.Piece in ['P', 'p']) or (move.Capture == True): self.Half_Move_Clock = 0
 
         # Invalidate castling rights if rook or king moves
         if move.Piece in ['K','k','R','r']: self.Update_Castle_Rights(move)
@@ -192,6 +196,9 @@ class GameState():
         
         # Get new en-passant sqaures
         self.Get_En_Passant()
+
+        # Update side to move
+        self.Side_To_Move = 'b' if (self.Side_To_Move == 'w') else 'w'
 
         # If this move wasn't made by the king then it could be a check or a piece may become pinned
         if move.Piece in ['K', 'k']: return 
@@ -233,6 +240,9 @@ class GameState():
             else:                      self.En_Passant = Index_to_square[LastMove.Target + 8]
 
         else: self.En_Passant = None
+
+    # Will hash store data on previous positions and return a code if a 3-fold or a 5-fold repition was found 
+    def Get_Threefold(self): pass
 
     # Invalidates castling rights if rook or king moves
     def Update_Castle_Rights(self, move):

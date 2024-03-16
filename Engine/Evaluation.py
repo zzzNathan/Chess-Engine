@@ -131,6 +131,10 @@ def OpenRookFiles(Game:GameState, col:str) -> float:
 def Evaluate(Game:GameState) -> float:
     Score = 0
 
+    # Check for a stalemate
+    if (Generate_Moves(Game, Game.Side_To_Move) == []) and (Is_Check(Game.Side_To_Move, Game) == AllBits):
+        return 0
+
     # Check if white of black has checkmate
     if Is_Check('w',Game)!=AllBits and Generate_White_King_Moves(Game.WhiteKing,Game) == []: return -INF
     if Is_Check('b',Game)!=AllBits and Generate_Black_King_Moves(Game.BlackKing,Game) == []: return INF
