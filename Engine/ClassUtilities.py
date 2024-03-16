@@ -4,13 +4,8 @@
 #\*******************************************/
 from copy import deepcopy
 from collections import defaultdict
-import numpy as np
 from Engine.ConstantsAndTables import *
 from Engine.BitMacros          import *
-
-# Shorthands
-i64 = np.uint64
-i8  = np.uint8
 
 # Sets a bit on bitboard, 0 to 1
 def Set_bit(Bitboard:i64, SquareNum:int) -> i64: 
@@ -39,7 +34,7 @@ class Move():
 class GameState():
 
     # Bitboard properties and initialisations:
-    # ----------------------------------------
+    # -----------------------------------------
     # (The decorator @property allows this attribute to automatically update when one of the attributes in the list changes)
     # Piece combinations 
     @property
@@ -66,20 +61,13 @@ class GameState():
     def Pieces(self): return [*self.WhitePieces, *self.BlackPieces]
 
     def InitBoards(self):
-        # White pieces
-        self.WhitePawn   = NoBits
-        self.WhiteKnight = NoBits
-        self.WhiteBishop = NoBits
-        self.WhiteRook   = NoBits
-        self.WhiteQueen  = NoBits
-        self.WhiteKing   = NoBits
-        # Black pieces
-        self.BlackPawn   = NoBits
-        self.BlackKnight = NoBits
-        self.BlackBishop = NoBits
-        self.BlackRook   = NoBits
-        self.BlackQueen  = NoBits
-        self.BlackKing   = NoBits
+        # White pieces               //   Black pieces
+        self.WhitePawn   = NoBits;        self.BlackPawn   = NoBits
+        self.WhiteKnight = NoBits;        self.BlackKnight = NoBits 
+        self.WhiteBishop = NoBits;        self.BlackBishop = NoBits
+        self.WhiteRook   = NoBits;        self.BlackRook   = NoBits
+        self.WhiteQueen  = NoBits;        self.BlackQueen  = NoBits
+        self.WhiteKing   = NoBits;        self.BlackKing   = NoBits
         # Names of attributes
         self.WhitePieceNames = ['WhitePawn', 'WhiteKnight', 'WhiteBishop', 'WhiteRook', 'WhiteQueen', 'WhiteKing']
         self.BlackPieceNames = ['BlackPawn', 'BlackKnight', 'BlackBishop', 'BlackRook', 'BlackQueen', 'BlackKing']
@@ -103,6 +91,7 @@ class GameState():
         # PreviousPositions:  List of previous board states used to "Unmake" a move
         # PreviousMoves:  List of previous moves
         # ThreefoldPositions: List of previous board states used to check for a 3-fold or 5-fold draw 
+        # Draw: Boolean flag to indicate whether or not a draw has been made
 
         self.Side_To_Move       = side
         self.FEN                = Pos
@@ -116,6 +105,7 @@ class GameState():
         self.PreviousPositions  = []
         self.PreviousMoves      = []
         self.ThreefoldPositions = defaultdict(int)
+        self.Draw               = False
 
         self.InitBoards()
         self.Parse_FEN(Pos)
@@ -173,8 +163,8 @@ class GameState():
 
         # Updates to game clocks
         if move.Side == 'b': self.Full_Move_Clock += 1
-        self.Half_Move_Clock += 1
         if (move.Piece in ['P', 'p']) or (move.Capture == True): self.Half_Move_Clock = 0
+        else: self.Half_Move_Clock += 1
 
         # Invalidate castling rights if rook or king moves
         if move.Piece in ['K','k','R','r']: self.Update_Castle_Rights(move)
@@ -194,8 +184,8 @@ class GameState():
         self.PreviousPositions.append(deepcopy(self)) 
         self.PreviousMoves.append(move)
         
-        # Get new en-passant sqaures
         self.Get_En_Passant()
+        self.Get_Threefold()
 
         # Update side to move
         self.Side_To_Move = 'b' if (self.Side_To_Move == 'w') else 'w'
@@ -222,7 +212,7 @@ class GameState():
             vars(self)[attr] = vars(LastPosition)[attr] 
 
     # Adds piece to bitboard
-    def AddPiece(self,piece,square):
+    def AddPiece(self, piece, square):
         # Get board then add piece to board then update that board attribute
         Board = Set_bit(Ascii_To_Board(self, piece), square)
         setattr(self, Ascii_To_Name[piece], Board)
@@ -235,14 +225,16 @@ class GameState():
         LastMove = self.PreviousMoves[-1]
 
         # Was this a double move ? 
-        if abs(LastMove.Target - LastMove.Source) == 16:
-            if (LastMove.Side == 'w'): self.En_Passant = Index_to_square[LastMove.Target - 8]
-            else:                      self.En_Passant = Index_to_square[LastMove.Target + 8]
+        if abs(LastMove.Target - LastMove.Source) != 16:
+            self.En_Passant = None
+            return 
 
-        else: self.En_Passant = None
+        if (LastMove.Side == 'w'): self.En_Passant = Index_to_square[LastMove.Target - 8]
+        else:                      self.En_Passant = Index_to_square[LastMove.Target + 8]
 
     # Will hash store data on previous positions and return a code if a 3-fold or a 5-fold repition was found 
-    def Get_Threefold(self): pass
+    def Get_Threefold(self): 
+        LastPosition = self.PreviousPositions[-1]
 
     # Invalidates castling rights if rook or king moves
     def Update_Castle_Rights(self, move):

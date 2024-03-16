@@ -56,7 +56,7 @@ def Generate_Filter(Game:GameState, move:Move) -> i64:
         # Ensure that the pawn being captured is in the check mask
         PassantSquareIdx = Square_to_index[Game.En_Passant]
         if (move.Side == 'w'): PassantSquareIdx -= 8
-        else:                PassantSquareIdx += 8
+        else:                  PassantSquareIdx += 8
         CapturedPassant = i64(2**PassantSquareIdx)
 
         return TargetBB if (CapturedPassant & CheckMask) else NoBits
