@@ -229,7 +229,8 @@ class GameState():
 
         # Attributes to ignore when checking for repetitions
         Ignore = set(['ThreefoldPositions', 'PreviousPositions',
-                      'PreviousMoves', 'Half_Move_Clock', 'Full_Move_Clock'])
+                      'PreviousMoves', 'Half_Move_Clock', 'Full_Move_Clock', 
+                      'WhitePieceNames', 'BlackPieceNames', 'Pins'])
 
         State = tuple([(k,v) for k,v in LastPosition.items() if k not in Ignore])
         self.ThreefoldPositions[State] += 1

@@ -221,5 +221,3 @@ def Generate_Moves(Game:GameState, col:str) -> list:
                     Generate_Black_King_Moves(Game.BlackKing, Game))
 
     return Filter_All_Moves(Game, MoveList)
-
-print(vars(STARTING_GAME))

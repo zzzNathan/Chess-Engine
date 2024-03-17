@@ -145,4 +145,9 @@ if __name__ == "__main__":
     # 1r4k1/p6p/1n4pP/2b2pP1/2p1KP2/8/1P1R4/7R w - f6 0 36
     # - Haven't implemented en passant detection yet
 
+    # r3r1k1/ppq2pp1/2pb1n1p/8/P1B5/2P2NP1/1P3PKP/R2Q1R2 b - - 0 18
+    # - Faced an issue after refactoring Move generation code, the 
+    # functions to check for starting ranks and promotion ranks were
+    # returning memory addresses instead of actual functions
+
     # All positions from PGN file generate correct moves :)

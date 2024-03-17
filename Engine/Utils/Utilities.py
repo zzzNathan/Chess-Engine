@@ -49,9 +49,10 @@ def Show_Board(Game:GameState) -> str:
     return '\n'.join(Board)
   
 # Returns true if square is attacked by given colour
+@cache
 def Is_square_attacked(SquareNum:int|i64, colour:str, Game:GameState, RemoveBit:i64|None = None) -> bool:
     # If a bitboard was passed in then change it to a square 
-    if type( SquareNum ) == i64: SquareNum = GetIndex( SquareNum )
+    if type(SquareNum) == i64: SquareNum = GetIndex(SquareNum)
 
     bitboard = i64(2**SquareNum)
     Opposite_Pawn_Atks = BLACK_PAWN_ATKS[SquareNum] if (colour == 'w') else WHITE_PAWN_ATKS[SquareNum]

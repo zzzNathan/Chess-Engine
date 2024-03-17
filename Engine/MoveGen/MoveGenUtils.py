@@ -156,9 +156,9 @@ def Pawn_Normal_Moves(Game:GameState, Source:i64, col:str) -> list[Move]:
 
     SourceUpOne = Source << i64(8)  if (col == 'w') else Source >> i64(8)
     SourceUpTwo = Source << i64(16) if (col == 'w') else Source >> i64(16)
-
-    Is_Start_Row = lambda bb:Is_Second_Rank(bb)  if (col == 'w') else lambda bb:Is_Seventh_Rank(bb)
-    Is_Promo_Row = lambda bb:Is_Seventh_Rank(bb) if (col == 'w') else lambda bb:Is_Second_Rank(bb)
+    
+    Is_Start_Row = Is_Second_Rank  if (col == 'w') else Is_Seventh_Rank
+    Is_Promo_Row = Is_Seventh_Rank if (col == 'w') else Is_Second_Rank
     MoveTable = WHITE_PAWN_MOVES if (col == 'w') else BLACK_PAWN_MOVES
 
     # Obstruction check for one square up / Cannot move without promotion on this rank
@@ -182,8 +182,8 @@ def Pawn_Atk_Moves(Game:GameState, Source:i64, col:str) -> list[Move]:
     MoveList = []
     if (col == 'w'): Target = WHITE_PAWN_ATKS[Index] & Game.BlackAll 
     else:            Target = BLACK_PAWN_ATKS[Index] & Game.WhiteAll
-    Is_Promo_Row = lambda bb:Is_Seventh_Rank(bb) if (col == 'w') else lambda bb:Is_Second_Rank(bb)
-    Is_Last_Row  = lambda bb:Is_Eigth_Rank(bb)   if (col == 'w') else lambda bb:Is_First_Rank(bb)
+    Is_Promo_Row = Is_Seventh_Rank if (col == 'w') else Is_Second_Rank
+    Is_Last_Row  = Is_Eigth_Rank   if (col == 'w') else Is_First_Rank
     Piece = 'P' if (col == 'w') else 'p'
 
     # Handle capture promotions
