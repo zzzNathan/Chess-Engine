@@ -2,8 +2,7 @@
 #        M O V E   G E N E R A T I O N       
 #        - - - -   - - - - - - - - - -
 #\*******************************************/
-from Engine.ConstantsAndTables import *
-from Engine.Utilities          import *
+from Engine.Utils.Utilities import *
 from typing import Callable
 
 # Generates a list of moves that have target squares as the 1's on a given bitboard

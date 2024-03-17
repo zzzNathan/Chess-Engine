@@ -16,11 +16,10 @@ TATA_STEEL_MASTERS_86TH = path.join(LOCAL_DIR ,r'PGN_Game_Files/tatamast24.pgn')
 # Takes in one chess.pgn.Game and generates fen strings of all unique positions
 @cache
 def Get_Fen_From_Game(Game:chess.pgn.Game) -> set:
-    
     fens  = []
     Board = Game.board()
-    for move in Game.mainline_moves():
 
+    for move in Game.mainline_moves():
         Board.push(move)
         fens.append(Board.fen())
 
@@ -29,7 +28,6 @@ def Get_Fen_From_Game(Game:chess.pgn.Game) -> set:
 # Takes in a PGN file and generates fen strings of all unique positions
 @cache
 def Get_Fen_Strings(file:str) -> list:
-    
     fens  = set()
     PGN   = open(file,'r')
     Games = []
@@ -37,18 +35,17 @@ def Get_Fen_Strings(file:str) -> list:
     # Parse all games from PGN file
     CurrentGame = chess.pgn.read_game(PGN)
     while CurrentGame != None:
-        Games.append( CurrentGame )
+        Games.append(CurrentGame)
         CurrentGame = chess.pgn.read_game(PGN)
 
     # Iterate over all games and get all unique postions
-    for Board in Games: fens.update( Get_Fen_From_Game(Board) )
+    for Board in Games: fens.update(Get_Fen_From_Game(Board))
 
     PGN.close()
-    return list( fens )
+    return list(fens)
 
 # Checks to see if we generate the same moves as the chess module
 def All_Moves_Valid(Our_Moves:list, Validator_Moves:chess.LegalMoveGenerator) -> bool:
-    
     Valid_UCI     = [chess.Move.uci(move) for move in Validator_Moves]
     Our_Moves_UCI = [Move_To_UCI(move)    for move in Our_Moves]
     
@@ -58,7 +55,6 @@ def All_Moves_Valid(Our_Moves:list, Validator_Moves:chess.LegalMoveGenerator) ->
 # Takes in a list of unique fen strings and checks that 
 # our move generator generates legal and correct moves each time
 def Run_Tests(fens:list) -> None:
-    
     print(f'Testing {len(fens)} positions...')
     for fen in fens:
         

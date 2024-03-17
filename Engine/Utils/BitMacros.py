@@ -2,9 +2,9 @@
 #             B I T   M A C R O S      
 #             - - -   - - - - - - 
 #\********************************************/
-from textwrap                  import wrap
-from Engine.ConstantsAndTables import *
-from Engine.Build_Ray          import Build_Ray 
+from textwrap               import wrap
+from Engine.Utils.Constants import *
+from Engine.Utils.Build_Ray import Build_Ray 
 import numpy as np
 from math import log2
 

@@ -4,8 +4,7 @@
 #\*******************************************/
 from copy import deepcopy
 from collections import defaultdict
-from Engine.ConstantsAndTables import *
-from Engine.BitMacros          import *
+from Engine.Utils.BitMacros import *
 
 # Sets a bit on bitboard, 0 to 1
 def Set_bit(Bitboard:i64, SquareNum:int) -> i64: 
@@ -19,7 +18,6 @@ Ascii_To_Name = {
 
 # Class to give structure and order to moves and other relevant information
 class Move():
-
     def __init__(self,side,source,target,capture,castle,piece,promo,EnPassant=False):
         self.Side      = side      # 'w' signifies white, 'b' signifies black
         self.Source    = source    # The index of the source square
@@ -35,6 +33,18 @@ class GameState():
 
     # Bitboard properties and initialisations:
     # -----------------------------------------
+    def InitBoards(self):
+        # White pieces               //   Black pieces
+        self.WhitePawn   = NoBits;        self.BlackPawn   = NoBits
+        self.WhiteKnight = NoBits;        self.BlackKnight = NoBits 
+        self.WhiteBishop = NoBits;        self.BlackBishop = NoBits
+        self.WhiteRook   = NoBits;        self.BlackRook   = NoBits
+        self.WhiteQueen  = NoBits;        self.BlackQueen  = NoBits
+        self.WhiteKing   = NoBits;        self.BlackKing   = NoBits
+        # Names of attributes
+        self.WhitePieceNames = ['WhitePawn', 'WhiteKnight', 'WhiteBishop', 'WhiteRook', 'WhiteQueen', 'WhiteKing']
+        self.BlackPieceNames = ['BlackPawn', 'BlackKnight', 'BlackBishop', 'BlackRook', 'BlackQueen', 'BlackKing']
+
     # (The decorator @property allows this attribute to automatically update when one of the attributes in the list changes)
     # Piece combinations 
     @property
@@ -59,18 +69,6 @@ class GameState():
 
     @property
     def Pieces(self): return [*self.WhitePieces, *self.BlackPieces]
-
-    def InitBoards(self):
-        # White pieces               //   Black pieces
-        self.WhitePawn   = NoBits;        self.BlackPawn   = NoBits
-        self.WhiteKnight = NoBits;        self.BlackKnight = NoBits 
-        self.WhiteBishop = NoBits;        self.BlackBishop = NoBits
-        self.WhiteRook   = NoBits;        self.BlackRook   = NoBits
-        self.WhiteQueen  = NoBits;        self.BlackQueen  = NoBits
-        self.WhiteKing   = NoBits;        self.BlackKing   = NoBits
-        # Names of attributes
-        self.WhitePieceNames = ['WhitePawn', 'WhiteKnight', 'WhiteBishop', 'WhiteRook', 'WhiteQueen', 'WhiteKing']
-        self.BlackPieceNames = ['BlackPawn', 'BlackKnight', 'BlackBishop', 'BlackRook', 'BlackQueen', 'BlackKing']
     
     # Initialising all attributes for the game class
     def __init__(self,side:str,Pos:str,EnPassant:str|None,CastleRights:i8,HalfMove:int,FullMove:int):
@@ -93,19 +91,13 @@ class GameState():
         # ThreefoldPositions: List of previous board states used to check for a 3-fold or 5-fold draw 
         # Draw: Boolean flag to indicate whether or not a draw has been made
 
-        self.Side_To_Move       = side
-        self.FEN                = Pos
-        self.En_Passant         = EnPassant
-        self.Castle_Rights      = CastleRights
-        self.Half_Move_Clock    = HalfMove
-        self.Full_Move_Clock    = FullMove
+        self.Side_To_Move       = side;          self.Draw               = False
+        self.FEN                = Pos;           self.ThreefoldPositions = defaultdict(int)
+        self.En_Passant         = EnPassant;     self.PreviousMoves      = []
+        self.Castle_Rights      = CastleRights;  self.PreviousPositions  = []
+        self.Half_Move_Clock    = HalfMove;      self.Pins               = {}
+        self.Full_Move_Clock    = FullMove;      self.BlackCheckMask     = AllBits 
         self.WhiteCheckMask     = AllBits
-        self.BlackCheckMask     = AllBits 
-        self.Pins               = {}
-        self.PreviousPositions  = []
-        self.PreviousMoves      = []
-        self.ThreefoldPositions = defaultdict(int)
-        self.Draw               = False
 
         self.InitBoards()
         self.Parse_FEN(Pos)
@@ -157,7 +149,6 @@ class GameState():
     # ---------------------------------
     # Plays a given move onto the board
     def Make_Move(self,move:Move):
-        # Get source and target bitboards
         Source = i64( 2**move.Source )
         Target = i64( 2**move.Target )
 
@@ -166,10 +157,10 @@ class GameState():
         if (move.Piece in ['P', 'p']) or (move.Capture == True): self.Half_Move_Clock = 0
         else: self.Half_Move_Clock += 1
 
+        if move.Castle == True: Make_Castle(self, Source, Target, move.Side)
+
         # Invalidate castling rights if rook or king moves
         if move.Piece in ['K','k','R','r']: self.Update_Castle_Rights(move)
-            
-        if move.Castle == True: Make_Castle(self, Source, Target, move.Side)
 
         if move.Capture == True: Make_Capture(self,Target, move.Side)
 
@@ -234,7 +225,16 @@ class GameState():
 
     # Will hash store data on previous positions and return a code if a 3-fold or a 5-fold repition was found 
     def Get_Threefold(self): 
-        LastPosition = self.PreviousPositions[-1]
+        LastPosition = vars(self.PreviousPositions[-1])
+
+        # Attributes to ignore when checking for repetitions
+        Ignore = set(['ThreefoldPositions', 'PreviousPositions',
+                      'PreviousMoves', 'Half_Move_Clock', 'Full_Move_Clock'])
+
+        State = tuple([(k,v) for k,v in LastPosition.items() if k not in Ignore])
+        self.ThreefoldPositions[State] += 1
+        
+        if self.ThreefoldPositions[State] >= 3: self.Draw = True
 
     # Invalidates castling rights if rook or king moves
     def Update_Castle_Rights(self, move):
@@ -349,10 +349,10 @@ def Get_Pinned_Pieces(col:str, Game:GameState) -> dict:
 # Special move handlers
 # ----------------------
 # Plays a castling move onto the game board
-def Make_Castle(Game:GameState, Source:i64, Target:i64, Colour:str):
+def Make_Castle(Game:GameState, Source:i64, Target:i64, col:str):
     # Get correct king and rook bitboards
-    King = Game.WhiteKing if Colour == 'w' else Game.BlackKing
-    Rook = Game.WhiteRook if Colour == 'w' else Game.BlackRook
+    King = Game.WhiteKing if (col == 'w') else Game.BlackKing
+    Rook = Game.WhiteRook if (col == 'w') else Game.BlackRook
     
     # Are we castling to the right?
     Right = True if (Target < Source) else False
@@ -360,18 +360,16 @@ def Make_Castle(Game:GameState, Source:i64, Target:i64, Colour:str):
     # Move king and rook to correct square
     King ^= ( Source | Target )
 
-    if Colour=='w':  Rook ^= (SquareH1|SquareF1) if (Right) else (SquareA1|SquareD1)
-    #                         Current -> Target        ///        Current -> Target
-    else:            Rook ^= (SquareH8|SquareF8) if (Right) else (SquareA8|SquareD8)
-    #                         Current -> Target        ///        Current -> Target
+    if col == 'w': Rook ^= (SquareH1|SquareF1) if (Right) else (SquareA1|SquareD1)
+    #                      Current -> Target        ///        Current -> Target
+    else:          Rook ^= (SquareH8|SquareF8) if (Right) else (SquareA8|SquareD8)
+    #                      Current -> Target        ///        Current -> Target
 
     # Set correct attributes
-    if Colour == 'w':
-        setattr(Game, 'WhiteKing', King)
-        setattr(Game, 'WhiteRook', Rook)
-    else: 
-        setattr(Game, 'BlackKing', King)
-        setattr(Game, 'BlackRook', Rook)
+    KingName = 'WhiteKing' if (col == 'w') else 'BlackKing'
+    RookName = 'WhiteRook' if (col == 'w') else 'BlackRook'
+    setattr(Game, KingName, King)
+    setattr(Game, RookName, Rook)
     
 # Plays a capture onto the game board
 def Make_Capture(Game:GameState, Target:i64, Colour:str) -> None:

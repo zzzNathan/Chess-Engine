@@ -4,10 +4,10 @@
 #\*******************************************/
 import numpy as np
 from copy import deepcopy
-from Engine.ConstantsAndTables import *
-from Engine.ClassUtilities     import *
-from Engine.PieceSquareTables  import *
-from Engine.BitMacros          import *
+from Engine.Utils.Constants      import *
+from Engine.Utils.ClassUtilities import *
+from Engine.PieceSquareTables    import *
+from Engine.Utils.BitMacros      import *
 
 # Shorthands
 i64 = np.uint64

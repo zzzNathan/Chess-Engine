@@ -2,10 +2,7 @@
 #            E V A L U A T I O N S  
 #            - - - - - - - - - - - 
 #\*******************************************/
-from Engine.ConstantsAndTables    import *
-from Engine.Utilities             import *
 from Engine.MoveGen.MoveGenerator import *
-from Engine.PieceSquareTables     import *
 
 # References:
 # ----------
@@ -35,6 +32,7 @@ def Material(Game:GameState, col:str) -> int:
     return Score
 
 # Computes how many legal moves each colour has
+@cache
 def Mobility(Game:GameState, col:str) -> float:
     return len(Generate_Moves(Game, col))
 
@@ -55,7 +53,7 @@ def Connectivity(Game:GameState, col:str) -> float:
 # Gives a small bonus if this side has the bishop pair
 def BishopPair(Game:GameState, col:str) -> float:
     Bishops = Game.WhiteBishop if (col == 'w') else Game.BlackBishop
-    return 7.5 if (BitCount(Bishops) >= 2) else 0.0
+    return 7.5 if (BitCount(Bishops) >= 2) else 0
 
 # Gives a penalty if this side has doubled pawns
 def DoubledPawns(Game:GameState, col:str) -> float:
@@ -69,6 +67,7 @@ def DoubledPawns(Game:GameState, col:str) -> float:
     return BitCount( Board & Board_Shift_Up ) * [1,-1][col == 'w']
 
 # Bonuses for passed pawns 
+@cache
 def PassedPawns(Game:GameState, col:str) -> float:
     # Bonuses to be given for how far away the passed pawn is from promoting
     PassedPawnsBonuses = [0, 90, 60, 40, 25, 15, 15]
@@ -105,7 +104,7 @@ def PassedPawns(Game:GameState, col:str) -> float:
 
 # Bonuses for rooks on open files
 def OpenRookFiles(Game:GameState, col:str) -> float:
-    Score = 0.0
+    Score = 0
     Rooks = Game.WhiteRook if (col == 'w') else Game.BlackRook
     
     # Iterate through all rooks on the board and calculate their open file bonuses
@@ -132,8 +131,9 @@ def Evaluate(Game:GameState) -> float:
     Score = 0
 
     # Check for a stalemate
-    if (Generate_Moves(Game, Game.Side_To_Move) == []) and (Is_Check(Game.Side_To_Move, Game) == AllBits):
+    if (Generate_Moves(Game, Game.Side_To_Move) == []) and (Is_Check(Game.Side_To_Move, Game) == AllBits): 
         return 0
+    if Game.Draw: return 0
 
     # Check if white of black has checkmate
     if Is_Check('w',Game)!=AllBits and Generate_White_King_Moves(Game.WhiteKing,Game) == []: return -INF

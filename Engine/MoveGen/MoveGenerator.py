@@ -2,8 +2,6 @@
 #        M O V E   G E N E R A T I O N       
 #        - - - -   - - - - - - - - - -
 #\*******************************************/
-from Engine.ConstantsAndTables   import *
-from Engine.Utilities            import *
 from Engine.MoveGen.MoveGenUtils import *
 
 # References:
@@ -223,3 +221,5 @@ def Generate_Moves(Game:GameState, col:str) -> list:
                     Generate_Black_King_Moves(Game.BlackKing, Game))
 
     return Filter_All_Moves(Game, MoveList)
+
+print(vars(STARTING_GAME))
