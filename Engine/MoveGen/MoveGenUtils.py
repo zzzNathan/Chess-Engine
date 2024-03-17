@@ -146,3 +146,59 @@ def GeneratePromotions(Source:i64, Target:i64, col:str, Capture:bool) -> list:
     MoveList.append(Move(col,SourceIndex,TargetIndex,Capture,False,piece,'q')) # Queen
 
     return MoveList
+
+# Generate all normal pawn moves
+@cache
+def Pawn_Normal_Moves(Game:GameState, Source:i64, col:str) -> list[Move]:
+    MoveList = []
+    Target   = i64(0)
+    Index = GetIndex(Source) 
+    Piece = 'P' if (col == 'w') else 'p'
+
+    SourceUpOne = Source << i64(8)  if (col == 'w') else Source >> i64(8)
+    SourceUpTwo = Source << i64(16) if (col == 'w') else Source >> i64(16)
+
+    Is_Start_Row = lambda bb:Is_Second_Rank(bb)  if (col == 'w') else lambda bb:Is_Seventh_Rank(bb)
+    Is_Promo_Row = lambda bb:Is_Seventh_Rank(bb) if (col == 'w') else lambda bb:Is_Second_Rank(bb)
+    MoveTable = WHITE_PAWN_MOVES if (col == 'w') else BLACK_PAWN_MOVES
+
+    # Obstruction check for one square up / Cannot move without promotion on this rank
+    if not Is_Obstructed(Game, SourceUpOne) and not Is_Promo_Row(Source):
+        Target = MoveTable[Index] 
+
+        # Remove the ability to move two squares if the second square is obstructed
+        if Is_Start_Row(Source) and Is_Obstructed(Game, SourceUpTwo): Target ^= SourceUpTwo
+
+    MoveList.extend( Create_Moves_From_Board(Game,Source,Target,col,Piece) )
+
+    # Add all non-capture promotions 
+    if Is_Promo_Row(Source) and (not Is_Obstructed(Game,SourceUpOne)):
+        MoveList.extend( GeneratePromotions(Source,SourceUpOne,col,False) )
+    
+    return MoveList
+
+@cache
+def Pawn_Atk_Moves(Game:GameState, Source:i64, col:str) -> list[Move]:
+    Index = GetIndex(Source)
+    MoveList = []
+    if (col == 'w'): Target = WHITE_PAWN_ATKS[Index] & Game.BlackAll 
+    else:            Target = BLACK_PAWN_ATKS[Index] & Game.WhiteAll
+    Is_Promo_Row = lambda bb:Is_Seventh_Rank(bb) if (col == 'w') else lambda bb:Is_Second_Rank(bb)
+    Is_Last_Row  = lambda bb:Is_Eigth_Rank(bb)   if (col == 'w') else lambda bb:Is_First_Rank(bb)
+    Piece = 'P' if (col == 'w') else 'p'
+
+    # Handle capture promotions
+    if Is_Promo_Row(Source) and Is_Last_Row(Target):
+        
+        # Loop through all bits and add these individual moves
+        while Target:
+            CurrentBB = Get_LSB(Target)
+            MoveList.extend( GeneratePromotions(Source,CurrentBB,col,True) )
+
+            # Remove this bit from the bitboard
+            Target ^= CurrentBB
+    
+    # Handle normal captures and add them to the list
+    else: MoveList.extend( Create_Moves_From_Board(Game,Source,Target,col,Piece) )
+    
+    return MoveList

@@ -21,46 +21,13 @@ def Generate_White_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
 
         Source, Index = Get_LSB_and_Index(board_copy) 
 
-        # Bitboards to indicate the piece being one and two squares up
-        SourceUpOne = Source << i64(8)
-        SourceUpTwo = Source << i64(16)
-
         # Normal Moves
         # -----------------------------------------------------------------------
-        Target = i64(0) # Initialise target variable
-
-        # Obstruction check for one square up / Cannot move without promotion on 7th rank
-        if not Is_Obstructed(Game, SourceUpOne) and not Is_Seventh_Rank(Source):
-            
-            Target = WHITE_PAWN_MOVES[Index] 
-
-            # Obstruction check for two square up              Remove this bit if obstructed
-            if Is_Second_Rank(Source) and Is_Obstructed( Game,SourceUpTwo ): Target ^= SourceUpTwo
-
-        MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'w','P') )
-
-        # Add all non-capture promotions 
-        if Is_Seventh_Rank(Source) and (not Is_Obstructed(Game,SourceUpOne)):
-            MoveList.extend( GeneratePromotions(Source,SourceUpOne,'w',False) )
+        MoveList.extend( Pawn_Normal_Moves(Game, Source, 'w') )
 
         # Attacking Moves
         # -----------------------------------------------------------------------
-        Target = WHITE_PAWN_ATKS[Index] & Game.BlackAll
-
-        # Handle capture promotions
-        if Is_Seventh_Rank(Source) and Is_Eigth_Rank(Target):
-            
-            # Loop through all bits and add these individual moves
-            while Target:
-
-                CurrentBB = Get_LSB(Target)
-                MoveList.extend( GeneratePromotions(Source,CurrentBB,'w',True) )
-
-                # Remove this bit from the bitboard
-                Target ^= CurrentBB
-        
-        # Handle normal captures and add them to the list
-        else: MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'w','P') )
+        MoveList.extend( Pawn_Atk_Moves(Game, Source, 'w') ) 
 
         # Special Moves
         # -----------------------------------------------------------------------
@@ -83,47 +50,14 @@ def Generate_Black_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
         
         Source, Index = Get_LSB_and_Index(board_copy)
 
-        # Bitboards to indicate the piece being one and two squares up
-        SourceUpOne = Source >> i64(8)
-        SourceUpTwo = Source >> i64(16)
-
         # Normal Moves
         # -----------------------------------------------------------------------
-        Target = i64(0) # Initialise target variable
-
-        # Obstruction check for one square up / Cannot move without promotion on 2nd rank
-        if not Is_Obstructed(Game,SourceUpOne) and (not Is_Second_Rank(Source)): 
-
-            Target = BLACK_PAWN_MOVES[Index]
-
-            # Obstruction check for two square up             Remove this bit if obstructed ↓
-            if Is_Seventh_Rank(Source) and Is_Obstructed(Game,SourceUpTwo): Target ^= SourceUpTwo
-
-        MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'b','p') )
-
-        # Add all non-capture promotions 
-        if Is_Second_Rank(Source) and (not Is_Obstructed(Game,SourceUpOne)):
-            MoveList.extend( GeneratePromotions(Source,SourceUpOne,'b',False) )
+        MoveList.extend( Pawn_Normal_Moves(Game, Source, 'b') )
 
         # Attacking Moves
         # -----------------------------------------------------------------------
-        Target = BLACK_PAWN_ATKS[Index] & Game.WhiteAll
+        MoveList.extend( Pawn_Atk_Moves(Game, Source, 'b') )
 
-        # Handle capture promotions
-        if Is_Second_Rank(Source) and Is_First_Rank(Target):
-            
-            # Loop through all bits and add these individual moves
-            while Target:
-
-                CurrentBB = Get_LSB(Target)
-                MoveList.extend( GeneratePromotions(Source,CurrentBB,'b',True) )
-
-                # Remove this bit from the bitboard
-                Target ^= CurrentBB
-        
-        # Handle normal captures and add them to the list
-        else: MoveList.extend( Create_Moves_From_Board(Game,Source,Target,'b','p') )
-        
         # Special Moves
         # -----------------------------------------------------------------------
         if Game.En_Passant != None:
