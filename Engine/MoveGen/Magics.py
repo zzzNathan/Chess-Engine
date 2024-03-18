@@ -11,8 +11,8 @@
 # creating an implementation of magic bitboards is not at all an easy feat,
 # Not only that but there is also a huge lack of resources to learn about
 # this technique. Inspired by the Rustic chess engine.
-
-# We aim to have to tables of 64 elements each representing one square 
+#
+# We aim to have two tables of 64 elements each representing one square 
 # on our chess board. In each table we would like to be able to hash
 # the bitboard of current blockers on the board and recieve as output 
 # the bitboard containing legal moves in this specific blocker configuration.
@@ -21,16 +21,19 @@
 # will be for bishop moves. Queen moves can be found using a combination
 # of both rook and bishop moves.
 
-# For each square we would like to have an object with two attributes
+# For each square we would like to have a tuple with two elements
 # The first will be the magic number for this square, the second
 # will be the shift for this square.
-from collections.abc import Generator
+from typing import Generator
 import numpy as np
 from Engine.Utils.Constants import AllBits
 from Engine.Utils.Utilities import *
+from time import sleep
 i64 = np.uint64
 
 # BB or bb refers to Bitboard throughout the code
+
+
 
 # Function to determine whether we can travel in this direction legally
 # square -> An integer representing the index of the square we would to move to.
@@ -78,9 +81,6 @@ def Get_Blocker_mask(sq:int, rook:bool) -> i64:
     for delta in Directions:
         sq_curr = sq
         
-        # We can skip this direction if it leads us off the board immediately
-        if not (0 <= sq_curr + delta <= 63): continue
-
         # Until we reach the edge of the board
         while 1:
             # Move one step in the new direction
@@ -113,14 +113,31 @@ def Get_Moves_with_Blockers(sq:int, blockers:i64, rook:bool) -> i64:
 
     Directions = rook_dirs if (rook) else bishop_dirs
 
+    # Iterate over all possible directions ..
     for delta in Directions:
         sq_curr = sq
 
+        # Until we reach the edge of the board
+        while 1:
+            # Move one step in the new direction
+            sq_curr += delta
+            sq_bitboard = i64(2**sq_curr) # Get new square bitboard
+            
+            # If we don't encounter a blocker and stay on the board
+            if (not sq_bitboard & blockers) and (Legal(sq_curr, delta)):
+                MoveBB |= sq_bitboard # Add square to our moves bitboard
+
+            # Otherwise add this square to our moves bitboard then go to next
+            # direction. (Because we assume we can capture blockers)
+            else:
+                MoveBB |= sq_bitboard # Add square to our moves bitboard
+                break
+            
     return MoveBB
 
 # Generator function to get all possible blockers from a given mask
 # mask -> A bitboard representing all the squares for which we will generate blockers
-def Get_All_Blockers(mask:i64) -> Generator:
+def Get_All_Blockers(mask:i64) -> Generator[i64, i64, None]:
     # We will make use of the "Carry-rippler" technique in order to generate 
     # all possible blocker configurations from the given mask 
 
@@ -154,9 +171,28 @@ def Gen_Random64() -> i64:
 # Function to find magics with trial and error
 # rook -> A boolean flag to show if we are generating moves for the rook or not.
 def Find_Magics(rook:bool) -> None: 
-
-# Function to try and build a table using the generated magic number
-# magic -> A 64 bit integer to use as the magic number
-# rook -> A boolean flag to show if we are generating moves for the rook or not.
-def Try_Build_Table(Magic:i64, rook:bool) -> list[i64]|bool:
+    print(f"Finding magics for {'Rook' if (rook) else 'Bishop'}")
+    print("Search will commence in 5s")
+    sleep(5)
     
+    for sq in range(64):
+        # Get needed variables
+        mask = Get_Blocker_mask(sq, rook)
+        bits = BitCount(mask)
+        shift = 64 - bits
+        found = False # Flag to determine whether we have found a working magic
+        TBL_ROOK   = [0 for _ in range()]
+        TBL_BISHOP = [0 for _ in range()]
+
+        while (not found):
+            # Try a random magic
+            magic = Gen_Random64()
+            
+            # Iterate over all possible blocker configurations
+            for blocker in Get_All_Blockers(mask):
+
+                # Get correct move bitboard for this blocker configuration
+                MoveBB = Get_Moves_with_Blockers(sq, blocker, rook)
+
+                # The index where we will put this move bitboard (If the magic works).
+                index = (blocker * magic) >> shift
