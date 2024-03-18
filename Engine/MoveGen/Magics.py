@@ -27,6 +27,7 @@
 from collections.abc import Generator
 import numpy as np
 from Engine.Utils.Constants import AllBits
+from Engine.Utils.Utilities import *
 i64 = np.uint64
 
 # BB or bb refers to Bitboard throughout the code
@@ -65,7 +66,7 @@ def Legal(square:int, delta:int) -> bool:
 # our magic tables.
 # sq   -> An integer representing the index of the square we would like to get moves from.
 # rook -> A boolean flag to show if we are generating moves for the rook or not.
-def Get_Moves(sq:int, rook:bool) -> i64:
+def Get_Blocker_mask(sq:int, rook:bool) -> i64:
     MoveBB = i64(0) # Bitboard containing moves
     # Directions we are able to travel in (see Utils/Constants.py) 
     rook_dirs   = [8, -8, 1, -1] # In order: Up, Down, Left, Right 
@@ -99,13 +100,42 @@ def Get_Moves(sq:int, rook:bool) -> i64:
 
     return MoveBB
 
+# Function to generate legal moves given a bitboard of blockers for rooks or bishops
+# sq   -> An integer representing the index of the square we would like to get moves from.
+# blockers -> A bitboard containing blocker pieces.
+# rook -> A boolean flag to show if we are generating moves for the rook or not.
+def Get_Moves_with_Blockers(sq:int, blockers:i64, rook:bool) -> i64:
+    # We assume that all blockers are capturable for simplicity
+    MoveBB = i64(0) # Bitboard containing moves
+    # Directions we are able to travel in (see Utils/Constants.py) 
+    rook_dirs   = [8, -8, 1, -1] # In order: Up, Down, Left, Right 
+    bishop_dirs = [7, 9, -9, -7] # In order: Diag-up-right, Diag-up-left, Diag-down-right, Diag-down-left
+
+    Directions = rook_dirs if (rook) else bishop_dirs
+
+    for delta in Directions:
+        sq_curr = sq
+
+    return MoveBB
+
 # Generator function to get all possible blockers from a given mask
 # mask -> A bitboard representing all the squares for which we will generate blockers
 def Get_All_Blockers(mask:i64) -> Generator:
     # We will make use of the "Carry-rippler" technique in order to generate 
     # all possible blocker configurations from the given mask 
-    # (See reference [5] and [6])
+
+    # Carry-rippler trick explained:
+    # -------------------------------
+    # It's best to explore the technique with an example. To truly understand it's highly 
+    # encouraged to work through an example on pen and paper yourself.
+    # Let our mask be some 64 bit number, and we wish to traverse all possible subsets
+    # of the mask. By "subset" we mean a binary number that can be obtained 
+    # from the mask by changing, some or no `1` bits to `0` bits.
+    # 
+    # Please see reference [6] and the bottom of reference [5]
+
     subset = i64(0)
+    yield subset
     subset = (subset - mask) & mask
 
     while subset:
@@ -113,12 +143,20 @@ def Get_All_Blockers(mask:i64) -> Generator:
         subset = (subset - mask) & mask
 
 # 64 bit random number generator to find candidate magic numbers
+# Good magic number candidates typically have a low number of `1` bits
+# set so we and 3 random numbers to get a more suitable magic candidate
 def Gen_Random64() -> i64:
     r1 = np.random.randint(0, AllBits, dtype=i64)
     r2 = np.random.randint(0, AllBits, dtype=i64)
     r3 = np.random.randint(0, AllBits, dtype=i64)
-    return i64(r1 & r2 & r3)
+    return r1 & r2 & r3
 
 # Function to find magics with trial and error
 # rook -> A boolean flag to show if we are generating moves for the rook or not.
-def Find_Magics(rook:bool) -> None:
+def Find_Magics(rook:bool) -> None: 
+
+# Function to try and build a table using the generated magic number
+# magic -> A 64 bit integer to use as the magic number
+# rook -> A boolean flag to show if we are generating moves for the rook or not.
+def Try_Build_Table(Magic:i64, rook:bool) -> list[i64]|bool:
+    
