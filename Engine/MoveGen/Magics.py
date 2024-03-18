@@ -26,7 +26,7 @@
 # will be the shift for this square.
 from collections.abc import Generator
 import numpy as np
-from Engine.Utils.Utilities import *
+from Engine.Utils.Constants import AllBits
 i64 = np.uint64
 
 # BB or bb refers to Bitboard throughout the code
@@ -105,4 +105,20 @@ def Get_All_Blockers(mask:i64) -> Generator:
     # We will make use of the "Carry-rippler" technique in order to generate 
     # all possible blocker configurations from the given mask 
     # (See reference [5] and [6])
-    return NotImplemented
+    subset = i64(0)
+    subset = (subset - mask) & mask
+
+    while subset:
+        yield subset
+        subset = (subset - mask) & mask
+
+# 64 bit random number generator to find candidate magic numbers
+def Gen_Random64() -> i64:
+    r1 = np.random.randint(0, AllBits, dtype=i64)
+    r2 = np.random.randint(0, AllBits, dtype=i64)
+    r3 = np.random.randint(0, AllBits, dtype=i64)
+    return i64(r1 & r2 & r3)
+
+# Function to find magics with trial and error
+# rook -> A boolean flag to show if we are generating moves for the rook or not.
+def Find_Magics(rook:bool) -> None:
