@@ -73,7 +73,9 @@ To begin research it is first nescessary to get a higher level understanding
 of how a chess engine works. To learn about this topic
 I made use of resources like \url{https://www.chessprogramming.org/Main_Page}
 and \url{https://www.talkchess.com/forum/index.php}, citations will be 
-given accordingly.\\
+given accordingly. The following subsections will act to be 
+a brief summary of the research I conducted on understanding
+how to write a chess engine.\\
 
 Any chess engine must be comprised of these 3 fundamental components:
 \begin{itemize}
@@ -82,23 +84,85 @@ Any chess engine must be comprised of these 3 fundamental components:
   \item \textit{Searching algorithms}
 \end{itemize}
 
+We will explore each of these components in detail, however 
+if you have never come across the term "bitboards" in 
+relation to chess programming, I strongly 
+encourage you to read the next subsection.
+
 \subsection*{Bitboards}
 To understand the following algorithms it is nescessary to 
-have a good understanding on \textbf{\textit{bitboards}}.
+have an adequate understanding on \textbf{\textit{bitboards}}.
 If you already understand this concept please skip this 
 subsection entirely, otherwise I will provide a brief 
 introduction to the idea here. Some helpful resources can be
-found here \cite{bitboards}.
+found here \cite{bitboards}.\\
+
+Bitboards are a way to represent the state of the 
+chess board with a 64 bit number. Consider the following 
+chess position.
+
+\begin{figure}[h]
+  \includegraphics[scale=0.25]{White_Pawns_start.png}
+  \centering
+  \caption{Starting position for white pawns}
+  \label{whitepawns}
+\end{figure}
+
+Notice that a chess board has dimensions
+$(8 \, \textrm{x} \, 8)$ and 64 squares. Furthermore, 
+each of the squares in figure \ref{whitepawns} exists 
+in one of two states: There either is a white pawn on
+this square or there is not. This innate similarity to 
+the binary numbering system motivates one to consider the 
+use of binary to represent a chess board. We can take a 
+64 bit unsigned integer and have each \texttt{0} 
+represent the lack of a piece and similarly 
+have each \texttt{1} represent the existance of a piece on 
+this square.\\
+
+Consider the following code snippet.\footnote{The importing
+of the numpy library has been omitted for clarity.}\\
+
+\begin{minted}[linenos, bgcolor=lightgray]{Python}
+  # For the rest of this paper i64 will refer to the 
+  # unsigned 64 bit integer
+  i64 = np.uint64
+  WhitePawn = i64(0b        # Dots represent 0,
+                  00000000  # . . . . . . . .
+                  00000000  # . . . . . . . .
+                  00000000  # . . . . . . . .
+                  00000000  # . . . . . . . .
+                  00000000  # . . . . . . . .
+                  00000000  # . . . . . . . .
+                  11111111  # 1 1 1 1 1 1 1 1
+                  00000000) # . . . . . . . .
+\end{minted}
+
+Each bit in the \texttt{WhitePawn} variable represents the
+state of a square like we saw previously, this allows us to 
+store the state of the board with 12, 64 bit numbers 
+(6 piece types in chess, and 2 players). Modern computers
+typically have register sizes of 64 bits or greater, 
+meaning that we may easily and quickly manipulate these 
+bitboards in order to generate legal moves for a position.
+We will consider how we may leverage bitboards for legal 
+move generation in the following subsection.
 
 \subsection*{Legal move generation}
-Legal move generation is the first step, in this component we wish to 
+Legal move generation is the first step to writing a strong
+chess engine, in this component we wish to 
 find a way to feed in a position to a computer program and have it 
 output to us all of the possible legal moves available in this position.
 The study of move generation algorithms in the chess programming world 
-is still very new, with one of the newest algorithm being
-discovered in 2017 \cite{bm}. The two algorithms I decided to research 
-were \textit{Hyperbola quintessence} and \textit{Magic bitboards}.\\
+is still very nascant, with one of the newest algorithms
+being discovered in 2017 \cite{bm}. The two algorithms I
+decided to spend time researching were
+\textit{Hyperbola quintessence} and 
+\textit{Magic bitboards} because they are the standard 
+accepted algorithms for the top chess engines 
+\cite{stockfish}.\\
 
-Hyperbola quintessence is a bit manipulation algorithm, that
-applies the \texttt{o xor (o-2r)} trick to generate correct
-and legal moves for the bishop, rook and queen.
+Hyperbola quintessence is an algorithm used to generate moves
+for sliding pieces \footnote{That is the queen, bishop and rook.}.
+It makes use of bit manipulation tricks to generate these moves
+in $O(1)$ time.
