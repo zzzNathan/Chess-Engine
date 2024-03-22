@@ -1,6 +1,12 @@
 \documentclass{report}
-\usepackage{xurl, fancyhdr}
+\usepackage{xurl, fancyhdr, hyperref, graphicx, minted, biblatex}
 \usepackage[a4paper, margin=1.25in]{geometry}
+\hypersetup{
+  colorlinks = true,
+  urlcolor   = blue,
+  linkcolor  = blue,
+}
+\addbibresource{Refs.bib}
 \author{Jonathan Kasongo}
 \title{\Huge{\textbf{Computer Science NEA - Chess Engine}}}
 \date{March 2 2024}
@@ -12,5 +18,8 @@
 \newpage
 
 \include{Analysis_of_Problem.tex}
+
+\listoffigures
+\printbibliography
 
 \end{document}

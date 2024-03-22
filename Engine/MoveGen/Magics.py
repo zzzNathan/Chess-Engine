@@ -196,3 +196,5 @@ def Find_Magics(rook:bool) -> None:
 
                 # The index where we will put this move bitboard (If the magic works).
                 index = (blocker * magic) >> shift
+
+#https://backscattering.de/chess/hashtable-packing/
