@@ -81,7 +81,7 @@ Any chess engine must be comprised of these 3 fundamental components:
 \begin{itemize}
   \item \textit{Legal move generation}
   \item \textit{Evaluation functions}
-  \item \textit{Searching algorithms}
+  \item \textit{Searching algorithms}\\
 \end{itemize}
 
 We will explore each of these components in detail, however 
@@ -97,9 +97,10 @@ subsection entirely, otherwise I will provide a brief
 introduction to the idea here. Some helpful resources can be
 found here \cite{bitboards}.\\
 
-Bitboards are a way to represent the state of the 
-chess board with a 64 bit number. Consider the following 
-chess position.
+Every chess engine needs a way to represent the state of the
+chess board. Bitboards are one such way to represent the
+state of the chess board with 64 bit integers. Consider
+the following chess position.
 
 \begin{figure}[h]
   \includegraphics[scale=0.25]{White_Pawns_start.png}
@@ -108,20 +109,21 @@ chess position.
   \label{whitepawns}
 \end{figure}
 
-Notice that a chess board has dimensions
+Immediately we may notice that a chess board has dimensions
 $(8 \, \textrm{x} \, 8)$ and 64 squares. Furthermore, 
 each of the squares in figure \ref{whitepawns} exists 
-in one of two states: There either is a white pawn on
-this square or there is not. This innate similarity to 
+in one of these two states: There either is a white pawn on
+this square or there is not. Does this remind you of a 
+familiar concept in computer science? This innate similarity to 
 the binary numbering system motivates one to consider the 
-use of binary to represent a chess board. We can take a 
+use of binary in order to represent a chess board. We can take a 
 64 bit unsigned integer and have each \texttt{0} 
 represent the lack of a piece and similarly 
 have each \texttt{1} represent the existance of a piece on 
 this square.\\
 
 Consider the following code snippet.\footnote{The importing
-of the numpy library has been omitted for clarity.}\\
+of the numpy library has been omitted for clarity.}
 
 \begin{minted}[linenos, bgcolor=lightgray]{Python}
   # For the rest of this paper i64 will refer to the 
@@ -146,7 +148,9 @@ typically have register sizes of 64 bits or greater,
 meaning that we may easily and quickly manipulate these 
 bitboards in order to generate legal moves for a position.
 We will consider how we may leverage bitboards for legal 
-move generation in the following subsection.
+move generation in the following subsection. 
+\footnote{We assume reverse little endian indexing for 
+our boards throughout.}
 
 \subsection*{Legal move generation}
 Legal move generation is the first step to writing a strong
@@ -160,9 +164,48 @@ decided to spend time researching were
 \textit{Hyperbola quintessence} and 
 \textit{Magic bitboards} because they are the standard 
 accepted algorithms for the top chess engines 
-\cite{stockfish}.\\
+\cite{stockfish}. Both these algorithms are used to generate
+moves for sliding pieces 
+\footnote{That is the queen, bishop and rook.}.\\
 
-Hyperbola quintessence is an algorithm used to generate moves
-for sliding pieces \footnote{That is the queen, bishop and rook.}.
-It makes use of bit manipulation tricks to generate these moves
-in $O(1)$ time.
+\subsection*{Magic bitboards}
+Magic bitboards were discovered in 2006 by Lasse Hansen
+\cite{lasse}, and was heavily influenced by Gerd Isenberg's
+\textit{"Kindergarten"} bitboards. Both techniques use the
+same core idea: we will access moves from a pre-initialised
+moves array/table instead of calculating the required move
+set on the fly. Magic bitboards involves the usage of a 
+\textit{perfect} hash function to map all possible board
+occupancies to all their corresponding move sets. By 
+occupancy I mean some bitboard of all other pieces that
+are able to block the movement of our sliding piece. For 
+instance consider a rook on the A1 square, if there is 
+another piece on the D1 square the rook will not be able to 
+move past D1 anymore. After we hash our occupancy bitboard,
+we will use it to index into a pre-calculated attack array
+that will give us a bitboard of the correct legal moves in 
+$O(1)$ time and space complexity. Examples are often the 
+best way to explain concepts so let's go through a simple one.
+Let's use our rook that was on A1. It's bitboard will look 
+like this:
+
+\newpage
+\begin{minted}[linenos, bgcolor=lightgray]{Python}
+  WhiteRook = i64(0b        # Dots represent 0,
+                  00000000  # 8 |. . . . . . . .
+                  00000000  # 7 |. . . . . . . .
+                  00000000  # 6 |. . . . . . . .
+                  00000000  # 5 |. . . . . . . .
+                  00000000  # 4 |. . . . . . . .
+                  00000000  # 3 |. . . . . . . .
+                  00000000  # 2 |. . . . . . . .
+                  10000000) # 1 |1 . . . . . . .
+                            #    _______________
+                            #    A B C D E F G H
+\end{minted}
+
+The technique is no doubt fast, we are simply accessing
+an array, the concern with this technique is rather it's
+memory consumption.
+
+\subsection*{Hyperbola quintessence}
