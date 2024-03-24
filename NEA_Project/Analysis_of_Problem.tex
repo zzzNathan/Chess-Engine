@@ -5,6 +5,15 @@
 \chapter{Analysis of the problem}
 
 \section{Problem Identification}
+% Describe and justify features of the problem that make it 
+% solvable by computational methods, explaining why it's 
+% amenable to a computational approach.
+I aim to write a chess engine capable of beating the 
+average chess player at my school 9 times out of 10 for 
+one of my classmates John Arco, to learn more about 
+strategies in chess and to defeat the best chess players 
+in our school.\\
+
 The game of chess has skyrocketed in terms of popularity
 recently, so much so that half of my school now spend their
 break times playing each other on \url{chess.com}. Chess 
@@ -30,14 +39,36 @@ out of 10.\\
 Whilst chess prodigies and Grandmasters dedicate their entire
 lifes to improving their chess abilities, using high order 
 thinking processes, experience and strategical tactics to play
-the best move in a position we may simply use a brute-force 
-style of play, in which we consider all legal moves from a 
+the best move in a position we may simply use a "brute-force" 
+style of computation, in which we consider all legal moves from a 
 given position and simply choose the one that gives the most
-advantageous position even if our opponent doesn't make any 
-mistakes.
+advantageous position even if our opponent plays the best 
+responses each time.\\
 
-% https://en.wikipedia.org/wiki/World_Chess_Championship_1984%E2%80%931985
-% https://www.chessprogramming.org/Branching_Factor
+For each move that we consider, there is a number of 
+responses that our opponent can make, similarly for each of 
+\textbf{those} moves we also have a number of possible 
+responses to consider. This gives us a \textit{search tree}
+in which each node is a move to consider and each of the 
+child nodes are possible responses to the played move. A 
+simple visualisation of this can be seen below.\\
+
+Consider the opening move e4,\footnote{Evaluations are from
+stockfish 14 NNUE.}
+
+% https://www.sfu.ca/~haiyunc/notes/Game_Trees_with_TikZ.pdf
+\begin{center}
+  \begin{tikzpicture}[level 1/.style={sibling distance=3cm}]
+  \tikzstyle{white}=[circle,draw,inner sep=8]
+  \tikzstyle{black}=[circle,draw,inner sep=8,fill=lightgray]
+  
+  \node[white, label=above:{Eval: +0.1}]{\large e4}
+    child{node[black,label=above:{Eval: +0.2},yshift=-0.7cm]{\large e5}}
+    child{node[black,label=above:{Eval: 0.0},yshift=-0.7cm]{\large e6}}
+  ;
+\end{tikzpicture}
+\end{center}
+
 \section{Stakeholders}
 % https://www.nytimes.com/2022/06/17/crosswords/chess/chess-is-booming.html
 One of the students at my school who plays chess regularly is 
