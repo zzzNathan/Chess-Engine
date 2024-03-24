@@ -53,21 +53,49 @@ in which each node is a move to consider and each of the
 child nodes are possible responses to the played move. A 
 simple visualisation of this can be seen below.\\
 
-Consider the opening move e4,\footnote{Evaluations are from
-stockfish 14 NNUE.}
+Consider the opening move from white, e4
+\footnote{Evaluations are from Stockfish 14 NNUE.}
 
+% Useful document on how to draw game trees with Tikz
 % https://www.sfu.ca/~haiyunc/notes/Game_Trees_with_TikZ.pdf
 \begin{center}
-  \begin{tikzpicture}[level 1/.style={sibling distance=3cm}]
-  \tikzstyle{white}=[circle,draw,inner sep=8]
-  \tikzstyle{black}=[circle,draw,inner sep=8,fill=lightgray]
+  \begin{tikzpicture}[level 1/.style={sibling distance=4.5cm},level 2/.style={sibling distance=2cm}]
+  \tikzstyle{w}=[circle,draw,inner sep=8]
+  \tikzstyle{b}=[circle,draw,inner sep=8,fill=darkgray]
   
-  \node[white, label=above:{Eval: +0.1}]{\large e4}
-    child{node[black,label=above:{Eval: +0.2},yshift=-0.7cm]{\large e5}}
-    child{node[black,label=above:{Eval: 0.0},yshift=-0.7cm]{\large e6}}
+  \node[w,label=above:{Eval: +0.1}]{\large e4}
+    child{node[b,label=above:{Eval: +0.2},yshift=-0.7cm]{\large e5}
+      child{node[w,label=above:{Eval: +0.2},yshift=-0.7cm]{Nf3}}
+      child{node[w,label=above:{Eval: +0.1},yshift=-0.7cm]{Nc3}}
+    }
+    child{node[b,label=above:{Eval: 0.0},yshift=-0.7cm]{\large e6}
+      child{node[w,label=above:{Eval: +0.4},yshift=-0.7cm]{\large d4}}
+      child{node[w,label=above:{Eval: +0.2},yshift=-0.7cm]{Nf3}}
+    }
   ;
 \end{tikzpicture}
 \end{center}
+
+This is one possible search tree that we could look at. This
+tree is only considering 2 moves for white and black, 
+however in reality there is usually much more moves to 
+consider per position. To traverse this tree we would start
+at the e4 node at the top. We would then move to the e6 node
+because this gives the better evaluation for black (black 
+wants to minimise evaluation and white wants to maximise it).
+Then white will choose to play d4 in this position because
+it gives a higher evaluation $(0.4>0.2)$. Now even if black 
+plays the best move in the original starting position: e6 
+we know that we have an adequate response that will bring 
+evaluation in our favour! Namely we will respond with d4.
+
+The problem of traversing a tree with directed edges is one
+that has been heavily researched in computer science and is 
+a principal component in the programming of any chess engine.
+Since chess has such a high branching factor and requires 
+well-researched algorithms like tree traversal algorithms I
+believe that it is very well suited to a computational 
+approach.
 
 \section{Stakeholders}
 % https://www.nytimes.com/2022/06/17/crosswords/chess/chess-is-booming.html
