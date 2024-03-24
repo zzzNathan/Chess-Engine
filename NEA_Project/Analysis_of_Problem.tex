@@ -20,7 +20,7 @@ break times playing each other on \url{chess.com}. Chess
 is a strategy board game with the end goal being to checkmate
 the opponent's king. \cite{rules} This means that capture of 
 the opponent's king is inevitable upon the next move. The 
-game also involves \textbf{no} elements of luck and the 
+game also involves \textit{no} elements of luck and the 
 outcome of the game is soley dependent on the actions of the
 player. Moreover, the game of chess is known to be very
 hard to master with many of the best chess
@@ -47,7 +47,7 @@ responses each time.\\
 
 For each move that we consider, there is a number of 
 responses that our opponent can make, similarly for each of 
-\textbf{those} moves we also have a number of possible 
+\textit{those} moves we also have a number of possible 
 responses to consider. This gives us a \textit{search tree}
 in which each node is a move to consider and each of the 
 child nodes are possible responses to the played move. A 
@@ -71,8 +71,7 @@ Consider the opening move from white, e4
     child{node[b,label=above:{Eval: 0.0},yshift=-0.7cm]{\large e6}
       child{node[w,label=above:{Eval: +0.4},yshift=-0.7cm]{\large d4}}
       child{node[w,label=above:{Eval: +0.2},yshift=-0.7cm]{Nf3}}
-    }
-  ;
+    };
 \end{tikzpicture}
 \end{center}
 
@@ -92,13 +91,15 @@ evaluation in our favour! Namely we will respond with d4.
 The problem of traversing a tree with directed edges is one
 that has been heavily researched in computer science and is 
 a principal component in the programming of any chess engine.
-Since chess has such a high branching factor and requires 
-well-researched algorithms like tree traversal algorithms I
-believe that it is very well suited to a computational 
-approach.
+Moreover, the strategical nature of the game coupled 
+with the fact that it has a high branching factor makes this
+problem amenable to a computational approach.
+
 
 \section{Stakeholders}
 % https://www.nytimes.com/2022/06/17/crosswords/chess/chess-is-booming.html
+% Identify suitable stakeholders for the project and describe how will make
+% use of the proposed solution and how it is appropiate to your needs.
 One of the students at my school who plays chess regularly is 
 John Arco. John Arco is a 17 year old male with a passion for chess.
 John has a rating of roughly 1000 ELO but wishes 
