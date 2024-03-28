@@ -40,10 +40,24 @@ Whilst chess prodigies and Grandmasters dedicate their entire
 lifes to improving their chess abilities, using high order 
 thinking processes, experience and strategical tactics to play
 the best move in a position we may simply use a "brute-force" 
-style of computation, in which we consider all legal moves from a 
+style of searching, in which we consider all legal moves from a 
 given position and simply choose the one that gives the most
 advantageous position even if our opponent plays the best 
-responses each time.\\
+responses each time. Claude Shannon \cite{shan} identified 2 main
+categories of search algorithms. \cite{search} 
+
+\begin{itemize}
+  \item{Type A - A brute-force search looking at every variation
+        to a given depth.}
+  \item{Type B - A selective search looking at important variations 
+        only.}
+\end{itemize}
+
+According to Shannon, this is model will fall into a
+type A search. Though type B searches look at less variations and 
+are therefore faster, I argue that type A searches are more sustainable 
+today with the speed of modern computers. This allows us to consider all 
+variations without having a massive performance hit to our program.\\
 
 For each move that we consider, there is a number of 
 responses that our opponent can make, similarly for each of 
@@ -105,7 +119,7 @@ John Arco. John Arco is a 17 year old male with a passion for chess.
 John has a rating of roughly 1000 ELO but wishes 
 to improve to a higher rating and beat all of his 
 classmates. John is also very competitive and wishes to 
-\textbf{guarentee} that none of his classmates can beat him.
+\textit{guarentee} that none of his classmates can beat him.
 The use of a strong chess engine is one method to ensure
 that John Arco always beats his classmates and requires little
 to no effort on his part, all he has to do is replicate the 
@@ -126,14 +140,63 @@ chess ability by exposing him to new and unique tactics that
 he wouldn't have thought of otherwise. The construction of 
 a strong chess engine will be able to solve both problems
 effectively, providing both educational benefits and 
-competitive benefits also.
+competitive benefits also. \par
+
+The following is a transcript of an interview I
+conducted with my client John Arco on how he will make use of the
+engine and how it is appropiate to his needs. This will 
+help me to clearly understand the requirements and goals I
+should keep in mind when programming.\\
+
+\begin{tcolorbox}
+\makebox[2cm]{\textbf{Jonathan:}} Why are you looking for a chess engine?\par
+\makebox[2cm]{\textbf{John:}} I am looking to improve my
+chess rating to around 2000 ELO, and a chess engine would
+help me a lot.\par
+\makebox[2cm]{\textbf{Jonathan:}} What features should this
+engine have? \par
+\makebox[2cm]{\textbf{John:}} The engine should definitely
+play at a strength stronger than me, It should also include
+an easy to use GUI and it can be written in any programming
+language.\par
+\makebox[2cm]{\textbf{Jonathan:}} How will you use the
+engine? \par
+\makebox[2cm]{\textbf{John:}} I will play games against the 
+engine to practise and improve my rating, I will also use it
+to review my games to help me see the mistakes in the moves 
+that I played. \par
+\makebox[2cm]{\textbf{Jonathan:}} How will the engine be 
+appropiate to your needs? \par
+\makebox[2cm]{\textbf{John:}} This engine will allow me to 
+easily analyse my games from my laptop, and help me in 
+achieving my goal of chess mastery in the process.
+\end{tcolorbox}
+
+\subsection*{Analysis of interview}
+Based on the interview with my client I was able to get 
+some clear features, that the finished program should
+include. The request to have the engine play at a strength
+of >1000 ELO, is no simple task so it will be split into
+numerous sub-tasks that will aid me in designing the final 
+program. \\
+
+\textbf{\large Requirement list:}
+\begin{itemize}
+  \item Be easy to use
+  \item Include a clean user interface
+  \item Play at a strength of <1000 ELO
+
+  \begin{itemize}
+    \item{Generate legal moves with a consistent and fast
+          algorithm}
+    \item Evaluate positions with heuristical optimisations
+    \item{Search for moves with a suitable algorithm}
+  \end{itemize}
+
+\end{itemize}
 
 \section{Research the problem}
-To begin research it is first nescessary to get a higher level understanding
-of how a chess engine works. To learn about this topic
-I made use of resources like \url{https://www.chessprogramming.org/Main_Page}
-and \url{https://www.talkchess.com/forum/index.php}, citations will be 
-given accordingly. The following subsections will act to be 
+The following subsections will act to be 
 a brief summary of the research I conducted on understanding
 how to write a chess engine.\\
 
