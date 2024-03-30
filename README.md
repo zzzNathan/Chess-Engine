@@ -33,27 +33,37 @@ without a '.py' extension. Example: `python -m Tests.Legal_Moves`
 Enusure you are at the top of this directory before running any scripts.
 
 ### Project layout
+<!---
+For tree
+tree -I '*.pyc|*.aux|*.log|*.toc|Assets|__*|NEA*'
+-->
 ```
 .
+├── COPYING.txt
 ├── Engine
-│   ├── BitMacros.py
-│   ├── Build_Ray.py
-│   ├── ClassUtilities.py
-│   ├── ConstantsAndTables.py
-│   ├── Evaluation.py
-│   ├── MoveGenerator.py
-│   ├── PieceSquareTables.py
-│   ├── Search.py
-│   ├── Utilities.py
-│   └── __init__.py 
-│
+│   ├── Eval
+│   │   ├── Evaluation.py
+│   │   ├── OptimisedEval.py
+│   │   └── PieceSquareTables.py
+│   ├── MoveGen
+│   │   ├── MoveGenUtils.py
+│   │   └── MoveGenerator.py
+│   ├── Search
+│   │   └── Search.py
+│   └── Utils
+│       ├── BitMacros.py
+│       ├── Build_Ray.py
+│       ├── ClassUtilities.py
+│       ├── Constants.py
+│       └── Utilities.py
 ├── README.md
-│
-└── Tests
-    ├── Legal_Moves.py
-    ├── PGN_Game_Files
-    │   └── tatamast24.pgn
-    └── __init__.py
+├── Tests
+│   ├── Legal_Moves.py
+│   └── PGN_Game_Files
+│       ├── tatamast24.pgn
+│       └── wchr23.pgn
+├── pyrightconfig.json
+└── requirements.txt
 ```
 ---
 __*Note*__: For future development, ensure to configure your python

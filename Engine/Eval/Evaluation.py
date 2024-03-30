@@ -3,6 +3,8 @@
 #            - - - - - - - - - - - 
 #\*******************************************/
 from Engine.MoveGen.MoveGenerator import *
+import subprocess
+import re
 
 # References:
 # ----------
@@ -137,6 +139,42 @@ def Space(Game:GameState, col:str) -> float:
     Ranks = Rank2 | Rank3 | Rank4 
 
     return BitCount(SafeSq & Ranks)
+
+# This function will call stockfish to get it's evaluation
+# on a position, we assume that the stockfish executeable file
+# is placed in a location that is above the top of the Chess-Engine directory
+@cache
+def Get_SF_Eval(fen:str, fast:bool=False) -> float|None:
+    # Before running the command to start stockfish we should verify that this 
+    # is a real fen string with REGEX
+    if (not fast):
+        # We can save a lot of time by not considering this REGEX check
+        # but could be considered unsafe (USE WITH CAUTION).
+        Fen_Verifier_REG = r's*([rnbqkpRNBQKP1-8]+\/){7}([rnbqkpRNBQKP1-8]+)\s[bw-]\s(([a-hkqA-HKQ]{1,4})|(-))\s(([a-h][36])|(-))\s\d+\s\d+\s*'
+        if (re.search(Fen_Verifier_REG, fen) == None):
+            print('Not a valid FEN string!')
+            return
+
+    # Start up stockfish, by piping commands to set position and evaluate it into the 
+    # stockfish executeable (credits: https://www.reddit.com/r/ComputerChess/comments/b6rdez/comment/ejppzme/)
+    SF = subprocess.getstatusoutput(rf'echo -e "position {fen}\neval" | ../Stockfish/src/stockfish')
+
+    # If process did not work abort
+    if (SF[0] == 1):
+        print('Stockfish did not start COMMAND FAILED')
+        print('---------------------------------')
+        print('STOCKFISH - Usage in this project')
+        print('---------------------------------\n')
+        print('1) Go one level above the top of this directory, where you git cloned this code')
+        print('2) Git clone stockfish with: git clone https://github.com/official-stockfish/Stockfish.git')
+        print('3) Go into the Stockfish/src folder and compile stockfish (This should be fine): make -j build')
+        print('4) You\'re good to go! (If the command still fails please raise an issue on github)')
+        return 
+    
+    # Ignores all other data from stockfish's "eval" command and singles out the evaluation
+    Eval = SF[1].splitlines()[-1].split()[2]
+    
+    return float(Eval)
 
 # Should be favourable for white // TESTS
 '''
