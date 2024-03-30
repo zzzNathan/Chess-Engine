@@ -6,7 +6,7 @@ import numpy as np
 from copy import deepcopy
 from Engine.Utils.Constants      import *
 from Engine.Utils.ClassUtilities import *
-from Engine.PieceSquareTables    import *
+from Engine.Eval.PieceSquareTables    import *
 from Engine.Utils.BitMacros      import *
 
 # Shorthands

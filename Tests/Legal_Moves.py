@@ -2,7 +2,6 @@
 #   M O V E  G E N E R A T I O N  T E S T S        
 #   - - - -  - - - - - - - - - -  - - - - -      
 #\*******************************************/
-
 # The following code aims to test if the file "MoveGenerator.py" generates legal, playable moves
 from Engine.MoveGen.MoveGenerator import *
 import chess

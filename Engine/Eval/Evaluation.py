@@ -17,9 +17,6 @@ ROOK_VALUE   = 500
 QUEEN_VALUE  = 900
 KING_VALUE   = 20_000
 
-# Values to increase or decrease evaluation scores based on their importance to the game
-DAMPING = {}
-
 # Computes the amount of material the given side has
 def Material(Game:GameState, col:str) -> int:
     Score = 0
@@ -126,29 +123,24 @@ def OpenRookFiles(Game:GameState, col:str) -> float:
 
     return Score
 
-# Evaluates the current position
-def Evaluate(Game:GameState) -> float:
-    Score = 0
+# Bonuses for more space on the board, here we use 
+# the following definition of "space" namely: The number 
+# of safe squares for minor pieces on the central four files
+# on ranks 2 to 4
+def Space(Game:GameState, col:str) -> float:
+    EnemyCol = 'b' if (col == 'w') else 'w'
 
-    # Check for a stalemate
-    if (Generate_Moves(Game, Game.Side_To_Move) == []) and (Is_Check(Game.Side_To_Move, Game) == AllBits): 
-        return 0
-    if Game.Draw: return 0
+    # We NOT all attacked squares to get all safe squares
+    SafeSq = ~All_Attacked_squares(EnemyCol, Game)
+    
+    # A bitboard with ranks from 2..4 as 1s
+    Ranks = Rank2 | Rank3 | Rank4 
 
-    # Check if white of black has checkmate
-    if Is_Check('w',Game)!=AllBits and Generate_White_King_Moves(Game.WhiteKing,Game) == []: return -INF
-    if Is_Check('b',Game)!=AllBits and Generate_Black_King_Moves(Game.BlackKing,Game) == []: return INF
-
-    Score += Material(Game, 'w')     - Material(Game, 'b')
-    Score += Mobility(Game, 'w')     - Mobility(Game, 'b')
-    Score += Connectivity(Game, 'w') - Connectivity(Game, 'b')
-    Score += DoubledPawns(Game, 'w') - DoubledPawns(Game, 'b')
-    Score += OpenRookFiles(Game,'w') - OpenRookFiles(Game,'b')
-    Score += PassedPawns(Game ,'w')  - PassedPawns(Game, 'b')
-    return Score
+    return BitCount(SafeSq & Ranks)
 
 # Should be favourable for white // TESTS
+'''
 fen = r'rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8'  
 GAME = Fen_to_GameState(fen)
 print(Evaluate(GAME))
-print( Show_Board(GAME) )
+print( Show_Board(GAME) )'''
