@@ -4,7 +4,9 @@
 #\*******************************************/
 from Engine.MoveGen.MoveGenerator import *
 import subprocess
-import re
+import re, os
+from io import BytesIO
+from os import cpu_count,system
 
 # References:
 # ----------
@@ -151,6 +153,13 @@ def Space(Game:GameState, col:str) -> float:
 # OF THIS FUNCTION AND IN USING THIS FUNCTION YOU ACKNOWLEDGE THERE MAY BE RISKS 
 # TO YOUR SYSTEM.
 # ------------------------------------------------------------------------------
+#
+#(STOCKFISH - Usage in this project)
+#(---------------------------------)
+#(1) Go one level above the top of this directory, where you git cloned this code)
+#(2) Git clone stockfish with: git clone https://github.com/official-stockfish/Stockfish.git)
+#(3) Go into the Stockfish/src folder and compile stockfish (This should be fine): make -j build)
+#(4) You're good to go! (If the command still fails please raise an issue on github))
 @cache
 def Get_SF_Eval(fen:str, fast:bool=False) -> float|None:
     # Before running the command to start stockfish we should verify that this 
@@ -163,25 +172,25 @@ def Get_SF_Eval(fen:str, fast:bool=False) -> float|None:
             print('Not a valid FEN string!')
             return
 
+    # Get number of cores on user's system to speed up stockfish
+    # Assume we only have 1 core if undetermined
+    cores = cpu_count() if (cpu_count() != None) else 1
+
     # Start up stockfish, by piping commands to set position and evaluate it into the 
     # stockfish executeable (credits: https://www.reddit.com/r/ComputerChess/comments/b6rdez/comment/ejppzme/)
-    SF = subprocess.getstatusoutput(rf'echo -e "position {fen}\neval" | ../Stockfish/src/stockfish')
+    DataFile = 'Engine/Eval/EvalData.txt'
+    cmd = f'echo -e "setoption name Threads value {cores}\nposition {fen}\neval"\
+            | ../Stockfish/src/stockfish > {DataFile}'
+    system(cmd)
+    
+    # Reading data as bytes for faster I/O
+    fd = os.open(DataFile, os.O_RDONLY)
+    FastIO = BytesIO(os.read(fd, os.path.getsize(DataFile))).readlines
+    SF = FastIO()[-2].decode()
 
-    # If process did not work abort
-    if (SF[0] == 1):
-        print('Stockfish did not start (COMMAND FAILED)')
-        print('---------------------------------')
-        print('STOCKFISH - Usage in this project')
-        print('---------------------------------\n\n')
-        print('1) Go one level above the top of this directory, where you git cloned this code\n')
-        print('2) Git clone stockfish with: git clone https://github.com/official-stockfish/Stockfish.git\n')
-        print('3) Go into the Stockfish/src folder and compile stockfish (This should be fine): make -j build\n')
-        print('4) You\'re good to go! (If the command still fails please raise an issue on github)\n')
-        return 
-    
     # Ignores all other data from stockfish's "eval" command and singles out the evaluation
-    Eval = SF[1].splitlines()[-1].split()[2]
-    
+    Eval = SF.split()[2]
+
     return float(Eval)
 
 # Should be favourable for white // TESTS

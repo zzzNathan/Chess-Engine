@@ -96,17 +96,17 @@ def Error(fast:bool=False) -> float|None:
 def Partial_Deriv(damperName:str, CurrDamper:float) -> tuple[float|None, float|None]:
     h = 0.5 # The arbitrarily small value used to estimate the limit
     
-    CurrentError = Error()
+    CurrentError = Error(True)
     
     # Moving forwards
     damper_Plus_h = CurrDamper + h
     DAMPING[damperName] = damper_Plus_h
-    Error_Plus_h  = Error()
+    Error_Plus_h  = Error(True)
     
     # Moving backwards
     damper_Minus_h = CurrDamper - h
     DAMPING[damperName] = damper_Minus_h
-    Error_Minus_h = Error()
+    Error_Minus_h = Error(True)
     
     # Break out if any of the error calculations fail
     if (CurrentError == None or Error_Plus_h == None or Error_Minus_h == None):
@@ -116,6 +116,11 @@ def Partial_Deriv(damperName:str, CurrDamper:float) -> tuple[float|None, float|N
     Backward_Deriv = (Error_Minus_h - CurrentError) / -h
 
     return Forward_Deriv, Backward_Deriv
+
+# Compute learning rate parameter, The more negative the partial derivative 
+# is, the more we should increase our learning rate 
+@cache
+def Compute_LearnRate(deriv:float) -> float:return 1
 
 # Tunes evaluations based on description given at the top of the file
 def TuneEval():
@@ -136,8 +141,7 @@ def TuneEval():
         
         count = 0 # Keep a count of iterations so that we don't have an infinite loop
         while ((Forward_Derivative < 0 and Backward_Derivative < 0) and (count < MAX_ITER)):
-            # The more negative the partial derivative is, the more we should increase our 
-            # learning rate
+            LearnRate = Compute_LearnRate(min(Forward_Derivative, Backward_Derivative))
 
             # Adjust damper to move in the direction where the derivative is minimised
             if (Forward_Derivative < Backward_Derivative): damper += h * LearnRate
