@@ -2,6 +2,7 @@
 #        M O V E   G E N E R A T I O N       
 #        - - - -   - - - - - - - - - -
 #\*******************************************/
+from collections.abc import Iterator
 from Engine.MoveGen.MoveGenUtils import *
 
 # References:
@@ -219,5 +220,5 @@ def Generate_Moves(Game:GameState, col:str) -> list:
     MoveList.extend(Generate_White_King_Moves(Game.WhiteKing, Game)
                     if (col=='w') else
                     Generate_Black_King_Moves(Game.BlackKing, Game))
-
-    return Filter_All_Moves(Game, MoveList)
+    
+    return list(Filter_All_Moves(Game, MoveList))

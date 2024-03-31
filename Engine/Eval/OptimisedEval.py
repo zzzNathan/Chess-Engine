@@ -48,11 +48,13 @@ DAMPING = {
     }
 
 # Evaluates the current position
+@cache
 def Evaluate(Game:GameState) -> float:
     Score = 0
+    Moves = list(Generate_Moves(Game, Game.Side_To_Move))
 
     # Check for a stalemate
-    if (Generate_Moves(Game, Game.Side_To_Move) == []) and (Is_Check(Game.Side_To_Move, Game) == AllBits): 
+    if (Moves == []) and (Is_Check(Game.Side_To_Move, Game) == AllBits): 
         return 0
     # Checks for a 3-fold repition
     if Game.Draw: return 0
@@ -71,12 +73,14 @@ def Evaluate(Game:GameState) -> float:
     return Score
 
 # Calculates the mean squared error over evaluations from many positions
+@cache
 def Error(fast:bool=False) -> float|None:
-    Fens = Get_Fen_Strings(r'Tests/PGN_Game_Files/wchr23.pgn') 
-    N = len(Fens) # Number of positions to test
+    Fens = Get_Fen_Strings(r'Tests/PGN_Game_Files/kasparov_radjabov_2003.pgn') 
+    N = 0 # Number of positions to test
     
     error = 0
     for fen in Fens:
+        N += 1
         OurEval = Evaluate(Fen_to_GameState(fen))
         SF_Eval = Get_SF_Eval(fen, fast)
 
@@ -122,27 +126,28 @@ def TuneEval():
         Forward_Derivative, Backward_Derivative = Partial_Deriv(damperName, damper)
 
         # If the derivatives are 'None' then calculation of error function has failed
-        if (Forward_Derivative == None):
+        if (Forward_Derivative == None or Backward_Derivative == None):
             print('Error function failed!')
             return 
 
         # If both derivatives show that the function is increasing, this must be a 
         # local minimum
-        if (Forward_Derivative > 0 and Backward_Derivative > 0):
-            continue
+        if (Forward_Derivative > 0 and Backward_Derivative > 0): continue
         
         count = 0 # Keep a count of iterations so that we don't have an infinite loop
         while ((Forward_Derivative < 0 and Backward_Derivative < 0) and (count < MAX_ITER)):
+            # The more negative the partial derivative is, the more we should increase our 
+            # learning rate
 
             # Adjust damper to move in the direction where the derivative is minimised
-            if (Forward_Derivative < Backward_Derivative): damper += h
-            else: damper -= h
+            if (Forward_Derivative < Backward_Derivative): damper += h * LearnRate
+            else: damper -= h * LearnRate
             
             # Re-compute partial derivative
             Forward_Derivative, Backward_Derivative = Partial_Deriv(damperName, damper)    
 
             # If the derivatives are 'None' then calculation of error function has failed
-            if (Forward_Derivative == None):
+            if (Forward_Derivative == None or Backward_Derivative == None):
                 print('Error function failed!')
                 return 
             

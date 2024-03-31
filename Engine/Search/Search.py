@@ -42,7 +42,6 @@ def Minimax(Game:GameState, depth:int, Maximise:bool) -> float:
         return minEval
 
 def FindMove(Game:GameState):
-    
     Maximising = True if (Game.Side_To_Move == 'w') else False 
     bestmove, besteval = None, None
     Depth = 7

@@ -1,6 +1,9 @@
 # Ignore cache folders across repository
 **/__pycache__/
 
+# Ignore optimisation files
+o
+
 # Ignore pyright configurations
 *.json
 

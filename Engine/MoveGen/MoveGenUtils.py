@@ -2,6 +2,7 @@
 #        M O V E   G E N E R A T I O N       
 #        - - - -   - - - - - - - - - -
 #\*******************************************/
+from _collections_abc import Iterator
 from Engine.Utils.Utilities import *
 from typing import Callable
 
@@ -73,13 +74,9 @@ def Filter_Move(Game:GameState, move:Move) -> Move | bool:
     return move if (TargetBB & Filter) else False
     
 # Goes through all moves and ensures that they are all legal
-def Filter_All_Moves(Game:GameState, movelist:list[Move]) -> list[Move]:
-    FilteredMoveList = []
-
+def Filter_All_Moves(Game:GameState, movelist:list[Move]) -> Iterator[Move]:
     for move in movelist:
-        if Filter_Move(Game, move):FilteredMoveList.append(move)
-
-    return FilteredMoveList
+        if Filter_Move(Game, move): yield move
 
 # Takes in a piece's ascii representation and return a funtion that generates their pseudo-legal moves
 @cache

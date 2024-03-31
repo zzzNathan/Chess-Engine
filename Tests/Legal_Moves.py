@@ -3,31 +3,37 @@
 #   - - - -  - - - - - - - - - -  - - - - -      
 #\*******************************************/
 # The following code aims to test if the file "MoveGenerator.py" generates legal, playable moves
+from collections.abc import Iterator
 from Engine.MoveGen.MoveGenerator import *
 import chess
 import chess.pgn
 from os import path
 from functools import cache
+from sys import stdout
 
 LOCAL_DIR = path.dirname(__file__)
 TATA_STEEL_MASTERS_86TH = path.join(LOCAL_DIR ,r'PGN_Game_Files/tatamast24.pgn')
+print = stdout.write
+
+# An error to indicate wrong number of legal moves generated
+class WrongNumberOfMoves(Exception): pass
+
+# An error to indicate that illegal moves have been generated
+class IllegalMovesGenerated(Exception): pass
 
 # Takes in one chess.pgn.Game and generates fen strings of all unique positions
 @cache
-def Get_Fen_From_Game(Game:chess.pgn.Game) -> set:
-    fens  = []
+def Get_Fen_From_Game(Game:chess.pgn.Game) -> Iterator[str]:
     Board = Game.board()
 
     for move in Game.mainline_moves():
         Board.push(move)
-        fens.append(Board.fen())
-
-    return set(fens)
+        yield Board.fen()
 
 # Takes in a PGN file and generates fen strings of all unique positions
 @cache
-def Get_Fen_Strings(file:str) -> list:
-    fens  = set()
+def Get_Fen_Strings(file:str) -> Iterator[str]:
+    fens  = set() 
     PGN   = open(file,'r')
     Games = []
    
@@ -38,10 +44,11 @@ def Get_Fen_Strings(file:str) -> list:
         CurrentGame = chess.pgn.read_game(PGN)
 
     # Iterate over all games and get all unique postions
-    for Board in Games: fens.update(Get_Fen_From_Game(Board))
+    for Board in Games: 
+        for fen in Get_Fen_From_Game(Board): fens.add(fen) 
 
     PGN.close()
-    return list(fens)
+    for fen in fens: yield fen
 
 # Checks to see if we generate the same moves as the chess module
 def All_Moves_Valid(Our_Moves:list, Validator_Moves:chess.LegalMoveGenerator) -> bool:
@@ -51,32 +58,36 @@ def All_Moves_Valid(Our_Moves:list, Validator_Moves:chess.LegalMoveGenerator) ->
     # If the set of both moves are equal we have generate all correct moves
     return True if (set(Valid_UCI) == set(Our_Moves_UCI)) else False
 
-# Takes in a list of unique fen strings and checks that 
-# our move generator generates legal and correct moves each time
-def Run_Tests(fens:list) -> None:
-    print(f'Testing {len(fens)} positions...')
-    for fen in fens:
-        
-        # Get both relevant board representations
-        Validator_Board = chess.Board()
-        Validator_Board.set_fen(fen)
-        Our_Board = Fen_to_GameState(fen)
-        
-        # Get both relevant moves
-        Our_Moves       = Generate_Moves(Our_Board, Our_Board.Side_To_Move)
-        Validator_Moves = Validator_Board.legal_moves
-        
-        # Ensure that both the right number of moves has been generated and that all generated moves are legal
-        No_Of_LegalMoves = Validator_Moves.count()
-        if len(Our_Moves) != No_Of_LegalMoves: print(fen)
-        assert len(Our_Moves) == No_Of_LegalMoves,          'Error! Wrong number of moves generated.'
-        assert All_Moves_Valid(Our_Moves, Validator_Moves), 'Error! Illegal moves generated.'
+# Takes in one fen and checks that we generate correct moves in this position
+def Run_Test(fen:str) -> None:
+    # Get both relevant board representations
+    Validator_Board = chess.Board()
+    Validator_Board.set_fen(fen)
+    Our_Board = Fen_to_GameState(fen)
+    
+    # Get both relevant moves
+    Our_Moves       = Generate_Moves(Our_Board, Our_Board.Side_To_Move)
+    Validator_Moves = Validator_Board.legal_moves
+    
+    # Ensure that both the right number of moves has been generated and that all generated moves are legal
+    No_Of_LegalMoves = Validator_Moves.count()
 
-    print('All Tests Passed! :)')
+    if (len(Our_Moves) != No_Of_LegalMoves):
+        print(f'{fen}\n')
+        print('Error! Wrong number of moves generated.\n')
+        raise WrongNumberOfMoves()
+
+    if (not All_Moves_Valid(Our_Moves, Validator_Moves)):
+        print(f'{fen}\n')
+        print('Error! Illegal moves generated.\n')
+        raise IllegalMovesGenerated()
 
 if __name__ == "__main__":
-    Run_Tests( Get_Fen_Strings(TATA_STEEL_MASTERS_86TH) )
-    
+    for fen in Get_Fen_Strings(TATA_STEEL_MASTERS_86TH):
+        Run_Test(fen)
+
+    print('All tests passed! :)\n')
+
     # List of fen strings that made the tests fail:
     # -----------------------------------------------
 

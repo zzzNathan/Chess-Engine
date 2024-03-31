@@ -20,6 +20,7 @@ QUEEN_VALUE  = 900
 KING_VALUE   = 20_000
 
 # Computes the amount of material the given side has
+@cache
 def Material(Game:GameState, col:str) -> int:
     Score = 0
     Boards = Game.WhitePieces if (col == 'w') else Game.BlackPieces
@@ -102,6 +103,7 @@ def PassedPawns(Game:GameState, col:str) -> float:
     return Score
 
 # Bonuses for rooks on open files
+@cache
 def OpenRookFiles(Game:GameState, col:str) -> float:
     Score = 0
     Rooks = Game.WhiteRook if (col == 'w') else Game.BlackRook
@@ -129,6 +131,7 @@ def OpenRookFiles(Game:GameState, col:str) -> float:
 # the following definition of "space" namely: The number 
 # of safe squares for minor pieces on the central four files
 # on ranks 2 to 4
+@cache
 def Space(Game:GameState, col:str) -> float:
     EnemyCol = 'b' if (col == 'w') else 'w'
 
@@ -142,7 +145,12 @@ def Space(Game:GameState, col:str) -> float:
 
 # This function will call stockfish to get it's evaluation
 # on a position, we assume that the stockfish executeable file
-# is placed in a location that is above the top of the Chess-Engine directory
+# is placed in a location that is above the top of the Chess-Engine directory.
+# ------------------------------------------------------------------------------
+# POTENTIALLY UNSAFE - I AM IN NO WAY RESPONSIBLE FOR WHAT HAPPENS WITH USAGE
+# OF THIS FUNCTION AND IN USING THIS FUNCTION YOU ACKNOWLEDGE THERE MAY BE RISKS 
+# TO YOUR SYSTEM.
+# ------------------------------------------------------------------------------
 @cache
 def Get_SF_Eval(fen:str, fast:bool=False) -> float|None:
     # Before running the command to start stockfish we should verify that this 
@@ -161,14 +169,14 @@ def Get_SF_Eval(fen:str, fast:bool=False) -> float|None:
 
     # If process did not work abort
     if (SF[0] == 1):
-        print('Stockfish did not start COMMAND FAILED')
+        print('Stockfish did not start (COMMAND FAILED)')
         print('---------------------------------')
         print('STOCKFISH - Usage in this project')
-        print('---------------------------------\n')
-        print('1) Go one level above the top of this directory, where you git cloned this code')
-        print('2) Git clone stockfish with: git clone https://github.com/official-stockfish/Stockfish.git')
-        print('3) Go into the Stockfish/src folder and compile stockfish (This should be fine): make -j build')
-        print('4) You\'re good to go! (If the command still fails please raise an issue on github)')
+        print('---------------------------------\n\n')
+        print('1) Go one level above the top of this directory, where you git cloned this code\n')
+        print('2) Git clone stockfish with: git clone https://github.com/official-stockfish/Stockfish.git\n')
+        print('3) Go into the Stockfish/src folder and compile stockfish (This should be fine): make -j build\n')
+        print('4) You\'re good to go! (If the command still fails please raise an issue on github)\n')
         return 
     
     # Ignores all other data from stockfish's "eval" command and singles out the evaluation

@@ -27,9 +27,9 @@ git clone --depth 1 https://github.com/zzzNathan/Chess-Engine.git
 Then run the following commands to run any script:
 ```
 cd Chess-Engine
-python -m <Folder>.<Filename>
+python -OO -m <Folder>.<Folder>...<Filename>
 ```
-without a '.py' extension. Example: `python -m Tests.Legal_Moves`
+without a '.py' extension. Example: `python -OO -m Tests.Legal_Moves`
 Enusure you are at the top of this directory before running any scripts.
 
 ### Project layout
