@@ -2,7 +2,7 @@
 #                S E A R C H 
 #                - - - - - - 
 #\*******************************************/
-from Engine.Eval.Evaluation import *
+from Engine.Eval.OptimisedEval import *
 
 # Reference:
 # ----------
@@ -15,7 +15,6 @@ from Engine.Eval.Evaluation import *
 # of them after which we will simply choose to play the move
 # with the best evalation.
 
-@cache
 def Minimax(Game:GameState, depth:int, Maximise:bool) -> float:
     if depth == 0: return Evaluate(Game)
     
@@ -59,5 +58,6 @@ def FindMove(Game:GameState):
 
     return Move_To_UCI(bestmove)
 
-print(FindMove(STARTING_GAME))
-print(Show_Board(STARTING_GAME))
+g = Fen_to_GameState(TRICKY_POS_FEN)
+print(FindMove(g))
+print(Show_Board(g))

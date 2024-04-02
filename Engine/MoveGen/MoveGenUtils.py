@@ -8,7 +8,7 @@ from typing import Callable
 
 # Generates a list of moves that have target squares as the 1's on a given bitboard
 @cache
-def Create_Moves_From_Board(Game:GameState,source:i64,bitboard:i64,col:str,piece:str) -> list:
+def Create_Moves_From_Board(Game:GameState,source:i64,bitboard:i64,col:str,piece:str) -> list[Move]:
     MoveList    = []
     SourceIndex = GetIndex( source )
 
@@ -24,7 +24,8 @@ def Create_Moves_From_Board(Game:GameState,source:i64,bitboard:i64,col:str,piece
             MoveList.append( Move(col,SourceIndex,TargetIndex,True,False,piece,False) )
 
         # Non-Capture moves
-        else: MoveList.append( Move(col,SourceIndex,TargetIndex,False,False,piece,False) )
+        else: 
+            MoveList.append( Move(col,SourceIndex,TargetIndex,False,False,piece,False) )
 
         # Remove this bit from the board
         bitboard ^= CurrentBB
@@ -102,8 +103,7 @@ def Find_Move_Table(Game:GameState, char:str) -> Callable:
 # Take in a given piece bitboard and generate all pseudo-legal moves
 # (For all pieces except pawns and king)
 @cache
-def Gen_Pseudo_legal_Moves(Game:GameState, board:i64, char:str) -> list[Move]:
-    MoveList    = []
+def Gen_Pseudo_legal_Moves(Game:GameState, board:i64, char:str) -> Iterator[Move]:
     colour      = 'w' if (char.isupper()) else 'b'
     FriendlyAll = Game.WhiteAll if (colour == 'w') else Game.BlackAll
 
@@ -117,13 +117,12 @@ def Gen_Pseudo_legal_Moves(Game:GameState, board:i64, char:str) -> list[Move]:
 
         # Filter out all moves that capture friendly pieces
         Target ^=  (Target & FriendlyAll)
-
-        MoveList.extend( Create_Moves_From_Board(Game,Current,Target,colour,char) )
+        
+        for move in Create_Moves_From_Board(Game,Current,Target,colour,char):
+            yield move
 
         # Remove this bit from the board
         board ^= Current
-
-    return MoveList
 
 @cache
 def GeneratePromotions(Source:i64, Target:i64, col:str, Capture:bool) -> list:

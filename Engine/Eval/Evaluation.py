@@ -151,40 +151,34 @@ def Space(Game:GameState, col:str) -> float:
 # ------------------------------------------------------------------------------
 # POTENTIALLY UNSAFE - I AM IN NO WAY RESPONSIBLE FOR WHAT HAPPENS WITH USAGE
 # OF THIS FUNCTION AND IN USING THIS FUNCTION YOU ACKNOWLEDGE THERE MAY BE RISKS 
-# TO YOUR SYSTEM.
+# TO YOUR  SYSTEM.
 # ------------------------------------------------------------------------------
 #
-#(STOCKFISH - Usage in this project)
-#(---------------------------------)
-#(1) Go one level above the top of this directory, where you git cloned this code)
-#(2) Git clone stockfish with: git clone https://github.com/official-stockfish/Stockfish.git)
-#(3) Go into the Stockfish/src folder and compile stockfish (This should be fine): make -j build)
-#(4) You're good to go! (If the command still fails please raise an issue on github))
+# STOCKFISH - Usage in this project
+# ---------------------------------
+# (1) Go one level above the top of this directory, where you git cloned this code
+# (2) Git clone stockfish with: git clone https://github.com/official-stockfish/Stockfish.git
+# (3) Go into the Stockfish/src folder and compile stockfish (This should be fine): make -j build
+# (4) You're good to go! (If the command still fails please raise an issue on github)
 @cache
 def Get_SF_Eval(fen:str, fast:bool=False) -> float|None:
     # Before running the command to start stockfish we should verify that this 
-    # is a real fen string with REGEX
+    # is a real fen string with REGEX. We can save a lot of time by not
+    # considering this REGEX check but could be considered unsafe (USE WITH CAUTION).
     if (not fast):
-        # We can save a lot of time by not considering this REGEX check
-        # but could be considered unsafe (USE WITH CAUTION).
         Fen_Verifier_REG = r's*([rnbqkpRNBQKP1-8]+\/){7}([rnbqkpRNBQKP1-8]+)\s[bw-]\s(([a-hkqA-HKQ]{1,4})|(-))\s(([a-h][36])|(-))\s\d+\s\d+\s*'
         if (re.search(Fen_Verifier_REG, fen) == None):
             print('Not a valid FEN string!')
             return
 
-    # Get number of cores on user's system to speed up stockfish
-    # Assume we only have 1 core if undetermined
-    cores = cpu_count() if (cpu_count() != None) else 1
-
     # Start up stockfish, by piping commands to set position and evaluate it into the 
     # stockfish executeable (credits: https://www.reddit.com/r/ComputerChess/comments/b6rdez/comment/ejppzme/)
     DataFile = 'Engine/Eval/EvalData.txt'
-    cmd = f'echo -e "setoption name Threads value {cores}\nposition {fen}\neval"\
-            | ../Stockfish/src/stockfish > {DataFile}'
+    cmd = f'printf "position {fen}\neval" | ../Stockfish/src/stockfish > {DataFile}'
     system(cmd)
     
     # Reading data as bytes for faster I/O
-    fd = os.open(DataFile, os.O_RDONLY)
+    fd = os.open(DataFile, 0)
     FastIO = BytesIO(os.read(fd, os.path.getsize(DataFile))).readlines
     SF = FastIO()[-2].decode()
 

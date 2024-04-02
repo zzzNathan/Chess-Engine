@@ -71,28 +71,28 @@ def Generate_Black_Pawn_Moves(board_copy:i64, Game:GameState) -> list:
     return MoveList
 
 def Generate_White_Knight_Moves(board_copy:i64, Game:GameState) -> list: 
-    return Gen_Pseudo_legal_Moves(Game,board_copy,'N')
+    return list(Gen_Pseudo_legal_Moves(Game,board_copy,'N'))
     
 def Generate_Black_Knight_Moves(board_copy:i64, Game:GameState) -> list:
-    return Gen_Pseudo_legal_Moves(Game,board_copy,'n')
+    return list(Gen_Pseudo_legal_Moves(Game,board_copy,'n'))
 
 def Generate_White_Bishop_Moves(board_copy:i64, Game:GameState) -> list:
-    return Gen_Pseudo_legal_Moves(Game,board_copy,'B')
+    return list(Gen_Pseudo_legal_Moves(Game,board_copy,'B'))
 
 def Generate_Black_Bishop_Moves(board_copy:i64, Game:GameState) -> list:
-    return Gen_Pseudo_legal_Moves(Game,board_copy,'b')
+    return list(Gen_Pseudo_legal_Moves(Game,board_copy,'b'))
 
 def Generate_White_Rook_Moves(board_copy:i64, Game:GameState) -> list:
-    return Gen_Pseudo_legal_Moves(Game,board_copy,'R')
+    return list(Gen_Pseudo_legal_Moves(Game,board_copy,'R'))
 
 def Generate_Black_Rook_Moves(board_copy:i64, Game:GameState) -> list:
-    return Gen_Pseudo_legal_Moves(Game,board_copy,'r')
+    return list(Gen_Pseudo_legal_Moves(Game,board_copy,'r'))
 
 def Generate_White_Queen_Moves(board_copy:i64, Game:GameState) -> list:
-    return Gen_Pseudo_legal_Moves(Game,board_copy,'Q')
+    return list(Gen_Pseudo_legal_Moves(Game,board_copy,'Q'))
 
 def Generate_Black_Queen_Moves(board_copy:i64, Game:GameState) -> list:
-    return Gen_Pseudo_legal_Moves(Game,board_copy,'q')
+    return list(Gen_Pseudo_legal_Moves(Game,board_copy,'q'))
 
 @cache
 def Generate_White_King_Moves(board_copy:i64, Game:GameState) -> list:
@@ -186,7 +186,6 @@ def Generate_Black_King_Moves(board_copy:i64, Game:GameState) -> list:
 
     return MoveList
 
-@cache
 def Generate_Moves(Game:GameState, col:str) -> list:
     MoveList = []
     Check = Game.WhiteCheckMask if (col == 'w') else Game.BlackCheckMask

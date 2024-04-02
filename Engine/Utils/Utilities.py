@@ -2,7 +2,7 @@
 #      U T I L I T Y  F U N C T I O N S  
 #      - - - - - - -  - - - - - - - - -
 #\*******************************************/
-import numpy as np
+from numpy import uint64, uint8
 from copy import deepcopy
 from Engine.Utils.Constants      import *
 from Engine.Utils.ClassUtilities import *
@@ -10,8 +10,8 @@ from Engine.Eval.PieceSquareTables    import *
 from Engine.Utils.BitMacros      import *
 
 # Shorthands
-i64 = np.uint64
-i8  = np.uint8  
+i64 = uint64
+i8  = uint8  
 
 # Presents the board with all bitboards combined
 def Show_Board(Game:GameState) -> str:
@@ -71,7 +71,7 @@ def Is_square_attacked(SquareNum:int|i64, colour:str, Game:GameState, RemoveBit:
 
     # If this square's bit is 1 on the all pieces bitboard, we should remove it
     Occupancy = Game.AllPieces
-    if Game.AllPieces & bitboard: Occupancy ^= bitboard
+    if Occupancy & bitboard: Occupancy ^= bitboard
     if (RemoveBit != None) and (Occupancy & RemoveBit): Occupancy ^= RemoveBit 
 
     # Does a bishop attack this square? // Evaluates to 1 if col == white otherwise 0 and indexes at this number
@@ -104,43 +104,54 @@ def All_Attacked_squares(col:str, Game:GameState, RemoveBit:i64|None = None) -> 
 # Takes in an ascii representation and returns relevant bitboard
 def Ascii_To_Board(Game:GameState, piece:str) -> i64:
     # Map each letter to relevant board
-    Char_To_Board = {
-        'P':Game.WhitePawn, 'p':Game.BlackPawn, 'N':Game.WhiteKnight, 'n':Game.BlackKnight,
-        'B':Game.WhiteBishop, 'b':Game.BlackBishop, 'R':Game.WhiteRook, 'r':Game.BlackRook,
-        'Q':Game.WhiteQueen, 'q':Game.BlackQueen, 'K':Game.WhiteKing, 'k':Game.BlackKing }
-
-    # Return the board that was required
-    return Char_To_Board[ piece ]
-
+    match piece:
+        case 'P': return Game.WhitePawn
+        case 'p': return Game.BlackPawn
+        case 'N': return Game.WhiteKnight
+        case 'n': return Game.BlackKnight
+        case 'B': return Game.WhiteBishop
+        case 'b': return Game.BlackBishop
+        case 'R': return Game.WhiteBishop
+        case 'r': return Game.BlackBishop
+        case 'Q': return Game.WhiteQueen
+        case 'q': return Game.BlackQueen
+        case 'K': return Game.WhiteKing
+        case 'k': return Game.BlackKing
+        case   _: return NoBits
+    
 # Takes in bitboard and returns the relevant ascii representation
 def Board_To_Ascii(Game:GameState, board:i64) -> str:
-
     # Map each board to relevant letter
-    Board_To_Char = {
-        Game.WhitePawn: 'P', Game.BlackPawn: 'p', Game.WhiteKnight: 'N', Game.BlackKnight: 'n',
-        Game.WhiteBishop: 'B', Game.BlackBishop: 'b', Game.WhiteRook: 'R', Game.BlackRook: 'r', 
-        Game.WhiteQueen: 'Q', Game.BlackQueen: 'q', Game.WhiteKing:'K', Game.BlackKing :'k' }
+    match board:
+        case Game.WhitePawn:   return 'P'
+        case Game.BlackPawn:   return 'p'
+        case Game.WhiteKnight: return 'N'
+        case Game.BlackKnight: return 'n'
+        case Game.WhiteBishop: return 'B'
+        case Game.BlackBishop: return 'b'
+        case Game.WhiteRook:   return 'R'
+        case Game.BlackRook:   return 'r'
+        case Game.WhiteQueen:  return 'Q'
+        case Game.BlackQueen:  return 'q'
+        case Game.WhiteKing:   return 'K'
+        case Game.BlackKing:   return 'k'
+        case   _:              return ''
     
-    # Return the character required
-    return Board_To_Char[ board ]
-
 # Will take in an ascii representation of a piece and return its relevant table
-def Ascii_To_Table(piece:str, Game:GameState) -> list:
-    
+def Ascii_To_Table(piece:str, Game:GameState) -> list[int]:
+    piece = piece.upper()
     # Map all pieces to their relevant tables
-    Map = {
-        'P' : Pawn_SQ_TABLE,
-        'N' : Knight_SQ_TABLES,
-        'B' : Bishop_SQ_TABLES,
-        'R' : Rook_SQ_TABLES,
-        'Q' : Queen_SQ_TABLES,
-        'K' : MergeTables(
-                King_SQ_TABLES_mid,
-                King_SQ_TABLES_end, 
-                Get_GamePhase(Game))
-    }
-
-    return Map[ piece.upper() ]
+    match piece:
+        case 'P': return Pawn_SQ_TABLE
+        case 'N': return Knight_SQ_TABLES
+        case 'B': return Bishop_SQ_TABLES
+        case 'R': return Rook_SQ_TABLES
+        case 'Q': return Queen_SQ_TABLES
+        case 'K': return MergeTables(
+                            King_SQ_TABLES_mid,
+                            King_SQ_TABLES_end, 
+                            Get_GamePhase(Game))
+        case _: return [0]
 
 # Takes in an integer from the domain of [0,32] and linearly maps it to a phase score of a range [0,1] 
 def Normalise(n:int) -> float: return (n-2)/30
@@ -158,10 +169,10 @@ def Get_GamePhase(Game:GameState) -> float:
 
 # Function to linealy interpolate between a middle game table and and endgame table
 # depending on the given "Phase" score
-def MergeTables(TableMid:list, TableEnd:list, Phase:float) -> list: 
+def MergeTables(TableMid:list, TableEnd:list, Phase:float) -> list[int]: 
     
     # Initialise the merged table
-    Table = [None for _ in range(64)]
+    Table = [-1 for _ in range(64)]
 
     for square in range(64):
 
@@ -187,7 +198,6 @@ def Add_Weighted_Material(Board:i64, Table:list, Black=False) -> int:
         else: return square
 
     while Board:
-        
         current, index = Get_LSB_and_Index(Board)
         score += Table[ Remap(index) ]
 
@@ -199,7 +209,6 @@ def Add_Weighted_Material(Board:i64, Table:list, Black=False) -> int:
 # Takes in a Move object and returns its relevant uci string
 # https://en.wikipedia.org/wiki/Universal_Chess_Interface
 def Move_To_UCI(move:Move) -> str:
-
     StartSquare  = Index_to_square[ move.Source ]
     TargetSquare = Index_to_square[ move.Target ]
     Promotion    = move.Promotion if move.Promotion != False else ''
@@ -211,12 +220,13 @@ def Is_Obstructed(Game:GameState,bitboard:i64): return Game.AllPieces & bitboard
 
 # Takes a fen string and creates a gamestate object from it
 def Fen_to_GameState(fen:str) -> GameState:
-    
     # Creates a copy of the starting position then parses the custom fen
     New_Game = deepcopy(STARTING_GAME)
     New_Game.InitBoards()
     New_Game.Parse_FEN(fen)
     return New_Game
 
-STARTING_FEN  = r'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-STARTING_GAME = GameState('w',STARTING_FEN,None,i8(0b1111),0,1)
+STARTING_FEN   = r'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+TRICKY_POS_FEN = r'r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1'
+RANDOM_FEN     = r'N7/1Br1P3/p4k2/1n2p3/p1q5/P4P1K/3P4/3R3b w - - 0 1'
+STARTING_GAME  = GameState('w',STARTING_FEN,None,i8(0b1111),0,1)

@@ -5,12 +5,12 @@
 from textwrap               import wrap
 from Engine.Utils.Constants import *
 from Engine.Utils.Build_Ray import Build_Ray 
-import numpy as np
+from numpy import uint64, uint8
 from math import log2
 
 # Shorthands
-i64 = np.uint64
-i8  = np.uint8  
+i64 = uint64
+i8  = uint8  
 
 # Returns 0 if a bitboard hasn't got this bit as a one
 def Get_bit(Bitboard:i64, SquareNum:int) -> i64: return Bitboard & i64(2**SquareNum)
@@ -52,7 +52,6 @@ def In_Mask(bitboard:i64, mask:i64) -> i64: return bitboard & mask
 # Function to count how many '1' bits are in some binary representation of a number
 def BitCount(n:i64) -> int:
     return bin(n).count('1') 
-    
     
 # Nice way to visualise the board
 def Show_bitboard(bb:i64) -> str:
