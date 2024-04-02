@@ -154,6 +154,17 @@ const uint8_t Black_Queenside = 0x8;
 const bool WHITE = true;
 const bool BLACK = false;
 
+// Piece indicators (See Game.h)
+const i64 PAWN   = 0;
+const i64 KNIGHT = 1;
+const i64 BISHOP = 2;
+const i64 ROOK   = 3;
+const i64 QUEEN  = 4;
+const i64 KING   = 5;
+
+// Null move indicator (see Game.h)
+const i64 NULL = AllBits;
+
 // Mapping squares to their indexes
 enum {
   h1, g1, f1, e1, d1, c1, b1, a1,

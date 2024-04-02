@@ -33,6 +33,18 @@ typedef unsigned long long i64;
 // - 2 = Bishop
 // - 3 = Rook
 // - 4 = Queen
+//
+// We will use the following convention for piece indicators:
+// - 0 = Pawn
+// - 1 = Knight
+// - 2 = Bishop
+// - 3 = Rook
+// - 4 = Queen
+// - 5 = King
+//
+// We will use a flag of all bits set to 1 to represent a null move,
+// a move that is nothing used as the "Last_Move" attribute of a game
+// class once it has just been initialised
 struct Move{
   // Attributes
   i64 From;
@@ -80,6 +92,8 @@ struct Move{
 // - White_Check: A mask containing the attack ray of any checks on the white king
 //
 // - Black_Check: A mask containing the attack ray of any checks on the black king
+//
+// - Last_Move: The last move played onto the board
 struct Game_Status{
   // Attributes
   bool Side;
@@ -91,6 +105,7 @@ struct Game_Status{
   unordered_map<i64, i64> Pins;
   i64 White_Check;
   i64 Black_Check;
+  Move Last_Move(NULL, NULL, NULL, NULL, NULL, NULL);
 
   // Constructor to initialise a game status
   void Init_Game_Status(bool Side_, i64 En_Passant_, i64 Ply_, i64 Fullmove_, uint8_t Castle_Rights_,
@@ -362,6 +377,28 @@ class Game{
         Status.Black_Check = Get_Check_Mask(Board, BLACK);
       }
     }
+    
+    // A function to update the current en-passant square
+    void Get_En_Passant(){
+      // If there is no last move then we do not need to update the en-passant square
+      if (Status.Last_Move.From == NULL) return;
+
+      // If the last move was not a pawn then we can set the en-passant square to all bits
+      if (Status.Last_Move.Piece != PAWN){
+        Status.En_Passant = AllBits;
+        return;
+      }
+
+      // If the last move was a double pawn push then we can update the en passant square
+      // New en-passant square will be the square underneath the pawn that was just pushed
+      if (abs(Get_Index(Status.Last_Move.To) - Get_Index(Status.Last_Move.From)) == 16){
+        
+        // If current side is white this means that the last move was from black 
+        if (Status.Side == WHITE) Status.En_Passant = Index_To_Square(Get_Index(Status.Last_Move.To) + 8); 
+        // Means that the last move was from white
+        else Status.En_Passant = Index_To_Square(Get_Index(Status.Last_Move.To) - 8);
+      }
+    }
 
     // A function to update the game's status, this includes updating the en passant square
     // getting new pins if any, and getting new checks if any were found
@@ -369,5 +406,6 @@ class Game{
       Get_Checks(); 
       Status.Pins = Get_Pins(WHITE);
       Status.Pins.insert(Get_Pins(BLACK).begin(), Get_Pins(BLACK).end());
+      Get_En_Passant();
     }
 };
