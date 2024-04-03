@@ -19,10 +19,10 @@
 #include <string>
 #include <sstream>
 #include <cstdint>
+#include <cstdlib>
 #include <ctype.h>
 #include "Utils.h"
 
-#include <iostream>
 using namespace std;
 typedef unsigned long long i64;
 // This structure will organise all information about a move
@@ -76,9 +76,9 @@ struct Move{
 // - Fullmove: Fullmove clock, increments after black's move starts at 1
 //
 // - Castle_Rights: Castling right of both players, we use the following convention
-//   ------------------
+//   --------------------------------------------
 //   BINARY  -> RIGHTS
-//   ------------------
+//   --------------------------------------------
 //   0 0 0 0 -> No rights
 //   1 0 0 0 -> White has queenside castle rights
 //   0 1 0 0 -> White has kingside castle rights
@@ -89,9 +89,9 @@ struct Move{
 //
 // - Pins: A map of bitboards to the attack rays they may move along if they are pinned
 //
-// - White_Check: A mask containing the attack ray of any checks on the white king
+// - White_Check: A mask containing the attack ray of any checks on the white king (will be set to AllBits if no checks)
 //
-// - Black_Check: A mask containing the attack ray of any checks on the black king
+// - Black_Check: A mask containing the attack ray of any checks on the black king (will be set to AllBits if no checks)
 //
 // - Last_Move: The last move played onto the board
 struct Game_Status{
@@ -103,9 +103,9 @@ struct Game_Status{
   uint8_t Castle_Rights;
   uint8_t Status;
   unordered_map<i64, i64> Pins;
-  i64 White_Check;
-  i64 Black_Check;
-  Move Last_Move(NULL, NULL, NULL, NULL, NULL, NULL);
+  i64 White_Check = AllBits; // We assume there is no check by default
+  i64 Black_Check = AllBits; // We assume there is no check by default
+  Move Last_Move = Move(NONE, NONE, NONE, false, NONE, false);
 
   // Constructor to initialise a game status
   void Init_Game_Status(bool Side_, i64 En_Passant_, i64 Ply_, i64 Fullmove_, uint8_t Castle_Rights_,
@@ -124,38 +124,26 @@ struct Game_Status{
 // Each attribute is a bitboard representing the location of the relevant pieces
 struct Board_Status{
   // Attributes
-  i64 White_King;
-  i64 Black_King;
-  i64 White_Queen;
-  i64 Black_Queen;
-  i64 White_Bishop;
-  i64 Black_Bishop;
-  i64 White_Rook;
-  i64 Black_Rook;
-  i64 White_Knight;
-  i64 Black_Knight;
-  i64 White_Pawn;
-  i64 Black_Pawn; 
-  i64 White_All;
-  i64 Black_All;
+  i64 White_King;      i64 Black_King;
+  i64 White_Queen;     i64 Black_Queen;
+  i64 White_Bishop;    i64 Black_Bishop;
+  i64 White_Rook;      i64 Black_Rook;
+  i64 White_Knight;    i64 Black_Knight;
+  i64 White_Pawn;      i64 Black_Pawn;
+  i64 White_All;       i64 Black_All;
   i64 All_Pieces;
   
   // Constructor to initialise a board status
   void Init_Board_Status(i64 White_King_, i64 Black_King_, i64 White_Queen_, i64 Black_Queen_,
                          i64 White_Bishop_, i64 Black_Bishop_, i64 White_Rook_, i64 Black_Rook_,
                          i64 White_Knight_, i64 Black_Knight_, i64 White_Pawn_, i64 Black_Pawn_){
-    White_King   = White_King_;
-    Black_King   = Black_King_;
-    White_Queen  = White_Queen_;
-    Black_Queen  = Black_Queen_;
-    White_Bishop = White_Bishop_;
-    Black_Bishop = Black_Bishop_;
-    White_Rook   = White_Rook_;
-    Black_Rook   = Black_Rook_;
-    White_Knight = White_Knight_;
-    Black_Knight = Black_Knight_;
-    White_Pawn   = White_Pawn_;
-    Black_Pawn   = Black_Pawn_;
+    White_King   = White_King_;          Black_King   = Black_King_;
+    White_Queen  = White_Queen_;         Black_Queen  = Black_Queen_;
+    White_Bishop = White_Bishop_;        Black_Bishop = Black_Bishop_;
+    White_Rook   = White_Rook_;          Black_Rook   = Black_Rook_;
+    White_Knight = White_Knight_;        Black_Knight = Black_Knight_;
+    White_Pawn   = White_Pawn_;          Black_Pawn   = Black_Pawn_;
+
     White_All    = White_King | White_Queen | White_Bishop | White_Rook | White_Knight | White_Pawn;
     Black_All    = Black_King | Black_Queen | Black_Bishop | Black_Rook | Black_Knight | Black_Pawn;
     All_Pieces   = White_All | Black_All;
@@ -173,13 +161,13 @@ bool Is_Square_Attacked(Board_Status Boards, i64 Square, bool Colour){
   // of the enemy colour exists on this square then, this square is attacked
   
   // Enemy pieces
-  i64 Enemy_Pawns   = Colour == WHITE ? Boards.White_Pawn   : Boards.Black_Pawn;
-  i64 Enemy_Knights = Colour == WHITE ? Boards.White_Knight : Boards.Black_Knight;
-  i64 Enemy_Bishops = Colour == WHITE ? Boards.White_Bishop : Boards.Black_Bishop;
-  i64 Enemy_Rooks   = Colour == WHITE ? Boards.White_Rook   : Boards.Black_Rook;
-  i64 Enemy_Queens  = Colour == WHITE ? Boards.White_Queen  : Boards.Black_Queen;
+  i64 Enemy_Pawns   = (Colour == WHITE ? Boards.White_Pawn   : Boards.Black_Pawn);
+  i64 Enemy_Knights = (Colour == WHITE ? Boards.White_Knight : Boards.Black_Knight);
+  i64 Enemy_Bishops = (Colour == WHITE ? Boards.White_Bishop : Boards.Black_Bishop);
+  i64 Enemy_Rooks   = (Colour == WHITE ? Boards.White_Rook   : Boards.Black_Rook);
+  i64 Enemy_Queens  = (Colour == WHITE ? Boards.White_Queen  : Boards.Black_Queen);
 
-  const i64 (&Pawn_Attacks)[64] = Colour == WHITE ? WHITE_PAWN_ATKS : BLACK_PAWN_ATKS; 
+  const array<i64, 64> Pawn_Attacks = (Colour == WHITE ? WHITE_PAWN_ATKS : BLACK_PAWN_ATKS); 
 
   // Pawn attacks
   if (Pawn_Attacks[Square] & Enemy_Pawns) return true;
@@ -189,7 +177,7 @@ bool Is_Square_Attacked(Board_Status Boards, i64 Square, bool Colour){
   // We need to remove the 1 bit from the occupancy (if it exists)
   // otherwise hyperbola quintessence will generate moves incorrectly
   i64 Occupancy = Remove_Bit(Boards.All_Pieces, Square); 
-
+  
   // Bishop attacks
   if (Compute_Bishop_attacks(Index_To_Bitboard(Square), Occupancy) & Enemy_Bishops) return true;
   // Rook attacks
@@ -200,62 +188,44 @@ bool Is_Square_Attacked(Board_Status Boards, i64 Square, bool Colour){
   return false; // If none of the above are true then the square is not attacked
 }
 
-// Function to make a horizontal or diagonal ray from one square to another
-// NOTE: You must first check the horizontal case, reason being: consider
-// 2 queens of opposite colour 1 square away from each other, if you
-// check the diagonal case first you will get an incorrect ray.
-i64 Create_Ray(i64 From, i64 To){
-  // Handle edge cases
-  if (From == To || From == NoBits || To == NoBits) return 0;
-
-  // Make ray horizontally
-  if ((Compute_Rook_attacks(From, NoBits) & Compute_Rook_attacks(To, NoBits)) != 0){
-    return Compute_Rook_attacks(From, NoBits) & Compute_Rook_attacks(To, NoBits);
-  }
-  // Make ray diagonally
-  if ((Compute_Bishop_attacks(From, NoBits) & Compute_Bishop_attacks(To, NoBits)) != 0){
-    return Compute_Bishop_attacks(From, NoBits) & Compute_Bishop_attacks(To, NoBits);
-  }
-  return 0;
-}
-
 // Function to get the check mask for a given colour, we define the 
 // check mask to be the attacking ray from the checker to the king,
 // if an attack was made by a non-slider piece the check mask is simply
 // the location of the checking piece, this function follows code similar to 
 // the Is_Square_Attacked function explained above
 i64 Get_Check_Mask(Board_Status Boards, bool Colour){
-  i64 KingLocation = Colour == WHITE ? Boards.White_King : Boards.Black_King;
+  i64 King_Location = (Colour == WHITE ? Boards.White_King : Boards.Black_King);
+  i64 King_Index    = Get_Index(King_Location);
 
   // Enemy pieces
-  i64 Enemy_Pawns   = Colour == WHITE ? Boards.Black_Pawn   : Boards.White_Pawn;
-  i64 Enemy_Knights = Colour == WHITE ? Boards.Black_Knight : Boards.White_Knight;
-  i64 Enemy_Bishops = Colour == WHITE ? Boards.Black_Bishop : Boards.White_Bishop;
-  i64 Enemy_Rooks   = Colour == WHITE ? Boards.Black_Rook   : Boards.White_Rook;
-  i64 Enemy_Queens  = Colour == WHITE ? Boards.Black_Queen  : Boards.White_Queen;
+  i64 Enemy_Pawns   = (Colour == WHITE ? Boards.Black_Pawn   : Boards.White_Pawn);
+  i64 Enemy_Knights = (Colour == WHITE ? Boards.Black_Knight : Boards.White_Knight);
+  i64 Enemy_Bishops = (Colour == WHITE ? Boards.Black_Bishop : Boards.White_Bishop);
+  i64 Enemy_Rooks   = (Colour == WHITE ? Boards.Black_Rook   : Boards.White_Rook);
+  i64 Enemy_Queens  = (Colour == WHITE ? Boards.Black_Queen  : Boards.White_Queen);
 
-  const i64 (&Pawn_Attacks)[64] = Colour == WHITE ? WHITE_PAWN_ATKS : BLACK_PAWN_ATKS; 
+  const array<i64, 64> Pawn_Attacks = (Colour == WHITE ? WHITE_PAWN_ATKS : BLACK_PAWN_ATKS); 
 
   // Non-slider pieces
-  if (Pawn_Attacks[KingLocation] & Enemy_Pawns) return Pawn_Attacks[KingLocation] & Enemy_Pawns;
-  if (KNIGHT_MOVES[KingLocation] & Enemy_Knights) return KNIGHT_MOVES[KingLocation] & Enemy_Knights;
+  if (Pawn_Attacks[King_Index] & Enemy_Pawns) return Pawn_Attacks[King_Index] & Enemy_Pawns;
+  if (KNIGHT_MOVES[King_Index] & Enemy_Knights) return KNIGHT_MOVES[King_Index] & Enemy_Knights;
 
   // We need to remove the 1 bit from the occupancy (if it exists)
   // otherwise hyperbola quintessence will generate moves incorrectly
-  i64 Occupancy = Remove_Bit(Boards.All_Pieces, KingLocation);
+  i64 Occupancy = Remove_Bit(Boards.All_Pieces, King_Index);
 
   // Slider pieces
-  if (Compute_Bishop_attacks(KingLocation, Occupancy) & Enemy_Bishops){
-    i64 Attacker = Compute_Bishop_attacks(KingLocation, Occupancy) & Enemy_Bishops;
-    return Create_Ray(KingLocation, Attacker);
+  if (Compute_Bishop_attacks(King_Location, Occupancy) & Enemy_Bishops){
+    i64 Attacker = Compute_Bishop_attacks(King_Location, Occupancy) & Enemy_Bishops;
+    return Remove_Bit(Create_Ray(King_Location, Attacker), King_Index); // Can't move onto the king
   }
-  if (Compute_Rook_attacks(KingLocation, Occupancy) & Enemy_Rooks){
-    i64 Attacker = Compute_Rook_attacks(KingLocation, Occupancy) & Enemy_Rooks;
-    return Create_Ray(KingLocation, Attacker);
+  if (Compute_Rook_attacks(King_Location, Occupancy) & Enemy_Rooks){
+    i64 Attacker = Compute_Rook_attacks(King_Location, Occupancy) & Enemy_Rooks;
+    return Remove_Bit(Create_Ray(King_Location, Attacker), King_Index);
   }
-  if (Compute_Queen_attacks(KingLocation, Occupancy) & Enemy_Queens){
-    i64 Attacker = Compute_Queen_attacks(KingLocation, Occupancy) & Enemy_Queens;
-    return Create_Ray(KingLocation, Attacker);
+  if (Compute_Queen_attacks(King_Location, Occupancy) & Enemy_Queens){
+    i64 Attacker = Compute_Queen_attacks(King_Location, Occupancy) & Enemy_Queens;
+    return Remove_Bit(Create_Ray(King_Location, Attacker), King_Index);
   }
   return AllBits; // If there is no check then our check maskcan be all bits as 1
 }
@@ -308,15 +278,65 @@ class Game{
       i64 fullmove = stoi(Fullmove);
       uint8_t castle_rights = 0;
       for (char castle : Castle_Rights){
-        if (castle == 'K') castle_rights |= White_Kingside;
-        else if (castle == 'Q') castle_rights |= White_Queenside;
-        else if (castle == 'k') castle_rights |= Black_Kingside;
-        else if (castle == 'q') castle_rights |= Black_Queenside;
+        if (castle == 'K') castle_rights |= W_Kingside;
+        else if (castle == 'Q') castle_rights |= W_Queenside;
+        else if (castle == 'k') castle_rights |= B_Kingside;
+        else if (castle == 'q') castle_rights |= B_Queenside;
       }
       uint8_t status = 2; // We assume that the game is ongoing
 
       Status.Init_Game_Status(side, en_passant, ply, fullmove, castle_rights, status);
       Update(); // Ensure that all pins and check masks have been found
+    }
+    
+    // Function to print the board
+    void Show_Board(){  
+      // A map from indexes into the 'all pieces' array to their relevant ascii characters
+      unordered_map<short, char> Index_To_Char = {
+        {0, 'P'}, {1, 'N'}, {2, 'B'}, {3, 'R'}, {4, 'Q'},  {5,  'K'},
+        {6, 'p'}, {7, 'n'}, {8, 'b'}, {9, 'r'}, {10, 'q'}, {11, 'k'}
+      };
+      int rank = 8, count;
+      cout << rank << " | ";
+
+      // Loop over all squares
+      for (i64 sq = a8; sq != h1; sq--){
+ 
+        // If the square is set print the relevant character
+        if (Get_Bit(Board.All_Pieces, sq)){
+
+          // NOTE: We must iterate like this otherwise we get undefined behaviour
+          count = 0;
+          for (i64 B : {
+            Board.White_Pawn, Board.White_Knight, Board.White_Bishop, Board.White_Rook, Board.White_Queen, Board.White_King,
+            Board.Black_Pawn, Board.Black_Knight, Board.Black_Bishop, Board.Black_Rook, Board.Black_Queen, Board.Black_King})
+          {
+            if (Get_Bit(B, sq)){cout << Index_To_Char[count] << " "; break;}
+            ++count;
+          }
+        }
+        else cout << ". ";
+
+        // If this the end of a rank print a new line
+        if (sq % 8 == 0) cout << "\n" << --rank << " | ";
+      }
+
+      // Print the last square
+      if (Get_Bit(Board.All_Pieces, h1)){
+        count = 0;
+        for (i64 B : {
+          Board.White_Pawn, Board.White_Knight, Board.White_Bishop, Board.White_Rook, Board.White_Queen, Board.White_King,
+          Board.Black_Pawn, Board.Black_Knight, Board.Black_Bishop, Board.Black_Rook, Board.Black_Queen, Board.Black_King})
+        {
+          if (Get_Bit(B, h1)){cout << Index_To_Char[count] << " \n"; break;}
+          ++count;
+        }
+      }
+      else cout << ". \n";
+
+      // Print letters
+      cout << "    _______________\n";
+      cout << "    a b c d e f g h\n\n";
     }
   
   private:
@@ -381,7 +401,7 @@ class Game{
     // A function to update the current en-passant square
     void Get_En_Passant(){
       // If there is no last move then we do not need to update the en-passant square
-      if (Status.Last_Move.From == NULL) return;
+      if (Status.Last_Move.From == NONE) return;
 
       // If the last move was not a pawn then we can set the en-passant square to all bits
       if (Status.Last_Move.Piece != PAWN){
@@ -391,12 +411,13 @@ class Game{
 
       // If the last move was a double pawn push then we can update the en passant square
       // New en-passant square will be the square underneath the pawn that was just pushed
-      if (abs(Get_Index(Status.Last_Move.To) - Get_Index(Status.Last_Move.From)) == 16){
+      int Difference = Get_Index(Status.Last_Move.To) - Get_Index(Status.Last_Move.From);    
+      if (abs(Difference) == 16){
         
         // If current side is white this means that the last move was from black 
-        if (Status.Side == WHITE) Status.En_Passant = Index_To_Square(Get_Index(Status.Last_Move.To) + 8); 
+        if (Status.Side == WHITE) Status.En_Passant = Index_To_Bitboard(Get_Index(Status.Last_Move.To) + 8); 
         // Means that the last move was from white
-        else Status.En_Passant = Index_To_Square(Get_Index(Status.Last_Move.To) - 8);
+        else Status.En_Passant = Index_To_Bitboard(Get_Index(Status.Last_Move.To) - 8);
       }
     }
 
@@ -408,4 +429,4 @@ class Game{
       Status.Pins.insert(Get_Pins(BLACK).begin(), Get_Pins(BLACK).end());
       Get_En_Passant();
     }
-};
+    };

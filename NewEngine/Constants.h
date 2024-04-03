@@ -18,6 +18,7 @@
 #include "BitMacros.h"
 #include <string>
 #include <cstdint>
+#include <array>
 #include <unordered_map>
 using namespace std;
 typedef unsigned long long i64;
@@ -137,18 +138,22 @@ const i64 SquareE1 = 8;
 const i64 SquareE8 = 0x800000000000000;
 const i64 SquareH1 = 1;
 const i64 SquareF1 = 4;
+const i64 SquareG1 = 2;
+const i64 SquareG8 = 0x200000000000000; 
 const i64 SquareH8 = 0x100000000000000;
 const i64 SquareF8 = 0x400000000000000;
 const i64 SquareA1 = 0x80;
 const i64 SquareD1 = 0x10;
 const i64 SquareA8 = 0x8000000000000000;
 const i64 SquareD8 = 0x1000000000000000;
+const i64 SquareC1 = 0x20;
+const i64 SquareC8 = 0x2000000000000000;
 
 // Castling indicators (see Utils.h)
-const uint8_t White_Kingside = 0x1;
-const uint8_t White_Queenside = 0x2;
-const uint8_t Black_Kingside = 0x4;
-const uint8_t Black_Queenside = 0x8;
+const uint8_t W_Kingside = 0x1;
+const uint8_t W_Queenside = 0x2;
+const uint8_t B_Kingside = 0x4;
+const uint8_t B_Queenside = 0x8;
 
 // White and black indicators (see Game.h)
 const bool WHITE = true;
@@ -161,9 +166,10 @@ const i64 BISHOP = 2;
 const i64 ROOK   = 3;
 const i64 QUEEN  = 4;
 const i64 KING   = 5;
+const i64 NO_PROMO = 0;
 
 // Null move indicator (see Game.h)
-const i64 NULL = AllBits;
+const i64 NONE = AllBits;
 
 // Mapping squares to their indexes
 enum {
@@ -226,7 +232,6 @@ i64 Compute_Queen_attacks(i64 Location, i64 Blockers){
   i64 SquareNum = Get_Index(Location);
   i64 Rank = (SquareNum / 8) + 1;
   i64 File = SquareNum % 8;
-  
   return (Sliding_Moves(Location, Blockers, RANKS[Rank]) |
           Sliding_Moves(Location, Blockers, FILES[File]) |
           Sliding_Moves(Location, Blockers, DIAGS[SquareNum]) |
@@ -237,7 +242,7 @@ i64 Compute_Queen_attacks(i64 Location, i64 Blockers){
 // ---------------------------------
 // These pre-computed arrays map squares to bitboards of a piece's relevant legal moves
 // in some position.
-const i64 KING_MOVES[64] = {
+const array<i64, 64> KING_MOVES = {
   0x302, 0x705, 0xe0a, 0x1c14, 0x3828, 0x7050, 0xe0a0, 0xc040, 0x30203, 0x70507, 
   0xe0a0e, 0x1c141c, 0x382838, 0x705070, 0xe0a0e0, 0xc040c0, 0x3020300,
   0x7050700, 0xe0a0e00, 0x1c141c00, 0x38283800, 0x70507000, 0xe0a0e000, 
@@ -252,7 +257,7 @@ const i64 KING_MOVES[64] = {
   0x2838000000000000, 0x5070000000000000, 0xa0e0000000000000, 0x40c0000000000000
 };
 
-const i64 KNIGHT_MOVES[64] = {
+const array<i64, 64> KNIGHT_MOVES = {
   0x20400, 0x50800, 0xa1100, 0x142200, 0x284400, 0x508800, 0xa01000, 0x402000,
   0x2040004, 0x5080008, 0xa110011, 0x14220022, 0x28440044, 0x50880088, 0xa0100010,
   0x40200020, 0x204000402, 0x508000805, 0xa1100110a, 0x1422002214, 0x2844004428,
@@ -267,7 +272,7 @@ const i64 KNIGHT_MOVES[64] = {
   0x22140000000000, 0x44280000000000, 0x88500000000000, 0x10a00000000000, 0x20400000000000
 };
 
-const i64 WHITE_PAWN_MOVES[64] = {
+const array<i64, 64> WHITE_PAWN_MOVES = {
   0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1010000, 0x2020000,0x4040000,
   0x8080000, 0x10100000, 0x20200000, 0x40400000, 0x80800000,
   0x1000000, 0x2000000, 0x4000000, 0x8000000, 0x10000000, 
@@ -282,7 +287,7 @@ const i64 WHITE_PAWN_MOVES[64] = {
   0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0
 };
 
-const i64 BLACK_PAWN_MOVES[64] = {
+const array<i64, 64> BLACK_PAWN_MOVES = {
   0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x2, 0x4, 
   0x8, 0x10, 0x20, 0x40, 0x80, 0x100, 0x200, 0x400, 0x800, 0x1000, 
   0x2000, 0x4000, 0x8000, 0x10000, 0x20000, 0x40000, 0x80000,
@@ -295,7 +300,7 @@ const i64 BLACK_PAWN_MOVES[64] = {
   0x808000000000, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0
 };
 
-const i64 WHITE_PAWN_ATKS[64] = {
+const array<i64, 64> WHITE_PAWN_ATKS = {
   0x200, 0x500, 0xa00, 0x1400, 0x2800, 0x5000, 0xa000, 0x4000, 0x20000, 0x50000, 0xa0000, 
   0x140000, 0x280000, 0x500000, 0xa00000, 0x400000, 0x2000000, 0x5000000, 0xa000000, 0x14000000,
   0x28000000, 0x50000000, 0xa0000000, 0x40000000, 0x200000000, 0x500000000, 0xa00000000,
@@ -307,7 +312,7 @@ const i64 WHITE_PAWN_ATKS[64] = {
   0x4000000000000000, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0
 };
 
-const i64 BLACK_PAWN_ATKS[64] = {
+const array<i64, 64> BLACK_PAWN_ATKS = {
   0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x2, 0x5, 0xa, 0x14, 0x28, 0x50, 0xa0,
   0x40, 0x200, 0x500, 0xa00, 0x1400, 0x2800, 0x5000, 0xa000, 0x4000, 0x20000, 
   0x50000, 0xa0000, 0x140000, 0x280000, 0x500000, 0xa00000, 0x400000, 
