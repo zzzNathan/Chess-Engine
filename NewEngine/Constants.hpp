@@ -184,7 +184,7 @@ enum {
 };
 
 // Mapping squares names to their indexes
-unordered_map<string, i64> Square_To_Index = {
+const unordered_map<string, i64> Square_To_Index = {
  {"h1", h1}, {"g1", g1}, {"f1", f1}, {"e1", e1}, {"d1", d1}, {"c1", c1}, {"b1", b1}, {"a1", a1},
  {"h2", h2}, {"g2", g2}, {"f2", f2}, {"e2", e2}, {"d2", d2}, {"c2", c2}, {"b2", b2}, {"a2", a2},
  {"h3", h3}, {"g3", g3}, {"f3", f3}, {"e3", e3}, {"d3", d3}, {"c3", c3}, {"b3", b3}, {"a3", a3},
@@ -196,7 +196,8 @@ unordered_map<string, i64> Square_To_Index = {
 };
 
 // Chess fen strings
-const string STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const string STARTING_FEN    = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const string TRICKY_POSITION = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
 
 // Slider piece movement
 // ----------------------

@@ -43,8 +43,8 @@ void Show_Bitboard(i64 Bitboard){
   short rank = 8;
   cout << rank << " | ";
 
-  for (i64 sq = a8; sq != h1; sq--){
-
+  for (i64 sq = a8; sq != h1; sq--)
+  {
     // If the square is set print 1 else 0
     if (Get_Bit(Bitboard, sq)) cout << "1 ";
     else cout << "0 ";
@@ -121,7 +121,7 @@ map<pair<i64, i64>, i64> Make_Ray_Map(){
 }
 
 // Initialise the ray map
-map<pair<i64, i64>, i64> Ray_Map = Make_Ray_Map();
+const map<pair<i64, i64>, i64> Ray_Map = Make_Ray_Map();
 
 // Function to make a horizontal or diagonal ray from one square to another
 i64 Create_Ray(i64 From, i64 To){

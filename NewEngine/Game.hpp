@@ -45,23 +45,24 @@ typedef unsigned long long i64;
 // We will use a flag of all bits set to 1 to represent a null move,
 // a move that is nothing used as the "Last_Move" attribute of a game
 // class once it has just been initialised
-struct Move{
+struct Move
+{
   // Attributes
-  i64 From;
-  i64 To;
-  i64 Piece;
+  i64  From;
+  i64  To;
+  i64  Piece;
   bool Capture;
-  i64 Promoted_Piece;
+  i64  Promoted_Piece;
   bool En_Passant;  
 
   // Constructor to initialise a move
   Move(i64 From_, i64 To_, i64 Piece_, bool Capture_, i64 Promoted_Piece_, bool En_Passant_){
-    From = From_;
-    To = To_;
-    Piece = Piece_;
-    Capture = Capture_;
+    From           = From_;
+    To             = To_;
+    Piece          = Piece_;
+    Capture        = Capture_;
     Promoted_Piece = Promoted_Piece_;
-    En_Passant = En_Passant_; 
+    En_Passant     = En_Passant_; 
   }
 };
 
@@ -94,7 +95,8 @@ struct Move{
 // - Black_Check: A mask containing the attack ray of any checks on the black king (will be set to AllBits if no checks)
 //
 // - Last_Move: The last move played onto the board
-struct Game_Status{
+struct Game_Status
+{
   // Attributes
   bool Side;
   i64 En_Passant;
@@ -122,7 +124,8 @@ struct Game_Status{
 // This structure will organise all information about a board's status
 // --------------------------------------------------------------------
 // Each attribute is a bitboard representing the location of the relevant pieces
-struct Board_Status{
+struct Board_Status
+{
   // Attributes
   i64 White_King;      i64 Black_King;
   i64 White_Queen;     i64 Black_Queen;
@@ -131,6 +134,7 @@ struct Board_Status{
   i64 White_Knight;    i64 Black_Knight;
   i64 White_Pawn;      i64 Black_Pawn;
   i64 White_All;       i64 Black_All;
+
   i64 All_Pieces;
   
   // Constructor to initialise a board status
@@ -146,7 +150,7 @@ struct Board_Status{
 
     White_All    = White_King | White_Queen | White_Bishop | White_Rook | White_Knight | White_Pawn;
     Black_All    = Black_King | Black_Queen | Black_Bishop | Black_Rook | Black_Knight | Black_Pawn;
-    All_Pieces   = White_All | Black_All;
+    All_Pieces   = White_All  | Black_All;
   }
 };
 
@@ -155,7 +159,8 @@ struct Board_Status{
 // The following is a collection of functions that are needed in the game class
 //
 // Function to check if a square index is attacked by a given colour
-bool Is_Square_Attacked(Board_Status Boards, i64 Square, bool Colour){
+bool Is_Square_Attacked(Board_Status Boards, i64 Square, bool Colour)
+{
   // We use the square location and assume that at this square is a pawn, knight, bishop ... etc.
   // then we look at the squares that it can attack and if a pawn, knight, bishop ... etc.
   // of the enemy colour exists on this square then, this square is attacked
@@ -193,7 +198,8 @@ bool Is_Square_Attacked(Board_Status Boards, i64 Square, bool Colour){
 // if an attack was made by a non-slider piece the check mask is simply
 // the location of the checking piece, this function follows code similar to 
 // the Is_Square_Attacked function explained above
-i64 Get_Check_Mask(Board_Status Boards, bool Colour){
+i64 Get_Check_Mask(Board_Status Boards, bool Colour)
+{
   i64 King_Location = (Colour == WHITE ? Boards.White_King : Boards.Black_King);
   i64 King_Index    = Get_Index(King_Location);
 
@@ -232,13 +238,15 @@ i64 Get_Check_Mask(Board_Status Boards, bool Colour){
 
 // This class will organise all information needed to play a game of chess with this engine
 // -----------------------------------------------------------------------------------------
-class Game{
+class Game
+{
   public:
     Board_Status Board;
     Game_Status Status;
     
     // Constructor to initialise a game from a fen string
-    Game(string Fen){
+    Game(string Fen)
+    {
       string Piece_Locations, Colour, Castle_Rights, En_Passant, Halfmove, Fullmove;
 
       // Separates fen into 6 strings each containing the information above 
@@ -256,7 +264,8 @@ class Game{
       };
       
       // Iterate over all characters ..
-      for (char piece : Piece_Locations){
+      for (char piece : Piece_Locations)
+      {
         // If the character is '/' we move to the next row, and if the character
         // is a number we skip that many squares, otherwise we add the piece to the relevant bitboard
         if (piece == '/') continue;
@@ -277,8 +286,9 @@ class Game{
       i64 ply = stoi(Halfmove);
       i64 fullmove = stoi(Fullmove);
       uint8_t castle_rights = 0;
-      for (char castle : Castle_Rights){
-        if (castle == 'K') castle_rights |= W_Kingside;
+      for (char castle : Castle_Rights)
+      {
+        if      (castle == 'K') castle_rights |= W_Kingside;
         else if (castle == 'Q') castle_rights |= W_Queenside;
         else if (castle == 'k') castle_rights |= B_Kingside;
         else if (castle == 'q') castle_rights |= B_Queenside;
@@ -289,8 +299,120 @@ class Game{
       Update(); // Ensure that all pins and check masks have been found
     }
     
+    // Function to play a move onto the board
+    void Make_Move(Move M)
+    {
+      i64 From_Index = Get_Index(M.From);
+      i64 To_Index   = Get_Index(M.To);
+
+      // We need to remove the bit of the moving piece's bitboard and replace it with the new location
+      if (Status.Side == WHITE)
+      {
+        switch (M.Piece)
+        {
+          case PAWN:   
+              Board.White_Pawn   = Remove_Bit(Board.White_Pawn, From_Index);
+              Board.White_Pawn   = Set_Bit(Board.White_Pawn, To_Index); break;
+          case KNIGHT: 
+              Board.White_Knight = Remove_Bit(Board.White_Knight, From_Index);
+              Board.White_Knight = Set_Bit(Board.White_Knight, To_Index); break;
+          case BISHOP: 
+              Board.White_Bishop = Remove_Bit(Board.White_Bishop, From_Index); 
+              Board.White_Bishop = Set_Bit(Board.White_Bishop, To_Index); break;
+          case ROOK:   
+              Board.White_Rook   = Remove_Bit(Board.White_Rook,   From_Index); 
+              Board.White_Rook   = Set_Bit(Board.White_Rook,   To_Index); break;
+          case QUEEN:  
+              Board.White_Queen  = Remove_Bit(Board.White_Queen,  From_Index); 
+              Board.White_Queen  = Set_Bit(Board.White_Queen,  To_Index); break;
+          case KING:   
+              Board.White_King   = Remove_Bit(Board.White_King,   From_Index); 
+              Board.White_King   = Set_Bit(Board.White_King,   To_Index); break;
+        }
+      } 
+      else
+      {
+        switch (M.Piece)
+        {
+          case PAWN:   
+              Board.Black_Pawn   = Remove_Bit(Board.Black_Pawn, From_Index);
+              Board.Black_Pawn   = Set_Bit(Board.Black_Pawn, To_Index); break;
+          case KNIGHT: 
+              Board.Black_Knight = Remove_Bit(Board.Black_Knight, From_Index);
+              Board.Black_Knight = Set_Bit(Board.Black_Knight, To_Index); break;
+          case BISHOP: 
+              Board.Black_Bishop = Remove_Bit(Board.Black_Bishop, From_Index); 
+              Board.Black_Bishop = Set_Bit(Board.Black_Bishop, To_Index); break;
+          case ROOK:   
+              Board.Black_Rook   = Remove_Bit(Board.Black_Rook, From_Index); 
+              Board.Black_Rook   = Set_Bit(Board.Black_Rook, To_Index); break;
+          case QUEEN:  
+              Board.Black_Queen  = Remove_Bit(Board.Black_Queen, From_Index); 
+              Board.Black_Queen  = Set_Bit(Board.Black_Queen, To_Index); break;
+          case KING:   
+              Board.Black_King   = Remove_Bit(Board.Black_King, From_Index); 
+              Board.Black_King   = Set_Bit(Board.Black_King, To_Index); break;  
+        }
+      }
+
+      // We should remove the bit of any captured pieces
+      // We will first handle en-passant captures
+      if (M.En_Passant)
+      { 
+        // The pawn underneath the attacking pawn is captured
+        i64 Under_1_Index = Get_Index(Shift_Down(M.To, Status.Side));
+        if (Status.Side == WHITE) Board.Black_Pawn = Remove_Bit(Board.Black_Pawn, Under_1_Index);
+        else                      Board.White_Pawn = Remove_Bit(Board.White_Pawn, Under_1_Index);
+      }
+      else if (M.Capture)
+      {
+        // We need to find the piece that we are capturing
+        if (Status.Side == WHITE)
+        {
+          for (i64 B : {
+            Board.Black_Pawn, Board.Black_Knight, Board.Black_Bishop, Board.Black_Rook, Board.Black_Queen, Board.Black_King      
+            })
+          {
+            if (Get_Bit(B, To_Index)) B = Remove_Bit(B, To_Index);
+          }
+        }
+        else
+        {
+          for (i64 B : {
+            Board.White_Pawn, Board.White_Knight, Board.White_Bishop, Board.White_Rook, Board.White_Queen, Board.White_King
+            })
+          {
+            if (Get_Bit(B, To_Index)) B = Remove_Bit(B, To_Index);
+          }
+        }
+      }
+
+      // We must move the rook if the move was a castle
+      if (M.Piece == King && abs(To_Index - From_Index) == 2)
+      {
+        if (Status.Side == WHITE)
+        {
+        }
+        else
+        {
+        }
+      }
+
+      // Update occupancy bitboards
+      Board.White_All  = (Board.White_Pawn | Board.White_Knight | Board.White_Bishop | 
+                          Board.White_Rook | Board.White_Queen  | Board.White_King); 
+
+      Board.Black_All  = (Board.Black_Pawn | Board.Black_Knight | Board.Black_Bishop |
+                          Board.Black_Rook | Board.Black_Queen  | Board.Black_King);
+
+      Board.All_Pieces = Board.White_All | Board.Black_All;
+      Status.Side = ~Status.Side; // Change side
+      Update();
+    }
+
     // Function to print the board
-    void Show_Board(){  
+    void Show_Board()
+    {  
       // A map from indexes into the 'all pieces' array to their relevant ascii characters
       unordered_map<short, char> Index_To_Char = {
         {0, 'P'}, {1, 'N'}, {2, 'B'}, {3, 'R'}, {4, 'Q'},  {5,  'K'},
@@ -300,16 +422,17 @@ class Game{
       cout << rank << " | ";
 
       // Loop over all squares
-      for (i64 sq = a8; sq != h1; sq--){
- 
+      for (i64 sq = a8; sq != h1; sq--)
+      {
         // If the square is set print the relevant character
         if (Get_Bit(Board.All_Pieces, sq)){
 
-          // NOTE: We must iterate like this otherwise we get undefined behaviour
+          // NOTE: We must iterate like this otherwise we get undefined behaviour e.g. (Random values for these bitboards)
           count = 0;
           for (i64 B : {
             Board.White_Pawn, Board.White_Knight, Board.White_Bishop, Board.White_Rook, Board.White_Queen, Board.White_King,
-            Board.Black_Pawn, Board.Black_Knight, Board.Black_Bishop, Board.Black_Rook, Board.Black_Queen, Board.Black_King})
+            Board.Black_Pawn, Board.Black_Knight, Board.Black_Bishop, Board.Black_Rook, Board.Black_Queen, Board.Black_King
+            })
           {
             if (Get_Bit(B, sq)){cout << Index_To_Char[count] << " "; break;}
             ++count;
@@ -326,7 +449,8 @@ class Game{
         count = 0;
         for (i64 B : {
           Board.White_Pawn, Board.White_Knight, Board.White_Bishop, Board.White_Rook, Board.White_Queen, Board.White_King,
-          Board.Black_Pawn, Board.Black_Knight, Board.Black_Bishop, Board.Black_Rook, Board.Black_Queen, Board.Black_King})
+          Board.Black_Pawn, Board.Black_Knight, Board.Black_Bishop, Board.Black_Rook, Board.Black_Queen, Board.Black_King
+          })
         {
           if (Get_Bit(B, h1)){cout << Index_To_Char[count] << " \n"; break;}
           ++count;
@@ -341,7 +465,8 @@ class Game{
   
   private:
     // A function to find pins in the current position
-    unordered_map<i64, i64> Get_Pins(bool Colour){
+    unordered_map<i64, i64> Get_Pins(bool Colour)
+    {
       // To generate any pin masks we should notice that only sliding pieces
       // may pin other pieces, with this in mind consider getting the move 
       // bitboard of a queen from the square where the king is located.
@@ -387,7 +512,8 @@ class Game{
     }
 
     // A function to find checks in the current position
-    void Get_Checks(){
+    void Get_Checks()
+    {
       // To update any check masks we should first ask whether the king is in check,
       // then if any enemy piece attacks the square where our king is located this must be a check 
       if (Is_Square_Attacked(Board, Get_Index(Board.White_King), BLACK)){
@@ -399,7 +525,8 @@ class Game{
     }
     
     // A function to update the current en-passant square
-    void Get_En_Passant(){
+    void Get_En_Passant()
+    {
       // If there is no last move then we do not need to update the en-passant square
       if (Status.Last_Move.From == NONE) return;
 
@@ -423,10 +550,11 @@ class Game{
 
     // A function to update the game's status, this includes updating the en passant square
     // getting new pins if any, and getting new checks if any were found
-    void Update(){
+    void Update()
+    {
       Get_Checks(); 
       Status.Pins = Get_Pins(WHITE);
       Status.Pins.insert(Get_Pins(BLACK).begin(), Get_Pins(BLACK).end());
       Get_En_Passant();
     }
-    };
+};

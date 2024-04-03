@@ -61,7 +61,8 @@ vector<Move> Create_Moves(i64 MoveBoard, i64 From, i64 Piece, bool Capture){
   vector<Move> Moves;
 
   i64 To; // The square the piece is moving to
-  while (MoveBoard){
+  while (MoveBoard)
+  {
     To = Get_LSB(MoveBoard);
     Moves.push_back(Move(From, To, Piece, Capture, NO_PROMO, false));
     MoveBoard ^= To; // Remove the bit from the move board
@@ -77,7 +78,8 @@ vector<Move> Build_Moves(Game CurrGame, i64 MoveBoard, i64 From, i64 Piece){
   i64 EnemyPieces = (CurrGame.Status.Side == WHITE ? CurrGame.Board.Black_All : CurrGame.Board.White_All);
   i64 To; // The square the piece is moving to
   bool Capture;
-  while (MoveBoard){
+  while (MoveBoard)
+  {
     To = Get_LSB(MoveBoard);
     Capture = (To & EnemyPieces ? true : false);
     Moves.push_back(Move(From, To, Piece, Capture, NO_PROMO, false));
@@ -93,7 +95,8 @@ vector<Move> Verify_Moves_Pins(Game CurrGame, vector<Move> Moves){
   vector<Move> Valid_Moves;
   
   // Loop over all moves ..
-  for (Move m : Moves){
+  for (Move m : Moves)
+  {
     // .. and if the piece is in the pins map then check that
     // it moves through the pin mask, if not then the move isn't legal 
     if (CurrGame.Status.Pins.find(m.From) != CurrGame.Status.Pins.end()){
@@ -115,7 +118,8 @@ vector<Move> Verify_Moves_Check(Game CurrGame, vector<Move> Moves){
   if (Check_Mask == AllBits) return Moves; // Nothing to do if there is no check
 
   // Loop over all moves and if they move within the check mask this is a legal move
-  for (Move m : Moves){
+  for (Move m : Moves)
+  {
     if (m.To & Check_Mask) Valid_Moves.push_back(m);
   }
 
@@ -135,7 +139,8 @@ vector<Move> Generate_Pawn_Moves(Game CurrGame){
   
   // Loop over all pawns and generate their legal moves
   vector<Move> Moves_To_Add; i64 MoveBoard;
-  while (PawnBB){
+  while (PawnBB)
+  {
     MoveBoard = 0;
     i64 CurrPawn = Get_LSB(PawnBB);
 
@@ -191,7 +196,8 @@ vector<Move> Generate_Knight_Moves(Game CurrGame){
   
   // Loop over all knights and generate their legal moves
   i64 CurrKnight, MoveBB; vector<Move> CurrMoves;
-  while (KnightBB){
+  while (KnightBB)
+  {
     CurrKnight = Get_LSB(KnightBB);
     
     MoveBB = KNIGHT_MOVES[Get_Index(CurrKnight)] & (~FriendlyPieces); // Can't capture your own pieces
@@ -216,7 +222,8 @@ vector<Move> Generate_Bishop_Moves(Game CurrGame){
 
   // Loop over all bishops and generate their legal moves
   i64 CurrBishop, MoveBB, Occupancy; vector<Move> CurrMoves;
-  while (BishopBB){
+  while (BishopBB)
+  {
     CurrBishop = Get_LSB(BishopBB);
   
     // The piece moving can't be part of occupancy this leads to incorrect moves from hyperbola quintessence
@@ -242,7 +249,8 @@ vector<Move> Generate_Rook_Moves(Game CurrGame){
 
   // Loop over all rooks and generate their legal moves
   i64 CurrRook, MoveBB, Occupancy; vector<Move> CurrMoves;
-  while (RookBB){
+  while (RookBB)
+  {
     CurrRook = Get_LSB(RookBB);
 
     // The piece moving can't be part of occupancy this leads to incorrect moves from hyperbola quintessence
@@ -269,7 +277,8 @@ vector<Move> Generate_Queen_Moves(Game CurrGame){
 
   // Loop over all queens and generate their legal moves
   i64 CurrQueen, MoveBB, Occupancy; vector<Move> CurrMoves;
-  while (QueenBB){
+  while (QueenBB)
+  {
     CurrQueen = Get_LSB(QueenBB);
 
     // The piece moving can't be part of occupancy this leads to incorrect move from hyperbola quintessence
@@ -307,18 +316,21 @@ vector<Move> Generate_King_Moves(Game CurrGame){
   i64 Check_Mask    = (CurrGame.Status.Side == WHITE ? CurrGame.Status.White_Check : CurrGame.Status.Black_Check);
 
   // If king isn't on the castling square or there is a check we may return early because castling will be illegal
-  if (!(KingBB & Castle_Square) || Check_Mask == AllBits){ 
+  if (!(KingBB & Castle_Square) || Check_Mask == AllBits)
+  { 
     Moves = Verify_Moves_Check(CurrGame, Moves);
     return Moves;
   }
   
   // Get relevant castling rights
   bool Kingside_Rights, Queenside_Rights;
-  if (CurrGame.Status.Side == WHITE){
+  if (CurrGame.Status.Side == WHITE)
+  {
     Kingside_Rights  = CurrGame.Status.Castle_Rights & W_Kingside;
     Queenside_Rights = CurrGame.Status.Castle_Rights & W_Queenside;
   } 
-  else {
+  else 
+  {
     Kingside_Rights  = CurrGame.Status.Castle_Rights & B_Kingside;
     Queenside_Rights = CurrGame.Status.Castle_Rights & B_Queenside;
   }
