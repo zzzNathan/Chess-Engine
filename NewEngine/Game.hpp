@@ -21,7 +21,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <ctype.h>
-#include "Utils.h"
+#include "Utils.hpp"
 
 using namespace std;
 typedef unsigned long long i64;
@@ -213,7 +213,7 @@ i64 Get_Check_Mask(Board_Status Boards, bool Colour)
   const array<i64, 64> Pawn_Attacks = (Colour == WHITE ? WHITE_PAWN_ATKS : BLACK_PAWN_ATKS); 
 
   // Non-slider pieces
-  if (Pawn_Attacks[King_Index] & Enemy_Pawns) return Pawn_Attacks[King_Index] & Enemy_Pawns;
+  if (Pawn_Attacks[King_Index] & Enemy_Pawns)   return Pawn_Attacks[King_Index] & Enemy_Pawns;
   if (KNIGHT_MOVES[King_Index] & Enemy_Knights) return KNIGHT_MOVES[King_Index] & Enemy_Knights;
 
   // We need to remove the 1 bit from the occupancy (if it exists)
@@ -221,15 +221,18 @@ i64 Get_Check_Mask(Board_Status Boards, bool Colour)
   i64 Occupancy = Remove_Bit(Boards.All_Pieces, King_Index);
 
   // Slider pieces
-  if (Compute_Bishop_attacks(King_Location, Occupancy) & Enemy_Bishops){
+  if (Compute_Bishop_attacks(King_Location, Occupancy) & Enemy_Bishops)
+  {
     i64 Attacker = Compute_Bishop_attacks(King_Location, Occupancy) & Enemy_Bishops;
     return Remove_Bit(Create_Ray(King_Location, Attacker), King_Index); // Can't move onto the king
   }
-  if (Compute_Rook_attacks(King_Location, Occupancy) & Enemy_Rooks){
+  if (Compute_Rook_attacks(King_Location, Occupancy) & Enemy_Rooks)
+  {
     i64 Attacker = Compute_Rook_attacks(King_Location, Occupancy) & Enemy_Rooks;
     return Remove_Bit(Create_Ray(King_Location, Attacker), King_Index);
   }
-  if (Compute_Queen_attacks(King_Location, Occupancy) & Enemy_Queens){
+  if (Compute_Queen_attacks(King_Location, Occupancy) & Enemy_Queens)
+  {
     i64 Attacker = Compute_Queen_attacks(King_Location, Occupancy) & Enemy_Queens;
     return Remove_Bit(Create_Ray(King_Location, Attacker), King_Index);
   }
@@ -245,7 +248,7 @@ class Game
     Game_Status Status;
     
     // Constructor to initialise a game from a fen string
-    Game(string Fen)
+    Game(string Fen) 
     {
       string Piece_Locations, Colour, Castle_Rights, En_Passant, Halfmove, Fullmove;
 
@@ -282,7 +285,7 @@ class Game
       // Initialising game status variables
       // -----------------------------------
       bool side = Colour == "w";
-      i64 en_passant = En_Passant != "-" ? Square_To_Index[En_Passant] : AllBits;
+      i64 en_passant = (En_Passant != "-" ? Square_To_Index[En_Passant] : AllBits);
       i64 ply = stoi(Halfmove);
       i64 fullmove = stoi(Fullmove);
       uint8_t castle_rights = 0;
@@ -306,7 +309,7 @@ class Game
       i64 To_Index   = Get_Index(M.To);
 
       // We need to remove the bit of the moving piece's bitboard and replace it with the new location
-      if (Status.Side == WHITE)
+      if (Status.Side == WHITE && M.Promoted_Piece == NO_PROMO) // Promotions will be handled below
       {
         switch (M.Piece)
         {
@@ -330,7 +333,7 @@ class Game
               Board.White_King   = Set_Bit(Board.White_King,   To_Index); break;
         }
       } 
-      else
+      else if (M.Promoted_Piece == NO_PROMO)
       {
         switch (M.Piece)
         {
@@ -370,31 +373,55 @@ class Game
         if (Status.Side == WHITE)
         {
           for (i64 B : {
-            Board.Black_Pawn, Board.Black_Knight, Board.Black_Bishop, Board.Black_Rook, Board.Black_Queen, Board.Black_King      
+            Board.Black_Pawn, Board.Black_Knight, Board.Black_Bishop, 
+            Board.Black_Rook, Board.Black_Queen, Board.Black_King      
             })
           {
-            if (Get_Bit(B, To_Index)) B = Remove_Bit(B, To_Index);
+            if (Get_Bit(B, To_Index)) {B = Remove_Bit(B, To_Index); break;}
           }
         }
         else
         {
           for (i64 B : {
-            Board.White_Pawn, Board.White_Knight, Board.White_Bishop, Board.White_Rook, Board.White_Queen, Board.White_King
+            Board.White_Pawn, Board.White_Knight, Board.White_Bishop,
+            Board.White_Rook, Board.White_Queen, Board.White_King
             })
           {
-            if (Get_Bit(B, To_Index)) B = Remove_Bit(B, To_Index);
+            if (Get_Bit(B, To_Index)) {B = Remove_Bit(B, To_Index); break;}
           }
         }
       }
 
-      // We must move the rook if the move was a castle
-      if (M.Piece == King && abs(To_Index - From_Index) == 2)
+      // We need to handle promotion moves
+      if (M.Promoted_Piece != NO_PROMO)
       {
         if (Status.Side == WHITE)
         {
+          // Remove the old pawn
+          Board.White_Pawn = Remove_Bit(Board.White_Pawn, From_Index);
+
+          // Add the promoted piece
+          switch (M.Promoted_Piece)
+          {
+            case KNIGHT: Board.White_Knight = Set_Bit(Board.White_Knight, To_Index); break;
+            case BISHOP: Board.White_Bishop = Set_Bit(Board.White_Bishop, To_Index); break;
+            case ROOK:   Board.White_Rook   = Set_Bit(Board.White_Rook,   To_Index); break;
+            case QUEEN:  Board.White_Queen  = Set_Bit(Board.White_Queen,  To_Index); break;
+          }
         }
         else
         {
+          // Remove the old pawn
+          Board.Black_Pawn = Remove_Bit(Board.Black_Pawn, From_Index);
+
+          // Add the promoted piece
+          switch (M.Promoted_Piece)
+          {
+            case KNIGHT: Board.Black_Knight = Set_Bit(Board.Black_Knight, To_Index); break;
+            case BISHOP: Board.Black_Bishop = Set_Bit(Board.Black_Bishop, To_Index); break;
+            case ROOK:   Board.Black_Rook   = Set_Bit(Board.Black_Rook,   To_Index); break;
+            case QUEEN:  Board.Black_Queen  = Set_Bit(Board.Black_Queen,  To_Index); break;
+          }
         }
       }
 
@@ -406,12 +433,13 @@ class Game
                           Board.Black_Rook | Board.Black_Queen  | Board.Black_King);
 
       Board.All_Pieces = Board.White_All | Board.Black_All;
-      Status.Side = ~Status.Side; // Change side
+      Status.Last_Move = M; // Update last move
       Update();
+      Status.Side = ~Status.Side; // Change side
     }
 
     // Function to print the board
-    void Show_Board()
+    void Show_Board() 
     {  
       // A map from indexes into the 'all pieces' array to their relevant ascii characters
       unordered_map<short, char> Index_To_Char = {
@@ -494,15 +522,16 @@ class Game
 
       // Iterate through all potential pinners and check if a pinned piece is on this ray
       i64 Attacker, Pinnee;
-      while (Pinners){
+      while (Pinners)
+      {
         Attacker = Get_LSB(Pinners);
 
         // Get potential 'pinnee's, by building a ray from the attacker to the king
         Pinnee = Create_Ray(FriendlyKing, Attacker) & FriendlyAll;  
         
         // There can only be on pinned piece along a ray otherwise this wouldn't be a pin
-        if (BitCount(Pinnee) == 1){
-
+        if (BitCount(Pinnee) == 1)
+        {
           // Then the only moves that this piece may make is along this ray or to capture the attacker
           Pins[Pinnee] = Set_Bit(Create_Ray(Pinnee, Attacker), Get_Index(Attacker)); 
         }
@@ -539,22 +568,94 @@ class Game
       // If the last move was a double pawn push then we can update the en passant square
       // New en-passant square will be the square underneath the pawn that was just pushed
       int Difference = Get_Index(Status.Last_Move.To) - Get_Index(Status.Last_Move.From);    
-      if (abs(Difference) == 16){
-        
+      if (abs(Difference) == 16)
+      {
         // If current side is white this means that the last move was from black 
         if (Status.Side == WHITE) Status.En_Passant = Index_To_Bitboard(Get_Index(Status.Last_Move.To) + 8); 
         // Means that the last move was from white
-        else Status.En_Passant = Index_To_Bitboard(Get_Index(Status.Last_Move.To) - 8);
+        else                      Status.En_Passant = Index_To_Bitboard(Get_Index(Status.Last_Move.To) - 8);
+      }
+    }
+    
+    // A function to update castling rights
+    void Get_Castle_Rights()
+    {
+      // If there is no last move or the last move wasn't from the king
+      // or rook we dont need to update the castle rights
+      if (Status.Last_Move.From  == NONE || 
+         (Status.Last_Move.Piece != KING && Status.Last_Move.Piece != ROOK)) return;
+
+      int From_Index = Get_Index(Status.Last_Move.From);
+      int To_Index   = Get_Index(Status.Last_Move.To);
+      
+      // If the last move was a rook moving for the first time we remove
+      // castle rights for that side
+      if (Status.Last_Move.Piece == ROOK)
+      {
+        if (Status.Side == WHITE)
+        {
+          if (From_Index == h1) Status.Castle_Rights &= ~W_Kingside;
+          if (From_Index == a1) Status.Castle_Rights &= ~W_Queenside;
+        }
+        else
+        {
+          if (From_Index == h8) Status.Castle_Rights &= ~B_Kingside;
+          if (From_Index == a8) Status.Castle_Rights &= ~B_Queenside;
+        }
+        return;
+      }
+
+      // If the last move was by a king that didn't castle we remove all rights
+      if (abs(From_Index - To_Index) != 2) 
+      {
+        if (Status.Side == WHITE) Status.Castle_Rights &= ~(W_Queenside | W_Kingside);
+        if (Status.Side == BLACK) Status.Castle_Rights &= ~(B_Queenside | B_Kingside);
+        return;
+      }
+
+      // If last move was a castle we need to ensure that we have moved the rook
+      if (Status.Side == WHITE)
+      {
+        if (To_Index == g1)
+        {
+          // Kingside castle
+          Board.White_Rook = Remove_Bit(Board.White_Rook, h1);
+          Board.White_Rook = Set_Bit(Board.White_Rook, f1);
+        }
+        if (To_Index == c1)
+        {
+          // Queenside castle
+          Board.White_Rook = Remove_Bit(Board.White_Rook, a1);
+          Board.White_Rook = Set_Bit(Board.White_Rook, d1);
+        }
+        Status.Castle_Rights &= ~(W_Queenside | W_Kingside); // We remove all rights after castling
+      }
+      else
+      {
+        if (To_Index == g8)
+        {
+          // Kingside castle
+          Board.Black_Rook = Remove_Bit(Board.Black_Rook, h8);
+          Board.Black_Rook = Set_Bit(Board.Black_Rook, f8);
+        }
+        if (To_Index == c8)
+        {
+          // Queenside castle
+          Board.Black_Rook = Remove_Bit(Board.Black_Rook, a8);
+          Board.Black_Rook = Set_Bit(Board.Black_Rook, d8);
+        }
+        Status.Castle_Rights &= ~(B_Queenside | B_Kingside); // We remove all rights after castling
       }
     }
 
     // A function to update the game's status, this includes updating the en passant square
-    // getting new pins if any, and getting new checks if any were found
+    // getting new pins if any, and getting new checks if any were found and more
     void Update()
     {
       Get_Checks(); 
       Status.Pins = Get_Pins(WHITE);
       Status.Pins.insert(Get_Pins(BLACK).begin(), Get_Pins(BLACK).end());
       Get_En_Passant();
+      Get_Castle_Rights();
     }
 };

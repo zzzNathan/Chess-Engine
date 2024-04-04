@@ -30,33 +30,33 @@ i64 Reverse_bits(i64 BB){
   return (BB << 48) | ((BB & 0xffff0000) << 16) | ((BB >> 16) & 0xffff0000) | (BB >> 48);
 }
 
-i64 Get_Bit(i64 Bitboard, i64 Square){
+inline i64 Get_Bit(i64 Bitboard, i64 Square){
   return Bitboard & (1ULL << Square);
 }
 
-i64 Set_Bit(i64 Bitboard, i64 Square){
+inline i64 Set_Bit(i64 Bitboard, i64 Square){
   return Bitboard | (1ULL << Square);
 }
 
-i64 Get_LSB(i64 Bitboard){
+inline i64 Get_LSB(i64 Bitboard){
   if (Bitboard == 0) return 0ULL; 
   return Bitboard & (~Bitboard + 1);
 }
 
-i64 Get_Index(i64 Bitboard){
+inline i64 Get_Index(i64 Bitboard){
   if (Bitboard == 0) return 0ULL;
   return (i64) log2(Bitboard);
 }
 
-i64 Index_To_Bitboard(i64 Index){
+inline i64 Index_To_Bitboard(i64 Index){
   return 1ULL << Index;
 }
 
-i64 Remove_Bit(i64 Bitboard, i64 Square){
+inline i64 Remove_Bit(i64 Bitboard, i64 Square){
   return Bitboard & ~(1ULL << Square);
 }
 
 // Count the number of bits set to 1 in a 64 bit integer
-i64 BitCount(i64 Bitboard){
+inline i64 BitCount(i64 Bitboard){
   return __builtin_popcountll(Bitboard);
 }

@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#include "Constants.h"
+#include "Constants.hpp"
 #include <map>
 #include <utility>
 #include <iostream>
@@ -121,10 +121,11 @@ map<pair<i64, i64>, i64> Make_Ray_Map(){
 }
 
 // Initialise the ray map
-const map<pair<i64, i64>, i64> Ray_Map = Make_Ray_Map();
+map<pair<i64, i64>, i64> Ray_Map = Make_Ray_Map();
 
 // Function to make a horizontal or diagonal ray from one square to another
-i64 Create_Ray(i64 From, i64 To){
+i64 Create_Ray(i64 From, i64 To)
+{
   // Handle edge cases
   if (From == To || From == NoBits || To == NoBits) return 0;
 
