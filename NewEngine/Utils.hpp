@@ -74,7 +74,8 @@ i64 Shift_Down(i64 Bitboard, bool Colour){
 
 // Function to make a map that takes in 2 squares and returns either a 
 // horizontal or diagonal ray from these 2 squares
-map<pair<i64, i64>, i64> Make_Ray_Map(){
+map<pair<i64, i64>, i64> Make_Ray_Map()
+{
   map<pair<i64, i64>, i64> Ray_Map;
   int Directions[6] = {7, -7, 8, -8, 9, -9}; // Directions we can travel in (see Constants.h - line 27)
   
@@ -120,12 +121,12 @@ map<pair<i64, i64>, i64> Make_Ray_Map(){
   return Ray_Map;
 }
 
-// Initialise the ray map
-map<pair<i64, i64>, i64> Ray_Map = Make_Ray_Map();
-
 // Function to make a horizontal or diagonal ray from one square to another
 i64 Create_Ray(i64 From, i64 To)
 {
+  // Initialise the ray map
+  static map<pair<i64, i64>, i64> Ray_Map = Make_Ray_Map();
+
   // Handle edge cases
   if (From == To || From == NoBits || To == NoBits) return 0;
 

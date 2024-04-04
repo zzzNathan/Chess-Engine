@@ -95,16 +95,16 @@ struct Move
 struct Game_Status
 {
   // Attributes
-  bool Side;
-  i64 En_Passant;
-  i64 Ply;
-  i64 Fullmove;
+  bool    Side;
+  i64     En_Passant;
+  i64     Ply;
+  i64     Fullmove;
   uint8_t Castle_Rights;
   uint8_t Status;
   unordered_map<i64, i64> Pins;
   i64 White_Check = AllBits; // We assume there is no check by default
   i64 Black_Check = AllBits; // We assume there is no check by default
-  Move Last_Move = Move(NONE, NONE, NONE, false, NONE, false);
+  Move Last_Move  = Move(NONE, NONE, NONE, false, NONE, false);
 
   // Constructor to initialise a game status
   void Init_Game_Status(bool Side_, i64 En_Passant_, i64 Ply_, i64 Fullmove_, uint8_t Castle_Rights_,
@@ -258,7 +258,7 @@ class Game
       i64 Square = 63;
       i64 Boards[12] = {};
       // A map of characters like 'P' to their location within the Boards array
-      unordered_map<char, i64> Char_To_Index = {
+      static unordered_map<char, i64> Char_To_Index = {
         {'K', 0}, {'k', 1}, {'Q', 2}, {'q', 3}, {'B', 4}, {'b', 5},
         {'R', 6}, {'r', 7}, {'N', 8}, {'n', 9}, {'P', 10}, {'p', 11}
       };
@@ -281,10 +281,10 @@ class Game
 
       // Initialising game status variables
       // -----------------------------------
-      bool side = Colour == "w";
-      i64 en_passant = (En_Passant != "-" ? Square_To_Index[En_Passant] : AllBits);
-      i64 ply = stoi(Halfmove);
-      i64 fullmove = stoi(Fullmove);
+      bool side             = (Colour == "w");
+      i64 en_passant        = (En_Passant != "-" ? Square_To_Index[En_Passant] : AllBits);
+      i64 ply               = stoi(Halfmove);
+      i64 fullmove          = stoi(Fullmove);
       uint8_t castle_rights = 0;
       for (char castle : Castle_Rights)
       {
@@ -439,7 +439,7 @@ class Game
     void Show_Board() 
     {  
       // A map from indexes into the 'all pieces' array to their relevant ascii characters
-      unordered_map<short, char> Index_To_Char = {
+      static unordered_map<short, char> Index_To_Char = {
         {0, 'P'}, {1, 'N'}, {2, 'B'}, {3, 'R'}, {4, 'Q'},  {5,  'K'},
         {6, 'p'}, {7, 'n'}, {8, 'b'}, {9, 'r'}, {10, 'q'}, {11, 'k'}
       };

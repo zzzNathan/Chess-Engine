@@ -16,3 +16,15 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "MoveGen.hpp"
+
+// For our searching algorithm we use a negamax algorithm
+double Search(Game game, int depth)
+{
+  // Get our list of legal moves
+  vector<Move> Moves = Generate_Moves(game);
+
+  // Loop over all legal moves
+  for (Move m : Moves)
+  {
+  }
+}

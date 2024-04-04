@@ -15,4 +15,27 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+#include "Game.hpp"
 
+// A function to get the 'phase' of a game
+// In chess there are 3 main phases of the game:
+// ---------------------------------------------
+// - Opening
+//
+// - Middlegame
+//
+// - Endgame
+// ---------------------------------------------
+// A high phase denotes that we are nearing the endgame
+// whilst a low phase denotes that we are still in the 
+// opening/middlegame phase. In this engine we use 
+// Fruit's definition of phase. https://www.fruitchess.com/
+double Get_Game_Phase(Game game)
+{
+
+}
+
+double Evaluate(Game game)
+{
+  return 0.0;
+}
