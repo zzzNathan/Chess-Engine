@@ -124,9 +124,6 @@ Diag_H5_E8 = (Diag_H4_D8>>i64(1)) ^ i64(2**23)
 Diag_H6_F8 = (Diag_H5_E8>>i64(1)) ^ i64(2**31)
 Diag_H7_G8 = (Diag_H6_F8>>i64(1)) ^ i64(2**39)
 Diag_H8_H8 = (Diag_H7_G8>>i64(1)) ^ i64(2**47)
-Anti_Diagonal = [Diag_A1_A1, Diag_B1_A2, Diag_C1_A3, Diag_D1_A4, Diag_E1_A5, Diag_F1_A6, Diag_G1_A7, Diag_H1_A8,
-                  Diag_H2_B8, Diag_H3_C8, Diag_H4_D8, Diag_H5_E8, Diag_H6_F8, Diag_H7_G8, Diag_H8_H8]
-for d in Anti_Diagonal: print(hex(d))
 ANTI_DIAGONALS = [  # Square number to anti-diagonal masks
     Diag_H1_A8, Diag_G1_A7, Diag_F1_A6, Diag_E1_A5, Diag_D1_A4, Diag_C1_A3, Diag_B1_A2, Diag_A1_A1,
     Diag_H2_B8, Diag_H1_A8, Diag_G1_A7, Diag_F1_A6, Diag_E1_A5, Diag_D1_A4, Diag_C1_A3, Diag_B1_A2,

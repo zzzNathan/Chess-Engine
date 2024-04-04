@@ -15,10 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#include <unordered_map>
-#include <string>
 #include <sstream>
-#include <cstdint>
 #include <cstdlib>
 #include <ctype.h>
 #include "Utils.hpp"
@@ -543,14 +540,8 @@ class Game
     // A function to find checks in the current position
     void Get_Checks()
     {
-      // To update any check masks we should first ask whether the king is in check,
-      // then if any enemy piece attacks the square where our king is located this must be a check 
-      if (Is_Square_Attacked(Board, Get_Index(Board.White_King), BLACK)){
-        Status.White_Check = Get_Check_Mask(Board, WHITE);
-      }
-      if (Is_Square_Attacked(Board, Get_Index(Board.Black_King), WHITE)){
-        Status.Black_Check = Get_Check_Mask(Board, BLACK);
-      }
+      Status.White_Check = Get_Check_Mask(Board, WHITE);
+      Status.Black_Check = Get_Check_Mask(Board, BLACK);
     }
     
     // A function to update the current en-passant square
