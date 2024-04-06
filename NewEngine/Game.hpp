@@ -55,7 +55,8 @@ struct Move
   bool En_Passant;  
 
   // Constructor to initialise a move
-  Move(i64 From_, i64 To_, i64 Piece_, bool Capture_, i64 Promoted_Piece_, bool En_Passant_){
+  Move(i64 From_, i64 To_, i64 Piece_, bool Capture_, i64 Promoted_Piece_, bool En_Passant_)
+  {
     From           = From_;
     To             = To_;
     Piece          = Piece_;
@@ -110,7 +111,8 @@ struct Game_Status
 
   // Constructor to initialise a game status
   void Init_Game_Status(bool Side_, i64 En_Passant_, i64 Ply_, i64 Fullmove_, uint8_t Castle_Rights_,
-                        uint8_t Status_){
+                        uint8_t Status_)
+  {
     Side          = Side_;
     En_Passant    = En_Passant_;
     Ply           = Ply_;
@@ -235,6 +237,7 @@ i64 Get_Check_Mask(Board_Status Boards, bool Colour)
     i64 Attacker = Compute_Queen_attacks(King_Location, Occupancy) & Enemy_Queens;
     return Remove_Bit(Create_Ray(King_Location, Attacker), King_Index);
   }
+
   return AllBits; // If there is no check then our check maskcan be all bits as 1
 }
 
@@ -257,11 +260,11 @@ class Game
 
       // Initialising piece locations
       // -----------------------------
-      i64 Square = 63;
+      i64 Square     = 63;
       i64 Boards[12] = {};
       // A map of characters like 'P' to their location within the Boards array
       static unordered_map<char, i64> Char_To_Index = {
-        {'K', 0}, {'k', 1}, {'Q', 2}, {'q', 3}, {'B', 4}, {'b', 5},
+        {'K', 0}, {'k', 1}, {'Q', 2}, {'q', 3}, {'B', 4},  {'b', 5},
         {'R', 6}, {'r', 7}, {'N', 8}, {'n', 9}, {'P', 10}, {'p', 11}
       };
       
@@ -272,7 +275,8 @@ class Game
         // is a number we skip that many squares, otherwise we add the piece to the relevant bitboard
         if (piece == '/') continue;
         else if (isdigit(piece)) Square -= stoi(&piece); 
-        else {
+        else 
+        {
           Boards[Char_To_Index[piece]] = Set_Bit(Boards[Char_To_Index[piece]], Square); 
           Square--;
         }
@@ -307,54 +311,30 @@ class Game
       i64 From_Index = Get_Index(M.From);
       i64 To_Index   = Get_Index(M.To);
 
+      // Map of piece codes to the pointers of their relevant bitboards (see the top of this file)
+      i64* W_Piece_To_Bitboard[6] = { 
+         &Board.White_Pawn, &Board.White_Knight, &Board.White_Bishop,
+         &Board.White_Rook, &Board.White_Queen,  &Board.White_King
+      };
+
+      i64* B_Piece_To_Bitboard[6] = {
+         &Board.Black_Pawn, &Board.Black_Knight, &Board.Black_Bishop,
+         &Board.Black_Rook, &Board.Black_Queen,  &Board.Black_King
+      };
+      
       // We need to remove the bit of the moving piece's bitboard and replace it with the new location
       if (Status.Side == WHITE && M.Promoted_Piece == NO_PROMO) // Promotions will be handled below
       {
-        switch (M.Piece)
-        {
-          case PAWN:   
-              Board.White_Pawn   = Remove_Bit(Board.White_Pawn, From_Index);
-              Board.White_Pawn   = Set_Bit(Board.White_Pawn, To_Index); break;
-          case KNIGHT: 
-              Board.White_Knight = Remove_Bit(Board.White_Knight, From_Index);
-              Board.White_Knight = Set_Bit(Board.White_Knight, To_Index); break;
-          case BISHOP: 
-              Board.White_Bishop = Remove_Bit(Board.White_Bishop, From_Index); 
-              Board.White_Bishop = Set_Bit(Board.White_Bishop, To_Index); break;
-          case ROOK:   
-              Board.White_Rook   = Remove_Bit(Board.White_Rook,   From_Index); 
-              Board.White_Rook   = Set_Bit(Board.White_Rook,   To_Index); break;
-          case QUEEN:  
-              Board.White_Queen  = Remove_Bit(Board.White_Queen,  From_Index); 
-              Board.White_Queen  = Set_Bit(Board.White_Queen,  To_Index); break;
-          case KING:   
-              Board.White_King   = Remove_Bit(Board.White_King,   From_Index); 
-              Board.White_King   = Set_Bit(Board.White_King,   To_Index); break;
-        }
-      } 
+        i64* board = W_Piece_To_Bitboard[M.Piece];
+        *board = Remove_Bit(*board, From_Index);
+        *board = Set_Bit(*board,    To_Index);
+      }
+      
       else if (M.Promoted_Piece == NO_PROMO)
       {
-        switch (M.Piece)
-        {
-          case PAWN:   
-              Board.Black_Pawn   = Remove_Bit(Board.Black_Pawn, From_Index);
-              Board.Black_Pawn   = Set_Bit(Board.Black_Pawn, To_Index); break;
-          case KNIGHT: 
-              Board.Black_Knight = Remove_Bit(Board.Black_Knight, From_Index);
-              Board.Black_Knight = Set_Bit(Board.Black_Knight, To_Index); break;
-          case BISHOP: 
-              Board.Black_Bishop = Remove_Bit(Board.Black_Bishop, From_Index); 
-              Board.Black_Bishop = Set_Bit(Board.Black_Bishop, To_Index); break;
-          case ROOK:   
-              Board.Black_Rook   = Remove_Bit(Board.Black_Rook, From_Index); 
-              Board.Black_Rook   = Set_Bit(Board.Black_Rook, To_Index); break;
-          case QUEEN:  
-              Board.Black_Queen  = Remove_Bit(Board.Black_Queen, From_Index); 
-              Board.Black_Queen  = Set_Bit(Board.Black_Queen, To_Index); break;
-          case KING:   
-              Board.Black_King   = Remove_Bit(Board.Black_King, From_Index); 
-              Board.Black_King   = Set_Bit(Board.Black_King, To_Index); break;  
-        }
+        i64* board = B_Piece_To_Bitboard[M.Piece]; 
+        *board = Remove_Bit(*board, From_Index);
+        *board = Set_Bit(*board,    To_Index);
       }
 
       // We should remove the bit of any captured pieces
@@ -366,27 +346,23 @@ class Game
         if (Status.Side == WHITE) Board.Black_Pawn = Remove_Bit(Board.Black_Pawn, Under_1_Index);
         else                      Board.White_Pawn = Remove_Bit(Board.White_Pawn, Under_1_Index);
       }
+
       else if (M.Capture)
       {
         // We need to find the piece that we are capturing
         if (Status.Side == WHITE)
         {
-          for (i64 B : {
-            Board.Black_Pawn, Board.Black_Knight, Board.Black_Bishop, 
-            Board.Black_Rook, Board.Black_Queen, Board.Black_King      
-            })
+          for (i64* Board : W_Piece_To_Bitboard)
           {
-            if (Get_Bit(B, To_Index)) {B = Remove_Bit(B, To_Index); break;}
+            if (Get_Bit(*Board, To_Index)) {*Board = Remove_Bit(*Board, To_Index); break;}
           }
         }
+
         else
         {
-          for (i64 B : {
-            Board.White_Pawn, Board.White_Knight, Board.White_Bishop,
-            Board.White_Rook, Board.White_Queen, Board.White_King
-            })
+          for (i64* Board : B_Piece_To_Bitboard) 
           {
-            if (Get_Bit(B, To_Index)) {B = Remove_Bit(B, To_Index); break;}
+            if (Get_Bit(*Board, To_Index)) {*Board = Remove_Bit(*Board, To_Index); break;}
           }
         }
       }
@@ -400,13 +376,8 @@ class Game
           Board.White_Pawn = Remove_Bit(Board.White_Pawn, From_Index);
 
           // Add the promoted piece
-          switch (M.Promoted_Piece)
-          {
-            case KNIGHT: Board.White_Knight = Set_Bit(Board.White_Knight, To_Index); break;
-            case BISHOP: Board.White_Bishop = Set_Bit(Board.White_Bishop, To_Index); break;
-            case ROOK:   Board.White_Rook   = Set_Bit(Board.White_Rook,   To_Index); break;
-            case QUEEN:  Board.White_Queen  = Set_Bit(Board.White_Queen,  To_Index); break;
-          }
+          i64 *Promoted_Bitboard = W_Piece_To_Bitboard[M.Promoted_Piece];
+          *Promoted_Bitboard     = Set_Bit(*Promoted_Bitboard, To_Index);
         }
         else
         {
@@ -414,13 +385,8 @@ class Game
           Board.Black_Pawn = Remove_Bit(Board.Black_Pawn, From_Index);
 
           // Add the promoted piece
-          switch (M.Promoted_Piece)
-          {
-            case KNIGHT: Board.Black_Knight = Set_Bit(Board.Black_Knight, To_Index); break;
-            case BISHOP: Board.Black_Bishop = Set_Bit(Board.Black_Bishop, To_Index); break;
-            case ROOK:   Board.Black_Rook   = Set_Bit(Board.Black_Rook,   To_Index); break;
-            case QUEEN:  Board.Black_Queen  = Set_Bit(Board.Black_Queen,  To_Index); break;
-          }
+          i64 *Promoted_Bitboard = B_Piece_To_Bitboard[M.Promoted_Piece];
+          *Promoted_Bitboard     = Set_Bit(*Promoted_Bitboard, To_Index);
         }
       }
 
@@ -442,9 +408,17 @@ class Game
     {  
       // A map from indexes into the 'all pieces' array to their relevant ascii characters
       static unordered_map<short, char> Index_To_Char = {
-        {0, 'P'}, {1, 'N'}, {2, 'B'}, {3, 'R'}, {4, 'Q'},  {5,  'K'},
+        {0, 'P'}, {1, 'N'}, {2, 'B'}, {3, 'R'}, {4,  'Q'}, {5,  'K'},
         {6, 'p'}, {7, 'n'}, {8, 'b'}, {9, 'r'}, {10, 'q'}, {11, 'k'}
       };
+
+      // An array of pointers to all of the piece bitboards
+      i64* All_Bitboards[12] = {
+        &Board.White_Pawn,   &Board.Black_Pawn,   &Board.White_Knight, &Board.Black_Knight,
+        &Board.White_Bishop, &Board.Black_Bishop, &Board.White_Rook,   &Board.Black_Rook,
+        &Board.White_Queen,  &Board.Black_Queen,  &Board.White_King,   &Board.Black_King
+      };
+
       int rank = 8, count;
       cout << rank << " | ";
 
@@ -452,16 +426,12 @@ class Game
       for (i64 sq = a8; sq != h1; sq--)
       {
         // If the square is set print the relevant character
-        if (Get_Bit(Board.All_Pieces, sq)){
-
-          // NOTE: We must iterate like this otherwise we get undefined behaviour e.g. (Random values for these bitboards)
+        if (Get_Bit(Board.All_Pieces, sq))
+        {
           count = 0;
-          for (i64 B : {
-            Board.White_Pawn, Board.White_Knight, Board.White_Bishop, Board.White_Rook, Board.White_Queen, Board.White_King,
-            Board.Black_Pawn, Board.Black_Knight, Board.Black_Bishop, Board.Black_Rook, Board.Black_Queen, Board.Black_King
-            })
+          for (i64* Board : All_Bitboards)
           {
-            if (Get_Bit(B, sq)){cout << Index_To_Char[count] << " "; break;}
+            if (Get_Bit(*Board, sq)) {cout << Index_To_Char[count] << " "; break;}
             ++count;
           }
         }
@@ -472,14 +442,12 @@ class Game
       }
 
       // Print the last square
-      if (Get_Bit(Board.All_Pieces, h1)){
+      if (Get_Bit(Board.All_Pieces, h1))
+      {
         count = 0;
-        for (i64 B : {
-          Board.White_Pawn, Board.White_Knight, Board.White_Bishop, Board.White_Rook, Board.White_Queen, Board.White_King,
-          Board.Black_Pawn, Board.Black_Knight, Board.Black_Bishop, Board.Black_Rook, Board.Black_Queen, Board.Black_King
-          })
+        for (i64* Board : All_Bitboards)
         {
-          if (Get_Bit(B, h1)){cout << Index_To_Char[count] << " \n"; break;}
+          if (Get_Bit(*Board, h1)) {cout << Index_To_Char[count] << " \n"; break;}
           ++count;
         }
       }
@@ -534,8 +502,10 @@ class Game
           // Then the only moves that this piece may make is along this ray or to capture the attacker
           Pins[Pinnee] = Set_Bit(Create_Ray(Pinnee, Attacker), Get_Index(Attacker)); 
         }
+
         Pinners = Remove_Bit(Pinners, Get_Index(Attacker));
       }
+
       return Pins;
     }
 
@@ -553,7 +523,8 @@ class Game
       if (Status.Last_Move.From == NONE) return;
 
       // If the last move was not a pawn then we can set the en-passant square to all bits
-      if (Status.Last_Move.Piece != PAWN){
+      if (Status.Last_Move.Piece != PAWN)
+      {
         Status.En_Passant = AllBits;
         return;
       }

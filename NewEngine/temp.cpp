@@ -10,10 +10,10 @@ int main()
   //Game cp = Start;
   
   Start.Show_Board();
-  //Start.Make_Move(Moves[0]);
-  // Start.Show_Board();
+  Start.Make_Move(Moves[0]);
+  Start.Show_Board();
   // cp.Show_Board();
-  
+            
   cout << Moves.size() << "\n";  
 
   return 0  ;
