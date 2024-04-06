@@ -15,5 +15,52 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+#include "MoveGen.hpp"
+#include <iostream>
+using namespace std;
 
-#include "Search.hpp"
+// The perft function aims to test the performance and correctness 
+// of the move generation algorithm. The function will run a search
+// up to a certain depth on the game's legal moves and print the 
+// number of moves explored (nodes). In a perft function we only 
+// consider the leaf nodes, that is only the moves that are found
+// at the given depth to search.
+i64 Perft(Game game, int depth)
+{
+  // Return the number of leaf nodes
+  vector<Move> Moves = Generate_Moves(game);
+  if (depth == 1) return Moves.size();
+  
+  
+  else
+  {
+    Game copy = game; // A copy of the game to restore state
+    i64 nodes = 0;
+     
+    if (Moves.size() == 0) return 0;
+    for (Move move : Moves)
+    { 
+      game.Make_Move(move);
+      nodes += Perft(game, depth - 1);
+      game   = copy; // Restore state
+    }
+
+    return nodes;
+  }
+}
+
+int main()
+{
+  string fen;
+  cout << "Enter the fen of the game you would like to perft test: \n";
+  getline(cin, fen);
+
+  int depth;
+  cout << "Enter the depth you would like to search to: \n";
+  cin  >> depth;
+
+  Game game(fen);
+  cout << "\nNodes: " << Perft(game, depth) << "\n";
+
+  return 0;
+}

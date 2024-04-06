@@ -388,3 +388,21 @@ vector<Move> Generate_Moves(Game CurrGame)
 
   return Moves;
 }
+
+// Win, loss and draw verifying functions
+// ---------------------------------------
+// A function to check if the game is over
+int Check_Win(Game game)
+{
+  // If there are no moves and the king is in check then the game is over
+  if (game.Status.Side == WHITE)
+  { 
+    if (Generate_Moves(game).size() == 0 && game.Status.White_Check != AllBits) return 1;
+  }
+  else
+  {
+    if (Generate_Moves(game).size() == 0 && game.Status.Black_Check != AllBits) return -1;
+  }
+
+  return 2; // Otherwise the game is still going
+}

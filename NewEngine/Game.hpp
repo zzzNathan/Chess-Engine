@@ -158,7 +158,7 @@ struct Board_Status
 // Game utility functions
 // -----------------------
 // The following is a collection of functions that are needed in the game class
-//
+
 // Function to check if a square index is attacked by a given colour
 bool Is_Square_Attacked(Board_Status Boards, i64 Square, bool Colour)
 {
@@ -304,7 +304,7 @@ class Game
       Status.Init_Game_Status(side, en_passant, ply, fullmove, castle_rights, status);
       Update(); // Ensure that all pins and check masks have been found
     }
-    
+
     // Function to play a move onto the board
     void Make_Move(Move M)
     {
@@ -611,7 +611,7 @@ class Game
         Status.Castle_Rights &= ~(B_Queenside | B_Kingside); // We remove all rights after castling
       }
     }
-
+    
     // A function to update the game's status, this includes updating the en passant square
     // getting new pins if any, and getting new checks if any were found and more
     void Update()
@@ -623,4 +623,5 @@ class Game
       Get_Castle_Rights();
     }
 };
+
 #endif

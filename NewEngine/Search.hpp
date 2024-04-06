@@ -29,7 +29,7 @@ double Search(Game game, int depth)
   if (depth == 0) return Evaluate(game); // Base case
   
   double best = -INF;
-  Game copy = game; // A copy of the game to restore state
+  Game copy   = game; // A copy of the game to restore state
 
   // Loop over all legal moves
   for (Move m : Generate_Moves(game))
