@@ -203,7 +203,8 @@ const string TRICKY_POSITION = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2
 // ----------------------
 // Implementation of hyperbola quintessence for sliding move generation
 // https://www.chessprogramming.org/Hyperbola_Quintessence
-i64 Sliding_Moves(i64 Location, i64 Blockers, i64 Mask){
+i64 Sliding_Moves(i64 Location, i64 Blockers, i64 Mask)
+{
   i64 o, r;
   o  = Blockers & Mask;
   r  = Reverse_bits(o);
@@ -215,7 +216,8 @@ i64 Sliding_Moves(i64 Location, i64 Blockers, i64 Mask){
   return o;
 }
 
-i64 Compute_Rook_attacks(i64 Location, i64 Blockers){
+i64 Compute_Rook_attacks(i64 Location, i64 Blockers)
+{
   i64 SquareNum = Get_Index(Location);
   i64 Rank = (SquareNum / 8) + 1;
   i64 File = SquareNum % 8;
@@ -223,13 +225,15 @@ i64 Compute_Rook_attacks(i64 Location, i64 Blockers){
           Sliding_Moves(Location, Blockers, FILES[File]) );
 }
 
-i64 Compute_Bishop_attacks(i64 Location, i64 Blockers){
+i64 Compute_Bishop_attacks(i64 Location, i64 Blockers)
+{
   i64 SquareNum = Get_Index(Location);
   return (Sliding_Moves(Location, Blockers, DIAGS[SquareNum]) |
           Sliding_Moves(Location, Blockers, ANTI_DIAGS[SquareNum]) );
 }
 
-i64 Compute_Queen_attacks(i64 Location, i64 Blockers){
+i64 Compute_Queen_attacks(i64 Location, i64 Blockers)
+{
   i64 SquareNum = Get_Index(Location);
   i64 Rank = (SquareNum / 8) + 1;
   i64 File = SquareNum % 8;

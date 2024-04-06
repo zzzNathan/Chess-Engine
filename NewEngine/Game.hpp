@@ -15,6 +15,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+#ifndef GAME_HPP
+#define GAME_HPP
 #include <sstream>
 #include <cstdlib>
 #include <ctype.h>
@@ -650,3 +652,4 @@ class Game
       Get_Castle_Rights();
     }
 };
+#endif

@@ -39,7 +39,8 @@ bool Is_Eighth_Rank(i64 Bitboard){
 }
 
 // Function to print a visualisation of a bitboard
-void Show_Bitboard(i64 Bitboard){
+void Show_Bitboard(i64 Bitboard)
+{
   short rank = 8;
   cout << rank << " | ";
 

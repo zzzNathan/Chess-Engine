@@ -21,7 +21,8 @@ typedef unsigned long long i64;
 
 // Function to reverse the binary representation of a 64 bit integer 
 // CREDITS: https://chess.stackexchange.com/questions/37309/move-generation-for-sliding-pieces-and-hyperbola-quintessence
-i64 Reverse_bits(i64 BB){
+i64 Reverse_bits(i64 BB)
+{
   BB = ((BB & 0x5555555555555555) << 1) | ((BB >> 1) & 0x5555555555555555);
   BB = ((BB & 0x3333333333333333) << 2) | ((BB >> 2) & 0x3333333333333333);
   BB = ((BB & 0x0f0f0f0f0f0f0f0f) << 4) | ((BB >> 4) & 0x0f0f0f0f0f0f0f0f);

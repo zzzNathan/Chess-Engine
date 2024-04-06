@@ -22,12 +22,14 @@ using namespace std;
 typedef unsigned long long i64;
 
 // A function to generate possible promotion pawn moves for the side to play
-vector<Move> Get_Promo_Moves(Game CurrGame, i64 CurrPawn){
+vector<Move> Get_Promo_Moves(Game CurrGame, i64 CurrPawn)
+{
   vector<Move> Moves;
   
   // Non-capture promotions 
   i64 Above_1 = Shift_Up(CurrPawn, CurrGame.Status.Side);
-  if (!(Above_1 & CurrGame.Board.All_Pieces)){ // If there is an empty square above
+  if (!(Above_1 & CurrGame.Board.All_Pieces)) // If there is an empty square above
+  { 
     Moves.push_back(Move(CurrPawn, Above_1, PAWN, false, KNIGHT, false)); 
     Moves.push_back(Move(CurrPawn, Above_1, PAWN, false, BISHOP, false)); 
     Moves.push_back(Move(CurrPawn, Above_1, PAWN, false, ROOK,   false)); 
@@ -41,8 +43,8 @@ vector<Move> Get_Promo_Moves(Game CurrGame, i64 CurrPawn){
 
   // Loop over all capture promotions and add their moves to the vector
   i64 CurrCapture;
-  while (Capture_Promos){
-
+  while (Capture_Promos)
+  {
     CurrCapture = Get_LSB(Capture_Promos);
     
     Moves.push_back(Move(CurrPawn, CurrCapture, PAWN, true, KNIGHT, false));
@@ -56,28 +58,16 @@ vector<Move> Get_Promo_Moves(Game CurrGame, i64 CurrPawn){
   return Moves;
 }
 
-// A function to create a vector of moves from a move board
-vector<Move> Create_Moves(i64 MoveBoard, i64 From, i64 Piece, bool Capture){
-  vector<Move> Moves;
-
-  i64 To; // The square the piece is moving to
-  while (MoveBoard)
-  {
-    To = Get_LSB(MoveBoard);
-    Moves.push_back(Move(From, To, Piece, Capture, NO_PROMO, false));
-    MoveBoard ^= To; // Remove the bit from the move board
-  }
-  return Moves;
-}
-
 // A function to create a vector of moves from a move board when we aren't sure 
 // whether this is move is a capture or not
-vector<Move> Build_Moves(Game CurrGame, i64 MoveBoard, i64 From, i64 Piece){
+vector<Move> Build_Moves(Game CurrGame, i64 MoveBoard, i64 From, i64 Piece)
+{
   vector<Move> Moves;
   
   i64 EnemyPieces = (CurrGame.Status.Side == WHITE ? CurrGame.Board.Black_All : CurrGame.Board.White_All);
   i64 To; // The square the piece is moving to
   bool Capture;
+
   while (MoveBoard)
   {
     To = Get_LSB(MoveBoard);
@@ -91,7 +81,8 @@ vector<Move> Build_Moves(Game CurrGame, i64 MoveBoard, i64 From, i64 Piece){
 
 // Verify that none of the moves passed in came from pinned pieces that move
 // off the attacking ray 
-vector<Move> Verify_Moves_Pins(Game CurrGame, vector<Move> Moves){
+vector<Move> Verify_Moves_Pins(Game CurrGame, vector<Move> Moves)
+{
   vector<Move> Valid_Moves;
   
   // Loop over all moves ..
@@ -99,8 +90,8 @@ vector<Move> Verify_Moves_Pins(Game CurrGame, vector<Move> Moves){
   {
     // .. and if the piece is in the pins map then check that
     // it moves through the pin mask, if not then the move isn't legal 
-    if (CurrGame.Status.Pins.find(m.From) != CurrGame.Status.Pins.end()){
-
+    if (CurrGame.Status.Pins.find(m.From) != CurrGame.Status.Pins.end())
+    {
       if (m.To & CurrGame.Status.Pins[m.From]) Valid_Moves.push_back(m);
     }
     // If the piece isn't pinned then the move is legal
@@ -111,7 +102,8 @@ vector<Move> Verify_Moves_Pins(Game CurrGame, vector<Move> Moves){
 }
 
 // Verify that none of the moves passed in fail to block check (if there is a check)
-vector<Move> Verify_Moves_Check(Game CurrGame, vector<Move> Moves){
+vector<Move> Verify_Moves_Check(Game CurrGame, vector<Move> Moves)
+{
   vector<Move> Valid_Moves;
   
   i64 Check_Mask = (CurrGame.Status.Side == WHITE ? CurrGame.Status.White_Check : CurrGame.Status.Black_Check);
@@ -127,7 +119,8 @@ vector<Move> Verify_Moves_Check(Game CurrGame, vector<Move> Moves){
 }
 
 // A function to generate possible pawn moves for the side to play
-vector<Move> Generate_Pawn_Moves(Game CurrGame){
+vector<Move> Generate_Pawn_Moves(Game CurrGame)
+{
   vector<Move> Moves;
   
   // Get correct pawn bitboard and relevant tables
@@ -146,11 +139,12 @@ vector<Move> Generate_Pawn_Moves(Game CurrGame){
 
     // Capture pawn moves
     // -------------------
-    Moves_To_Add = Create_Moves(AttackTable[Get_Index(CurrPawn)] & EnemyPieces, CurrPawn, PAWN, true); 
+    Moves_To_Add = Build_Moves(CurrGame, AttackTable[Get_Index(CurrPawn)] & EnemyPieces, CurrPawn, PAWN); 
     Moves.insert(Moves.end(), Moves_To_Add.begin(), Moves_To_Add.end());
     
     // If an en-passant square exists and we are able to attack it then add this move
-    if ((CurrGame.Status.En_Passant != AllBits) && (AttackTable[Get_Index(CurrPawn)] & CurrGame.Status.En_Passant)){
+    if ((CurrGame.Status.En_Passant != AllBits) && (AttackTable[Get_Index(CurrPawn)] & CurrGame.Status.En_Passant))
+    {
       Moves.push_back(Move(CurrPawn, CurrGame.Status.En_Passant, PAWN, true, NO_PROMO, true));
     }
 
@@ -159,7 +153,8 @@ vector<Move> Generate_Pawn_Moves(Game CurrGame){
     // Handle promotion moves
     i64 PromoRank = (CurrGame.Status.Side == WHITE ? Rank7 : Rank2);
 
-    if (CurrPawn & PromoRank){
+    if (CurrPawn & PromoRank)
+    {
       vector<Move> PromoMoves = Get_Promo_Moves(CurrGame, CurrPawn);
       Moves.insert(Moves.end(), PromoMoves.begin(), PromoMoves.end());
       PawnBB ^= CurrPawn; // Remove the pawn from the bitboard
@@ -175,7 +170,7 @@ vector<Move> Generate_Pawn_Moves(Game CurrGame){
     if (Above_2 & CurrGame.Board.All_Pieces) MoveBoard = Remove_Bit(MoveBoard, Get_Index(Above_2));
     
     // Add the move
-    Moves_To_Add = Create_Moves(MoveBoard, CurrPawn, PAWN, false);
+    Moves_To_Add = Build_Moves(CurrGame, MoveBoard, CurrPawn, PAWN);
     Moves.insert(Moves.end(), Moves_To_Add.begin(), Moves_To_Add.end());
 
     PawnBB ^= CurrPawn; // Remove the pawn from the bitboard
@@ -187,7 +182,8 @@ vector<Move> Generate_Pawn_Moves(Game CurrGame){
 }
 
 // A function to generate possible knight moves for the side to play
-vector<Move> Generate_Knight_Moves(Game CurrGame){
+vector<Move> Generate_Knight_Moves(Game CurrGame)
+{
   vector<Move> Moves;
   // Get the correct knight bitboard and relevant attack tables
   i64 KnightBB = (CurrGame.Status.Side == WHITE ? CurrGame.Board.White_Knight : CurrGame.Board.Black_Knight);
@@ -213,7 +209,8 @@ vector<Move> Generate_Knight_Moves(Game CurrGame){
   return Moves;
 }
 
-vector<Move> Generate_Bishop_Moves(Game CurrGame){
+vector<Move> Generate_Bishop_Moves(Game CurrGame)
+{
   vector<Move> Moves;
   // Get the correct bishop bitboard and relevant attack tables
   i64 BishopBB = (CurrGame.Status.Side == WHITE ? CurrGame.Board.White_Bishop : CurrGame.Board.Black_Bishop);
@@ -240,7 +237,8 @@ vector<Move> Generate_Bishop_Moves(Game CurrGame){
   return Moves;
 }
 
-vector<Move> Generate_Rook_Moves(Game CurrGame){
+vector<Move> Generate_Rook_Moves(Game CurrGame)
+{
   vector<Move> Moves;
   // Get the correct rook bitboard and relevant attack tables
   i64 RookBB = (CurrGame.Status.Side == WHITE ? CurrGame.Board.White_Rook : CurrGame.Board.Black_Rook);
@@ -268,7 +266,8 @@ vector<Move> Generate_Rook_Moves(Game CurrGame){
   return Moves;
 }
 
-vector<Move> Generate_Queen_Moves(Game CurrGame){
+vector<Move> Generate_Queen_Moves(Game CurrGame)
+{
   vector<Move> Moves;
   // Get the correct queen bitboard and relevant attack tables
   i64 QueenBB = (CurrGame.Status.Side == WHITE ? CurrGame.Board.White_Queen : CurrGame.Board.Black_Queen);
@@ -296,7 +295,8 @@ vector<Move> Generate_Queen_Moves(Game CurrGame){
   return Moves;  
 }
 
-vector<Move> Generate_King_Moves(Game CurrGame){
+vector<Move> Generate_King_Moves(Game CurrGame)
+{
   vector<Move> Moves;
 
   // Get the correct king bitboard
@@ -339,22 +339,24 @@ vector<Move> Generate_King_Moves(Game CurrGame){
   
   // We need to make sure that the king doesn't move through check
   // we do this by making sure that the squares between the king and the rook are not under attack
-  if (Kingside_Rights){
+  if (Kingside_Rights)
+  {
     i64 Right_1 = (CurrGame.Status.Side == WHITE ? SquareF1 : SquareF8);
     i64 Right_2 = (CurrGame.Status.Side == WHITE ? SquareG1 : SquareG8);
     if ((!(Is_Square_Attacked(CurrGame.Board, Right_1, EnemyCol))) && 
-        (!(Is_Square_Attacked(CurrGame.Board, Right_2, EnemyCol)))){
-
+        (!(Is_Square_Attacked(CurrGame.Board, Right_2, EnemyCol))))
+    {
       Moves.push_back(Move(KingBB, Right_2, KING, false, NO_PROMO, false));
     }
   }
 
-  if (Queenside_Rights){
+  if (Queenside_Rights)
+  {
     i64 Left_1 = (CurrGame.Status.Side == WHITE ? SquareD1 : SquareD8);
     i64 Left_2 = (CurrGame.Status.Side == WHITE ? SquareC1 : SquareC8);
     if ((!(Is_Square_Attacked(CurrGame.Board, Left_1, EnemyCol))) && 
-        (!(Is_Square_Attacked(CurrGame.Board, Left_2, EnemyCol)))){
-
+        (!(Is_Square_Attacked(CurrGame.Board, Left_2, EnemyCol))))
+    {
       Moves.push_back(Move(KingBB, Left_2, KING, false, NO_PROMO, false));
     }
   }
@@ -364,7 +366,8 @@ vector<Move> Generate_King_Moves(Game CurrGame){
 }
 
 // A function to generate all possible moves
-vector<Move> Generate_Moves(Game CurrGame){
+vector<Move> Generate_Moves(Game CurrGame)
+{
   vector<Move> Moves;
   
   // Generate all moves
