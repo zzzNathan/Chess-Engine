@@ -28,11 +28,10 @@
 // ---------------------------------------------
 // A high phase denotes that we are nearing the endgame
 // whilst a low phase denotes that we are still in the 
-// opening/middlegame phase. In this engine we use 
-// Fruit's definition of phase. https://www.fruitchess.com/
+// opening/middlegame phase.  
 double Get_Game_Phase(Game game)
 {
-
+  return 0.0;
 }
 
 double Evaluate(Game game)
