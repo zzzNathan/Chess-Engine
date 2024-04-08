@@ -107,7 +107,7 @@ vector<Move> Verify_Moves_Check(Game CurrGame, vector<Move> Moves)
   vector<Move> Valid_Moves;
   
   i64 Check_Mask = (CurrGame.Status.Side == WHITE ? CurrGame.Status.White_Check : CurrGame.Status.Black_Check);
-  if (Check_Mask == AllBits) return Moves; // Nothing to do if there is no check
+  if (Check_Mask == NONE) return Moves; // Nothing to do if there is no check
 
   // Loop over all moves and if they move within the check mask this is a legal move
   for (Move m : Moves)
@@ -143,7 +143,7 @@ vector<Move> Generate_Pawn_Moves(Game CurrGame)
     Moves.insert(Moves.end(), Moves_To_Add.begin(), Moves_To_Add.end());
     
     // If an en-passant square exists and we are able to attack it then add this move
-    if ((CurrGame.Status.En_Passant != AllBits) && (AttackTable[Get_Index(CurrPawn)] & CurrGame.Status.En_Passant))
+    if ((CurrGame.Status.En_Passant != NONE) && (AttackTable[Get_Index(CurrPawn)] & CurrGame.Status.En_Passant))
     {
       Moves.push_back(Move(CurrPawn, CurrGame.Status.En_Passant, PAWN, true, NO_PROMO, true));
     }
@@ -389,20 +389,19 @@ vector<Move> Generate_Moves(Game CurrGame)
   return Moves;
 }
 
-// Win, loss and draw verifying functions
-// ---------------------------------------
-// A function to check if the game is over
-int Check_Win(Game game)
+// | Win | Draw | Loss | Verification functions
+// ---------------------------------------------
+// Function to check whether any side has checkmated the other
+uint8_t Game::Check_Win()
 {
-  // If there are no moves and the king is in check then the game is over
-  if (game.Status.Side == WHITE)
-  { 
-    if (Generate_Moves(game).size() == 0 && game.Status.White_Check != AllBits) return 1;
-  }
-  else
+  // If there currently is a check and we have no legal moves we have check mate
+  if (Status.Side == WHITE)
   {
-    if (Generate_Moves(game).size() == 0 && game.Status.Black_Check != AllBits) return -1;
+    if (Status.White_Check != NONE && Generate_Moves(*this).size() == 0) return -1;
   }
-
-  return 2; // Otherwise the game is still going
-}
+  else 
+  {
+    if (Status.Black_Check != NONE && Generate_Moves(*this).size() == 0) return -1;
+  }
+  return 2; // Otherwise game is still in play
+} 

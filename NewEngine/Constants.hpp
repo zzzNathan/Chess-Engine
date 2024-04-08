@@ -168,7 +168,7 @@ const i64 QUEEN  = 4;
 const i64 KING   = 5;
 const i64 NO_PROMO = 0;
 
-// Null move indicator (see Game.h)
+// Null indicator (see Game.h)
 const i64 NONE = AllBits;
 
 // Mapping squares to their indexes
@@ -193,6 +193,23 @@ unordered_map<string, i64> Square_To_Index = {
  {"h6", h6}, {"g6", g6}, {"f6", f6}, {"e6", e6}, {"d6", d6}, {"c6", c6}, {"b6", b6}, {"a6", a6},
  {"h7", h7}, {"g7", g7}, {"f7", f7}, {"e7", e7}, {"d7", d7}, {"c7", c7}, {"b7", b7}, {"a7", a7},
  {"h8", h8}, {"g8", g8}, {"f8", f8}, {"e8", e8}, {"d8", d8}, {"c8", c8}, {"b8", b8}, {"a8", a8}
+};
+
+// Mapping square indexes to their names
+const string Index_To_Square[64] = {
+  "h1", "g1", "f1", "e1", "d1", "c1", "b1", "a1",
+  "h2", "g2", "f2", "e2", "d2", "c2", "b2", "a2",
+  "h3", "g3", "f3", "e3", "d3", "c3", "b3", "a3",
+  "h4", "g4", "f4", "e4", "d4", "c4", "b4", "a4",
+  "h5", "g5", "f5", "e5", "d5", "c5", "b5", "a5",
+  "h6", "g6", "f6", "e6", "d6", "c6", "b6", "a6",
+  "h7", "g7", "f7", "e7", "d7", "c7", "b7", "a7",
+  "h8", "g8", "f8", "e8", "d8", "c8", "b8", "a8"
+};
+
+// Mapping pieces to their UCI names
+const string Piece_To_Uci[5] = {
+  "", "n", "b", "r", "q"
 };
 
 // Chess fen strings

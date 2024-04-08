@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#include "Game.hpp"
+#include "MoveGen.hpp"
 
 // A function to get the 'phase' of a game
 // In chess there are 3 main phases of the game:
