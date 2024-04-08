@@ -16,6 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "Constants.hpp"
+#include "MoveUtils.hpp"
 #include <map>
 #include <utility>
 #include <iostream>
@@ -126,13 +127,13 @@ map<pair<i64, i64>, i64> Make_Ray_Map()
 i64 Create_Ray(i64 From, i64 To)
 {
   // Initialise the ray map
-  static map<pair<i64, i64>, i64> Ray_Map = Make_Ray_Map();
+  const static map<pair<i64, i64>, i64> Ray_Map = Make_Ray_Map();
 
   // Handle edge cases
   if (From == To || From == NoBits || To == NoBits) return 0;
 
   // Check if the ray is in the map
-  if (Ray_Map.find({From, To}) != Ray_Map.end()) return Ray_Map[{From, To}]; 
+  if (Ray_Map.find({From, To}) != Ray_Map.end()) return Ray_Map.at({From, To}); 
 
   return 0; // Otherwise return no ray
 }

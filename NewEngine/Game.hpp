@@ -20,7 +20,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <ctype.h>
-#include "Utils.hpp"
+#include "Utility/Utils.hpp"
 
 using namespace std;
 typedef unsigned long long i64;
@@ -80,7 +80,7 @@ struct Move
 //
 // - En_Passant: Location of the en passant square (will be set to AllBits if no en passant square)
 //
-// - Ply: Halfmove clock, increments after any player's move
+// - Ply: Halfmove clock, increments after any player's move reset after pawn moves or captures
 //
 // - Fullmove: Fullmove clock, increments after black's move starts at 1
 //
@@ -103,6 +103,8 @@ struct Move
 // - Black_Check: A mask containing the attack ray of any checks on the black king (will be set to AllBits if no checks)
 //
 // - Last_Move: The last move played onto the board
+//
+// - Previous_Positions: An array of previous (zobrist-hashed) board positions 
 struct Game_Status
 {
   // Attributes
@@ -116,6 +118,7 @@ struct Game_Status
   i64 White_Check = NONE; // We assume there is no check by default
   i64 Black_Check = NONE; // We assume there is no check by default
   Move Last_Move  = Move(NONE, NONE, NONE, false, NONE, false);
+
 
   // Constructor to initialise a game status
   void Init_Game_Status(bool Side_, i64 En_Passant_, i64 Ply_, i64 Fullmove_, uint8_t Castle_Rights_,
@@ -254,7 +257,8 @@ class Game
   public:
     Board_Status Board;
     Game_Status Status;
-    uint8_t Check_Win(); // Defined in MoveGen.hpp
+    uint8_t Check_Win();  // Defined in "WinDrawLoss.hpp"
+    uint8_t Check_Draw(); // Defined in "WinDrawLoss.hpp"
     
     // Constructor to initialise a game from a fen string
     Game(string Fen) 
@@ -296,7 +300,7 @@ class Game
       // Initialising game status variables
       // -----------------------------------
       bool side             = (Colour == "w");
-      i64 en_passant        = (En_Passant != "-" ? Square_To_Index[En_Passant] : NONE);
+      i64 en_passant        = (En_Passant != "-" ? Square_To_Index.at(En_Passant) : NONE);
       i64 ply               = stoi(Halfmove);
       i64 fullmove          = stoi(Fullmove);
       uint8_t castle_rights = 0;
@@ -314,10 +318,10 @@ class Game
     }
 
     // Function to play a move onto the board
-    void Make_Move(Move M)
+    void Make_Move(Move move)
     {
-      i64 From_Index = Get_Index(M.From);
-      i64 To_Index   = Get_Index(M.To);
+      i64 From_Index = Get_Index(move.From);
+      i64 To_Index   = Get_Index(move.To);
 
       // Map of piece codes to the pointers of their relevant bitboards (see the top of this file)
       i64* W_Piece_To_Bitboard[6] = { 
@@ -331,52 +335,52 @@ class Game
       };
       
       // We need to remove the bit of the moving piece's bitboard and replace it with the new location
-      if (Status.Side == WHITE && M.Promoted_Piece == NO_PROMO) // Promotions will be handled below
+      if (Status.Side == WHITE && move.Promoted_Piece == NO_PROMO) // Promotions will be handled below
       {
-        i64* board = W_Piece_To_Bitboard[M.Piece];
+        i64* board = W_Piece_To_Bitboard[move.Piece];
         *board = Remove_Bit(*board, From_Index);
         *board = Set_Bit(*board,    To_Index);
       }
       
-      else if (M.Promoted_Piece == NO_PROMO)
+      else if (move.Promoted_Piece == NO_PROMO)
       {
-        i64* board = B_Piece_To_Bitboard[M.Piece]; 
+        i64* board = B_Piece_To_Bitboard[move.Piece]; 
         *board = Remove_Bit(*board, From_Index);
         *board = Set_Bit(*board,    To_Index);
       }
 
       // We should remove the bit of any captured pieces
       // We will first handle en-passant captures
-      if (M.En_Passant)
+      if (move.En_Passant)
       { 
         // The pawn underneath the attacking pawn is captured
-        i64 Under_1_Index = Get_Index(Shift_Down(M.To, Status.Side));
+        i64 Under_1_Index = Get_Index(Shift_Down(move.To, Status.Side));
         if (Status.Side == WHITE) Board.Black_Pawn = Remove_Bit(Board.Black_Pawn, Under_1_Index);
         else                      Board.White_Pawn = Remove_Bit(Board.White_Pawn, Under_1_Index);
+        Status.Ply = 0; // Ply is reset after any capture
       }
 
-      else if (M.Capture)
+      else if (move.Capture)
       {
         // We need to find the piece that we are capturing
         if (Status.Side == WHITE)
         {
-          for (i64* Board : W_Piece_To_Bitboard)
-          {
+          for (i64* Board : W_Piece_To_Bitboard){
             if (Get_Bit(*Board, To_Index)) {*Board = Remove_Bit(*Board, To_Index); break;}
           }
         }
 
         else
         {
-          for (i64* Board : B_Piece_To_Bitboard) 
-          {
+          for (i64* Board : B_Piece_To_Bitboard){
             if (Get_Bit(*Board, To_Index)) {*Board = Remove_Bit(*Board, To_Index); break;}
           }
         }
+        Status.Ply = 0; // Ply is reset after any capture
       }
 
       // We need to handle promotion moves
-      if (M.Promoted_Piece != NO_PROMO)
+      if (move.Promoted_Piece != NO_PROMO)
       {
         if (Status.Side == WHITE)
         {
@@ -384,7 +388,7 @@ class Game
           Board.White_Pawn = Remove_Bit(Board.White_Pawn, From_Index);
 
           // Add the promoted piece
-          i64 *Promoted_Bitboard = W_Piece_To_Bitboard[M.Promoted_Piece];
+          i64 *Promoted_Bitboard = W_Piece_To_Bitboard[move.Promoted_Piece];
           *Promoted_Bitboard     = Set_Bit(*Promoted_Bitboard, To_Index);
         }
         else
@@ -393,10 +397,12 @@ class Game
           Board.Black_Pawn = Remove_Bit(Board.Black_Pawn, From_Index);
 
           // Add the promoted piece
-          i64 *Promoted_Bitboard = B_Piece_To_Bitboard[M.Promoted_Piece];
+          i64 *Promoted_Bitboard = B_Piece_To_Bitboard[move.Promoted_Piece];
           *Promoted_Bitboard     = Set_Bit(*Promoted_Bitboard, To_Index);
         }
       }
+
+      if (move.Piece == PAWN) Status.Ply = 0; // Reset ply after pawn move
 
       // Update occupancy bitboards
       Board.White_All  = (Board.White_Pawn | Board.White_Knight | Board.White_Bishop | 
@@ -406,7 +412,7 @@ class Game
                           Board.Black_Rook | Board.Black_Queen  | Board.Black_King);
 
       Board.All_Pieces = Board.White_All | Board.Black_All;
-      Status.Last_Move = M; // Update last move
+      Status.Last_Move = move; // Update last move
       Update();
       Status.Side = ~Status.Side; // Change side
     }
@@ -629,6 +635,7 @@ class Game
       Status.Pins.insert(Get_Pins(BLACK).begin(), Get_Pins(BLACK).end());
       Get_En_Passant();
       Get_Castle_Rights();
+      Status.Status = Check_Draw();
       Status.Status = Check_Win();
     }
 };

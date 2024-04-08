@@ -13,7 +13,7 @@ int main()
   Start.Make_Move(Moves[0]);
   Start.Show_Board();
   // cp.Show_Board();
-            
+  
   cout << Moves.size() << "\n";  
   cout << "hi"  <<"\n";
   cout << (int)Start.Check_Win() << "\n";
