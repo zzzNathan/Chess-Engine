@@ -1,6 +1,7 @@
 \documentclass{report}
 \usepackage{biblatex, fancyhdr, tcolorbox, xcolor, amsthm, xurl, xparse, enumitem}
 \usepackage{minted, hyperref, tikz, graphicx, amsmath, amssymb, amsfonts, forest}
+\usepackage{colortbl, tabularray, lmodern}
 \usepackage[T1]{fontenc}
 \usetikzlibrary{calc}
 \usepackage[a4paper, margin=1.2in]{geometry}
@@ -16,6 +17,7 @@
 \date{March 2 2024}
 \definecolor{lightgray}{gray}{0.93}
 \definecolor{darkgray}{gray}{0.77}
+\definecolor{niceblue}{RGB}{0, 71, 171}
 \graphicspath{{Images/}}
 \tcbset{
     frame code={},
@@ -31,6 +33,7 @@
     boxsep=5pt,
     arc=0pt,outer arc=0pt,
 }
+\newcommand{\altbf}[1]{{\fontfamily{lmss}\fontseries{sbc}\selectfont #1}}
 
 \begin{document}
 \maketitle

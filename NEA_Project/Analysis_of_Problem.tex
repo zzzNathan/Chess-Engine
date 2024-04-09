@@ -8,108 +8,74 @@
 % Describe and justify features of the problem that make it 
 % solvable by computational methods, explaining why it's 
 % amenable to a computational approach.
+\subsection*{Description of the problem}
+The current process of studying chess using an engine can 
+definitely be improved. Commonly used websites like
+\url{chess.com} have other good study features hidden behind
+a paywall. \footnote{\url{https://www.chess.com/membership}}
+Moreover there is no easy way to take notes on a certain 
+position on this website making note taking whilst you study 
+chess more undesirable to beginner level players.
+It is no secret that a chess engine is an invaluable tool 
+when studying chess. That being said the current de facto
+standard of chess engine programs "Stockfish" lacks ease 
+of use for users that aren't familiar with compiling \texttt{C++} 
+programs. This can also seem intimidating to some users who
+are used to applications with graphical user interfaces 
+seeing as stockfish is entirely terminal 
+based. \cite{stockfish} In order to connect to a user interface
+one must install another memory-hungry application, \textit{Surely}
+there should be an application that provides a graphical user
+interface and a chess-engine in one?
+
+\subsection*{Desired Solution}
 I aim to write a chess engine capable of beating the 
 average chess player at my school 9 times out of 10 for 
-one of my classmates John Arco, to learn more about 
-strategies in chess and to defeat the best chess players 
-in our school.\\
+one of my classmates John Arco, to help him to study
+chess strategies and tactical ideas effectively and to
+be able to defeat the best chess players in our school. \\
 
-The game of chess has skyrocketed in terms of popularity
-recently, so much so that half of my school now spend their
-break times playing each other on \url{chess.com}. Chess 
-is a strategy board game with the end goal being to checkmate
-the opponent's king. \cite{rules} This means that capture of 
-the opponent's king is inevitable upon the next move. The 
-game also involves \textit{no} elements of luck and the 
-outcome of the game is soley dependent on the actions of the
-player. Moreover, the game of chess is known to be very
-hard to master with many of the best chess
-\textit{Grandmasters} starting training from the
-ages of 7-8 \cite{Magnus}. The game of chess has an average
-of 35 moves \cite{branch} per position. This means that 
-if one wants to think three moves ahead of his opponent
-he must consider $42,875$ positions in total! This is
-simply not possible for a human, however for a computer
-this task is something that could be done in less than
-1 second. By leveraging the high computational power
-of modern computers, I aim to write a chess engine that
-is able to beat an average human chess player 9 times
-out of 10.\\
 
-Whilst chess prodigies and Grandmasters dedicate their entire
-lifes to improving their chess abilities, using high order 
-thinking processes, experience and strategical tactics to play
-the best move in a position we may simply use a "brute-force" 
-style of searching, in which we consider all legal moves from a 
-given position and simply choose the one that gives the most
-advantageous position even if our opponent plays the best 
-responses each time. Claude Shannon \cite{shan} identified 2 main
-categories of search algorithms. \cite{search} 
+The engine should also be familiar and easy to use. This
+means that it should not require any programming experience
+to install and use it, and it should also have a graphical 
+user interface that is intuitive and easy to use. The interface
+should allow for the user to drag and drop pieces onto the square 
+they choose.\\
 
-\begin{itemize}
-  \item{Type A - A brute-force search looking at every variation
-        to a given depth.}
-  \item{Type B - A selective search looking at important variations 
-        only.}
-\end{itemize}
 
-According to Shannon, this is model will fall into a
-type A search. Though type B searches look at less variations and 
-are therefore faster, I argue that type A searches are more sustainable 
-today with the speed of modern computers. This allows us to consider all 
-variations without having a massive performance hit to our program.\\
+The engine should perform at a rating of >1000 ELO. It 
+should also provide an analysis board where the evaluation
+of a position is given so the user can learn to find the moves
+that are optimal for a give position position. The application should
+also provide a way to simply take notes on a position on the
+board, to enrich the learning process.\\
 
-For each move that we consider, there is a number of 
-responses that our opponent can make, similarly for each of 
-\textit{those} moves we also have a number of possible 
-responses to consider. This gives us a \textit{search tree}
-in which each node is a move to consider and each of the 
-child nodes are possible responses to the played move. A 
-simple visualisation of this can be seen below.\\
 
-Consider the opening move from white, e4
-\footnote{Evaluations are from Stockfish 14 NNUE.}
+The engine should also play chess accurately. That means
+not making illegal moves and recognising when a player has
+won, drawn or lost the game.
 
 % Useful document on how to draw game trees with Tikz
 % https://www.sfu.ca/~haiyunc/notes/Game_Trees_with_TikZ.pdf
-\begin{center}
-  \begin{tikzpicture}[level 1/.style={sibling distance=4.5cm},level 2/.style={sibling distance=2cm}]
-  \tikzstyle{w}=[circle,draw,inner sep=8]
-  \tikzstyle{b}=[circle,draw,inner sep=8,fill=darkgray]
+%\begin{center}
+%  \begin{tikzpicture}[level 1/.style={sibling distance=4.5cm},level 2/.style={sibling distance=2cm}]
+%  \tikzstyle{w}=[circle,draw,inner sep=8]
+%  \tikzstyle{b}=[circle,draw,inner sep=8,fill=darkgray]
   
-  \node[w,label=above:{Eval: +0.1}]{\large e4}
-    child{node[b,label=above:{Eval: +0.2},yshift=-0.7cm]{\large e5}
-      child{node[w,label=above:{Eval: +0.2},yshift=-0.7cm]{Nf3}}
-      child{node[w,label=above:{Eval: +0.1},yshift=-0.7cm]{Nc3}}
-    }
-    child{node[b,label=above:{Eval: 0.0},yshift=-0.7cm]{\large e6}
-      child{node[w,label=above:{Eval: +0.4},yshift=-0.7cm]{\large d4}}
-      child{node[w,label=above:{Eval: +0.2},yshift=-0.7cm]{Nf3}}
-    };
-\end{tikzpicture}
-\end{center}
+%  \node[w,label=above:{Eval: +0.1}]{\large e4}
+%    child{node[b,label=above:{Eval: +0.2},yshift=-0.7cm]{\large e5}
+%      child{node[w,label=above:{Eval: +0.2},yshift=-0.7cm]{Nf3}}
+%      child{node[w,label=above:{Eval: +0.1},yshift=-0.7cm]{Nc3}}
+%    }
+%    child{node[b,label=above:{Eval: 0.0},yshift=-0.7cm]{\large e6}
+%      child{node[w,label=above:{Eval: +0.4},yshift=-0.7cm]{\large d4}}
+%      child{node[w,label=above:{Eval: +0.2},yshift=-0.7cm]{Nf3}}
+%    };
+%\end{tikzpicture}
+%\end{center}
 
-This is one possible search tree that we could look at. This
-tree is only considering 2 moves for white and black, 
-however in reality there is usually much more moves to 
-consider per position. To traverse this tree we would start
-at the e4 node at the top. We would then move to the e6 node
-because this gives the better evaluation for black (black 
-wants to minimise evaluation and white wants to maximise it).
-Then white will choose to play d4 in this position because
-it gives a higher evaluation $(0.4>0.2)$. Now even if black 
-plays the best move in the original starting position: e6 
-we know that we have an adequate response that will bring 
-evaluation in our favour! Namely we will respond with d4.
-
-The problem of traversing a tree with directed edges is one
-that has been heavily researched in computer science and is 
-a principal component in the programming of any chess engine.
-Moreover, the strategical nature of the game coupled 
-with the fact that it has a high branching factor makes this
-problem amenable to a computational approach.
-
-
+\newpage
 \section{Stakeholders}
 % https://www.nytimes.com/2022/06/17/crosswords/chess/chess-is-booming.html
 % Identify suitable stakeholders for the project and describe how will make
@@ -118,37 +84,29 @@ One of the students at my school who plays chess regularly is
 John Arco. John Arco is a 17 year old male with a passion for chess.
 John has a rating of roughly 1000 ELO but wishes 
 to improve to a higher rating and beat all of his 
-classmates. John is also very competitive and wishes to 
-\textit{guarentee} that none of his classmates can beat him.
-The use of a strong chess engine is one method to ensure
-that John Arco always beats his classmates and requires little
-to no effort on his part, all he has to do is replicate the 
-moves played by his opponent on the engine's board and he 
-will simply replicate the computer's moves. 
-\footnote{I do realise that this is considered cheating,
-however we intend to use this engine completely offline
-in unrated friendly games against close friends. 
-I do not advocate cheating in any way shape or form.}
-Moreover using a chess engine can also be highly educational as
-we may learn new ideas or moves from the engine that we may have
-never considered previously. Even Magnus Carlsen
-has openly said that he has learnt new ideas from chess engines.
-\cite{lex} This means the engine is to serve 2 purposes,
-the first is ensure that John Arco remains undefeated 
-against his classmates, and the second is to improve John Arco's
-chess ability by exposing him to new and unique tactics that 
-he wouldn't have thought of otherwise. The construction of 
-a strong chess engine will be able to solve both problems
-effectively, providing both educational benefits and 
-competitive benefits also. \par
+classmates. Not only does he want to test his strength against a 
+chess engine he also recognises that using a chess engine can also be highly 
+educational as we may learn new ideas or tactics from the engine that
+we may have never considered previously. Even the world's rank 1 chess
+player Magnus Carlsen has openly said that he has learnt new ideas
+from chess engines. \cite{lex} This means the engine is to aid
+the improvement of John Arco's chess ability by exposing him to 
+new and unique tactics that he wouldn't have thought of otherwise. 
+The construction of a strong chess engine program will be able to
+facilitate John's growth effectively, providing both educational benefits and 
+benefits to mental cognition skills also. \cite{cog} 
 
 The following is a transcript of an interview I
 conducted with my client John Arco on how he will make use of the
 engine and how it is appropiate to his needs. This will 
 help me to clearly understand the requirements and goals I
-should keep in mind when programming.\\
+should keep in mind when programming.
 
 \begin{tcolorbox}
+\textbf{\texttt {Date: Tue April 9th 2024}}\\
+\textbf{\texttt {Time: 10:30 UTC}}\\
+\makebox[2cm]{\textbf{Jonathan:}} Hi John thanks for doing this interview. \par
+\makebox[2cm]{\textbf{John:}} No worries \par 
 \makebox[2cm]{\textbf{Jonathan:}} Why are you looking for a chess engine?\par
 \makebox[2cm]{\textbf{John:}} I am looking to improve my
 chess rating to around 2000 ELO, and a chess engine would
@@ -169,8 +127,13 @@ that I played. \par
 appropiate to your needs? \par
 \makebox[2cm]{\textbf{John:}} This engine will allow me to 
 easily analyse my games from my laptop, and help me in 
-achieving my goal of chess mastery in the process.
+achieving my goal of chess mastery in the process. \par
+\makebox[2cm]{\textbf{Jonathan:}} Any other requirements for
+the engine? \par
+\makebox[2cm]{\textbf{John:}} It should be reliable and also 
+be easy to install since I don't do computer science. \par
 \end{tcolorbox}
+
 
 \subsection*{Analysis of interview}
 Based on the interview with my client I was able to get 
@@ -180,20 +143,90 @@ of >1000 ELO, is no simple task so it will be split into
 numerous sub-tasks that will aid me in designing the final 
 program. \\
 
-\textbf{\large Requirement list:}
+\textbf{\large Main requirement list:}
 \begin{itemize}
   \item Be easy to use
   \item Include a clean user interface
-  \item Play at a strength of <1000 ELO
+  \item Play at a strength of >1000 ELO
+  \item Be reliable and robust
+  \item Have an easy installation process
 
   \begin{itemize}
     \item{Generate legal moves with a consistent and fast
           algorithm}
     \item Evaluate positions with heuristical optimisations
-    \item{Search for moves with a suitable algorithm}
+    \item{Search for moves with a suitably fast algorithm}
   \end{itemize}
 
 \end{itemize}
+
+More potential stakeholders and their goals are listed below.
+\subsection*{Students from my school}
+\begin{tblr}{Q[h]X}
+  \altbf{Description:} & Avid chess players of varying skill 
+  levels.\\
+  \altbf{How will they use it?} & They may use it to test their
+  strength against the engine, or to review their games.\\
+\end{tblr}
+
+\vspace{0.3cm}
+\altbf{Why is it appropiate to their needs?}
+\begin{itemize}
+  \item They will be able to play games against the program
+  \item{They will be able to analyse their games with an 
+    analysis board}
+\end{itemize}
+
+\subsection*{Chess coaches}
+\begin{tblr}{Q[h]X}
+  \altbf{Description:} & Paid chess coaches and teachers that 
+  have significant experience in the game of chess.\\
+  \altbf{How will they use it?} & They may use it to challenge their
+  students and to provide analysis of their students games.\\
+\end{tblr}
+
+\vspace{0.3cm}
+\altbf{Why is it appropiate to their needs?}
+\begin{itemize}
+  \item{They will be able to take notes on positions to emphasise
+    teaching points to the student}
+  \item They will be able to observe as their student plays with the engine
+\end{itemize}
+
+I also conducted further interviews with other students
+from my school. The students I chose all have some
+background in chess at various skill levels. The following 
+is some of the features they suggested. \newpage
+
+\begin{center}
+  \begin{tblr}{
+    colspec = {XXXX},
+    hline{1} = {0.1em, niceblue}, hline{2-Z} = {niceblue},
+    row{1} = {lightgray},
+  }
+  Feature & Implementation & {How will the user interact
+  with\\ the feature?} & {How does this meet the\\
+  stakeholders needs?}\\
+  %a & b & c & d \\
+  Allow user to change the strength of the engine & {During 
+  move selection we will find a collection of ok moves,
+  we will then use a pseudo-random number generator to pick
+  one of these moves allowing us to play suboptimal 
+  moves on occasion} & {The user would have a number of ELO's
+  to choose from before starting a game with the engine. The
+  user would choose the ELO that is the most suitable for
+  their current level. This feature will allow the user
+  to get some better practise if the normal strength of the
+  engine is far beyond their current strength, it may also
+  be more motivating and encouraging to the user if they 
+  become demotivated or demoralised after playing the engine
+  at it's normal strength.} & {Client mentioned that they are
+  looking to improve their chess ability, whilst playin a 
+  much stronger opponent can make you better it's often
+  better to play someone just slightly stronger than your
+  current strength}\\
+  \end{tblr}
+\end{center}
 
 \section{Research the problem}
 The following subsections will act to be 
