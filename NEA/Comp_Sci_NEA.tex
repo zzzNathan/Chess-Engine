@@ -1,0 +1,49 @@
+\documentclass{report}
+\usepackage{biblatex, fancyhdr, tcolorbox, xcolor, amsthm, xurl, xparse, enumitem}
+\usepackage{minted, hyperref, tikz, graphicx, amsmath, amssymb, amsfonts, forest}
+\usepackage{colortbl, tabularray, lmodern}
+\usepackage[T1]{fontenc}
+\usetikzlibrary{calc}
+\usepackage[a4paper, margin=1.2in]{geometry}
+\renewcommand{\bibname}{References}
+\hypersetup{
+  colorlinks = true,
+  urlcolor   = blue,
+  linkcolor  = blue,
+}
+\addbibresource{Refs.bib}
+\author{Jonathan Kasongo}
+\title{\Huge{\textbf{Computer Science NEA - Chess Engine}}}
+\date{March 2 2024}
+\definecolor{lightgray}{gray}{0.93}
+\definecolor{darkgray}{gray}{0.77}
+\definecolor{niceblue}{RGB}{0, 71, 171}
+\graphicspath{{Images/}}
+\tcbset{
+    frame code={},
+    center title,
+    left=0pt,
+    right=0pt,
+    top=0pt,
+    bottom=0pt,
+    colback=lightgray,
+    colframe=white,
+    width=\dimexpr\textwidth\relax,
+    enlarge left by=0mm,
+    boxsep=5pt,
+    arc=0pt,outer arc=0pt,
+}
+\newcommand{\altbf}[1]{{\fontfamily{lmss}\fontseries{sbc}\selectfont #1}}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+\newpage
+
+\include{Analysis_of_Problem.tex}
+
+\listoffigures
+\printbibliography
+
+\end{document}
