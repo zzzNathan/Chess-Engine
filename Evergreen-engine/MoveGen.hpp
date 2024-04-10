@@ -181,23 +181,22 @@ vector<Move> Generate_Slider_Moves(Game CurrGame, i64 Piece)
 }
 
 // A function to ensure that the king doesn't move onto an attacked square
-i64 Verify_Moves_King(Game CurrGame, i64 MoveBoard)
+vector<Move> Verify_Moves_King(Game CurrGame, vector<Move> Moves)
 {
-  i64 MoveBoard_Copy = MoveBoard; i64 CurrMove;  
+  vector<Move> Valid_Moves;
 
-  // Loop over all moves and if this square is attacked then remove the bit 
-  while (MoveBoard_Copy)
+  // Loop over all moves and check if this square is attacked 
+  // If not then the move is legal
+  for (Move move : Moves)
   {
-    CurrMove = Get_LSB(MoveBoard_Copy);
-
-    if (Is_Square_Attacked(CurrGame.Board, Get_Index(CurrMove), !CurrGame.Status.Side)){
-      MoveBoard = Remove_Bit(MoveBoard, Get_Index(CurrMove)); 
+    // If we don't add the last optional arguement there will be cases
+    // where the king moves onto an attacked square whilst in check
+    if (!(Is_Square_Attacked(CurrGame.Board, Get_Index(move.To), !CurrGame.Status.Side, Get_Index(move.From)))){
+      Valid_Moves.push_back(move);
     }
-
-    MoveBoard_Copy ^= CurrMove; // Remove the current move from the move board
   }
 
-  return MoveBoard;
+  return Valid_Moves;
 }
 
 // A function to generate possible pawn moves for the side to play
@@ -327,23 +326,22 @@ vector<Move> Generate_King_Moves(Game CurrGame)
   // Normal moves
   // -------------
   i64 MoveBB = KING_MOVES[Get_Index(KingBB)] & (~FriendlyPieces); // Can't capture your own pieces
-  MoveBB     = Verify_Moves_King(CurrGame, MoveBB); // Can't move onto an attacked square
-  vector<Move> CurrMoves = Build_Moves(CurrGame, MoveBB, KingBB, KING);
 
+  vector<Move> CurrMoves = Build_Moves(CurrGame, MoveBB, KingBB, KING);
   Moves.insert(Moves.end(), CurrMoves.begin(), CurrMoves.end());
 
   // Castling moves
   // ---------------
   i64 Castle_Square = (CurrGame.Status.Side == WHITE ? SquareE1 : SquareE8);
   i64 Check_Mask    = (CurrGame.Status.Side == WHITE ? CurrGame.Status.White_Check : CurrGame.Status.Black_Check);
-
+  
   // If king isn't on the castling square or there is a check we may return early because castling will be illegal
-  if (!(KingBB & Castle_Square) || Check_Mask == AllBits)
-  { 
-    Moves = Verify_Moves_Check(CurrGame, Moves);
+  if ((!(KingBB & Castle_Square)) || (Check_Mask != AllBits))
+  {
+    Moves = Verify_Moves_King(CurrGame, Moves);
     return Moves;
   }
-  
+
   // Get relevant castling rights
   bool Kingside_Rights, Queenside_Rights;
   if (CurrGame.Status.Side == WHITE)
@@ -363,34 +361,37 @@ vector<Move> Generate_King_Moves(Game CurrGame)
   // we do this by making sure that the squares between the king and the rook are not under attack
   if (Kingside_Rights)
   {
-    i64 Right_1 = (CurrGame.Status.Side == WHITE ? SquareF1 : SquareF8);
-    i64 Right_2 = (CurrGame.Status.Side == WHITE ? SquareG1 : SquareG8);
+    i64 Right_1 = (CurrGame.Status.Side == WHITE ? f1 : f8);
+    i64 Right_2 = (CurrGame.Status.Side == WHITE ? g1 : g8);
     if ((!(Is_Square_Attacked(CurrGame.Board, Right_1, EnemyCol))) && 
         (!(Is_Square_Attacked(CurrGame.Board, Right_2, EnemyCol))))
     {
-      Moves.push_back(Move(KingBB, Right_2, KING, false, NO_PROMO, false));
+      Moves.push_back(Move(KingBB, Index_To_Bitboard(Right_2), KING, false, NO_PROMO, false));
     }
   }
 
   if (Queenside_Rights)
   {
-    i64 Left_1 = (CurrGame.Status.Side == WHITE ? SquareD1 : SquareD8);
-    i64 Left_2 = (CurrGame.Status.Side == WHITE ? SquareC1 : SquareC8);
+    i64 Left_1 = (CurrGame.Status.Side == WHITE ? d1 : d8);
+    i64 Left_2 = (CurrGame.Status.Side == WHITE ? c1 : c8);
     if ((!(Is_Square_Attacked(CurrGame.Board, Left_1, EnemyCol))) && 
         (!(Is_Square_Attacked(CurrGame.Board, Left_2, EnemyCol))))
     {
-      Moves.push_back(Move(KingBB, Left_2, KING, false, NO_PROMO, false));
+      Moves.push_back(Move(KingBB, Index_To_Bitboard(Left_2), KING, false, NO_PROMO, false));
     }
   }
 
   // Ensure that we have no illegal moves
-  Moves = Verify_Moves_Check(CurrGame, Moves);
+  Moves = Verify_Moves_King(CurrGame, Moves);
   return Moves;
 }
 
 // A function to generate all possible moves
 vector<Move> Generate_Moves(Game CurrGame)
 {
+  // If there is a double check then only the king may move
+  if (CurrGame.Status.Double_Check) return Generate_King_Moves(CurrGame);
+
   vector<Move> Moves;
   
   // Generate all moves

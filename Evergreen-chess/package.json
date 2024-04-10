@@ -1,0 +1,13 @@
+{
+  "name": "Evergreen-Chess",
+  "productName": "Evergreen chess",
+  "version": "1.0.0",
+  "description": "An application to study chess",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron --enable-features=UseOzonePlatform,WaylandWindowDecorations --ozone-platform-hint=auto ."
+  },
+  "keywords": [],
+  "author": "Jonathan Kasongo",
+  "license": "GPL-3.0-or-later"
+}

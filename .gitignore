@@ -4,9 +4,6 @@
 # Ignore optimisation files
 o
 
-# Ignore pyright configurations
-*.json
-
 # Ignores for all useless latex files 
 # Source:
 # https://github.com/github/gitignore/blob/main/TeX.gitignore
