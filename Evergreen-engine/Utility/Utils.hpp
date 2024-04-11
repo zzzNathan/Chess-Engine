@@ -39,6 +39,14 @@ bool Is_Eighth_Rank(i64 Bitboard){
   return (Bitboard & Rank8) == Rank8;
 }
 
+// This function will take in some character of an number
+// like '5' and return the number 5 as an integer.
+// When we do -'0' the character is implicitly converted
+// to it's integer ascii value. 
+inline int Char_To_Int(char n){
+  return n - '0';
+}
+
 // Function to print a visualisation of a bitboard
 void Show_Bitboard(i64 Bitboard)
 {
@@ -79,17 +87,22 @@ i64 Shift_Down(i64 Bitboard, bool Colour){
 map<pair<i64, i64>, i64> Make_Ray_Map()
 {
   map<pair<i64, i64>, i64> Ray_Map;
-  const static int Directions[8] = {1, -1, 7, -7, 8, -8, 9, -9}; // Directions we can travel in (see Constants.h - line 27)
+
+  // Directions we can travel in (see Constants.h - line 27)
+  const static int Directions[8] = {1, -1, 7, -7, 8, -8, 9, -9}; 
   
   // Lambda function to check whether or not we are able to move in this direction
   auto Can_Move = [](i64 From, int delta)
   {
     // Cant move right on the right edge of board  
-    if ((From % 8 == 0) && (delta == -1 || delta ==  7 || delta == -9)) return false;
+    if ((From % 8 == 0) && (delta == -1 || delta ==  7 || delta == -9)) return false; 
+
     // Cant move left on the left edge of board
     if ((From % 8 == 7) && (delta ==  1 || delta == -7 || delta ==  9)) return false;
+
     // Cant move up on the top edge of board
     if ((From >= 56 && From <= 63) && (delta ==  8 || delta ==  7 || delta ==  9)) return false;
+
     // Cant move down on the bottom edge of board
     if ((From >=  0 && From <=  7) && (delta == -8 || delta == -7 || delta == -9)) return false;
 
@@ -99,6 +112,7 @@ map<pair<i64, i64>, i64> Make_Ray_Map()
   // Loop over all squares
   i64 Curr_Sq, Ray;
   i64 Curr_Sq_BB, sq_BB;
+
   for (int sq = a8; sq >= h1; sq--)
   { 
     // Loop over all directions
@@ -126,12 +140,12 @@ map<pair<i64, i64>, i64> Make_Ray_Map()
 // Function to make a horizontal or diagonal ray from one square to another
 i64 Create_Ray(i64 From, i64 To)
 {
-  // Initialise the ray map
-  const static map<pair<i64, i64>, i64> Ray_Map = Make_Ray_Map();
-
   // Handle edge cases
   if (From == To || From == NoBits || To == NoBits) return 0;
 
+  // Initialise the ray map
+  const static map<pair<i64, i64>, i64> Ray_Map = Make_Ray_Map();
+  
   // Check if the ray is in the map
   if (Ray_Map.find({From, To}) != Ray_Map.end()) return Ray_Map.at({From, To}); 
 

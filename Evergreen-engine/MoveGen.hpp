@@ -189,8 +189,11 @@ vector<Move> Verify_Moves_King(Game CurrGame, vector<Move> Moves)
   // If not then the move is legal
   for (Move move : Moves)
   {
-    // If we don't add the last optional arguement there will be cases
-    // where the king moves onto an attacked square whilst in check
+    // If we don't add the last optional arguement there will be cases where the king moves onto an attacked
+    // square whilst in check, this occurs when a slider piece checks the king from behind such that the square 
+    // in front isn't directly attacked by any piece, however if the king moves here it is still a check. Here 
+    // is a position to visualise: 8/8/8/8/5k2/8/1K3R2/8 w - - 0 1. Notice how the f5 square isn't directly attacked
+    // by the black rook, but it is still illegal to move there.
     if (!(Is_Square_Attacked(CurrGame.Board, Get_Index(move.To), !CurrGame.Status.Side, Get_Index(move.From)))){
       Valid_Moves.push_back(move);
     }

@@ -150,9 +150,9 @@ const i64 SquareC1 = 0x20;
 const i64 SquareC8 = 0x2000000000000000;
 
 // Castling indicators (see Utils.h)
-const uint8_t W_Kingside = 0x1;
+const uint8_t W_Kingside  = 0x1;
 const uint8_t W_Queenside = 0x2;
-const uint8_t B_Kingside = 0x4;
+const uint8_t B_Kingside  = 0x4;
 const uint8_t B_Queenside = 0x8;
 
 // White and black indicators (see Game.h)

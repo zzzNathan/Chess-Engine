@@ -21,8 +21,6 @@ int main()
     cout << "\n" << "--------)" << "\n";
   }
   */ 
-  for (Move m : Moves)
-    if (m.Capture)  {Start.Make_Move(m);break;}
   Start.Show_Board();
 
  

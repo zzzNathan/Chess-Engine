@@ -46,9 +46,9 @@ inline i64 Perft(Game game, int depth)
   }
         
   else
-  {
+  {   
     Game copy = game; // A copy of the game to restore state
-    i64 nodes = 0;
+   i64 nodes = 0;
           
     if (Moves.size() == 0) return 0;
     for (Move move : Moves)
@@ -68,7 +68,7 @@ int main()
   fen = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
   //cout << "Enter the fen of the game you would like to perft test: \n";
   //getline(cin, fen);
-                    
+                     
   int depth;
   cout << "Enter the depth you would like to search to: \n";
   cin  >> depth;
