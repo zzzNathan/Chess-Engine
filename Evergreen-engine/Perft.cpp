@@ -1,5 +1,5 @@
 /*
-    Shallow-Thought: A didactic C++ chess engine 
+    Evergreen: A didactic C++ chess engine 
     Copyright (C) 2024  Jonathan Kasongo
 
     This program is free software: you can redistribute it and/or modify
@@ -36,21 +36,22 @@ inline i64 Perft(Game game, int depth)
   if (depth == 1)
   { 
     game.Show_Board();
+    Show_Bitboard(game.Board.Black_King);
     cout << game.Status.Side << "\n";
-    for (Move m : Moves)
+    for (Move m : Moves)    
     {
       cout << m.UCI() << "\n";
     }
     cout << Moves.size() << "\n";
     return Moves.size();
   }
-        
+          
   else
   {   
     Game copy = game; // A copy of the game to restore state
-   i64 nodes = 0;
+    i64 nodes = 0;
           
-    if (Moves.size() == 0) return 0;
+    if (Moves.size() == 0) return 0; 
     for (Move move : Moves)
     { 
       game.Make_Move(move);
@@ -65,8 +66,7 @@ inline i64 Perft(Game game, int depth)
 int main()
 {
   string fen = "n1n5/PPPk4/8/8/8/8/4Kppp/5N1N b - - 0 1";
-  fen = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
-  //cout << "Enter the fen of the game you would like to perft test: \n";
+  //cout <maps< "Enter the fen of the game you would like to perft test: \n";
   //getline(cin, fen);
                      
   int depth;

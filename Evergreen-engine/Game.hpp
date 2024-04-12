@@ -1,5 +1,5 @@
 /*
-    Shallow-Thought: A didactic C++ chess engine 
+    Evergreen: A didactic C++ chess engine 
     Copyright (C) 2024  Jonathan Kasongo
 
     This program is free software: you can redistribute it and/or modify
@@ -174,7 +174,7 @@ struct Board_Status
 // of the enemy colour exists on this square then, this square is attacked.
 // Better explanation can be found here:
 // https://www.chessprogramming.org/Square_Attacked_By#:~:text=determines%20whether%20a%20square%20is,generate%20all%20pseudo%20legal%20moves.
-bool Is_Square_Attacked(Board_Status Boards, i64 Square, bool Colour, i64 Remove_sq=NONE)
+bool Is_Square_Attacked(const Board_Status& Boards, const i64& Square, const bool& Colour, const i64& Remove_sq=NONE)
 {
   // Does a pawn attack this square?
   const array<i64, 64> Pawn_Attacks = (Colour == WHITE ? BLACK_PAWN_ATKS   : WHITE_PAWN_ATKS); 
@@ -214,7 +214,7 @@ class Game
     uint8_t Check_Draw(); // Defined in "WinDrawLoss.hpp"
     
     // Constructor to initialise a game from a fen string
-    Game(string Fen) 
+    Game(string& Fen) 
     {
       string Piece_Locations, Colour, Castle_Rights, En_Passant, Halfmove, Fullmove;
 
@@ -271,7 +271,7 @@ class Game
     }
 
     // Function to play a move onto the board
-    void Make_Move(Move move)
+    void Make_Move(Move& move)
     {
       if (Status.Side == BLACK) Status.Fullmove++; // Fullmove always increments after black's move
       Status.Ply++;                                // Increment ply counter after every move
@@ -308,22 +308,27 @@ class Game
         else                      Board.White_Pawn = Remove_Bit(Board.White_Pawn, Under_1_Index);
       }
       
+      // Loop over all bitboards and remove the bit of the captured piece
       else if (move.Capture)
       {
-        i64** Enemy_Boards = (Status.Side == WHITE ? B_Piece_To_Bitboard : W_Piece_To_Bitboard);
-        i64   Curr_Board;
-
-        // Loop over all enemy boards and remove the captured piece
-        for (int i=0; i<6; i++)
+        if (Status.Side == WHITE)
         {
-          Curr_Board = (*Enemy_Boards)[i];
-          if (Get_Bit(Curr_Board, To_Index)) {Curr_Board = Remove_Bit(Curr_Board, To_Index); break;}
+          for (i64* piece : B_Piece_To_Bitboard){
+            if (Get_Bit(*piece, To_Index)) { *piece = Remove_Bit(*piece, To_Index); break; }
+          }
+        }
+
+        else
+        {
+          for (i64* piece : W_Piece_To_Bitboard){
+            if (Get_Bit(*piece, To_Index)) { *piece = Remove_Bit(*piece, To_Index); break; }
+          }
         }
       }
 
       if (move.Promoted_Piece != NO_PROMO)
       {
-        i64 *Pawn_Board = (Status.Side == WHITE ? &Board.White_Pawn : &Board.Black_Pawn);
+        i64* Pawn_Board = (Status.Side == WHITE ? &Board.White_Pawn : &Board.Black_Pawn);
         
         // Remove the old pawn
         *Pawn_Board = Remove_Bit(*Pawn_Board, From_Index);
@@ -505,8 +510,7 @@ class Game
       else
       {
         Status.Double_Check = false;
-        if   (checks == 1) return mask;
-        else               return NONE; 
+        return (checks == 1 ? mask : NONE);
       }
     }
 

@@ -1,5 +1,5 @@
 /*
-    Shallow-Thought: A didactic C++ chess engine 
+    Evergreen: A didactic C++ chess engine 
     Copyright (C) 2024  Jonathan Kasongo
 
     This program is free software: you can redistribute it and/or modify

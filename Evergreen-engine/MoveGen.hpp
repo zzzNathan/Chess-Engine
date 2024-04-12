@@ -1,5 +1,5 @@
 /*
-    Shallow-Thought: A didactic C++ chess engine 
+    Evergreen: A didactic C++ chess engine 
     Copyright (C) 2024  Jonathan Kasongo
 
     This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ typedef unsigned long long i64;
 // ------------------------
 
 // A function to generate possible promotion pawn moves for the side to play
-vector<Move> Get_Promo_Moves(Game CurrGame, i64 CurrPawn)
+vector<Move> Get_Promo_Moves(const Game& CurrGame, i64& CurrPawn)
 {
   vector<Move> Moves;
   const static i64 Promo_Pieces[4] = {KNIGHT, BISHOP, ROOK, QUEEN};
@@ -69,11 +69,11 @@ vector<Move> Get_Promo_Moves(Game CurrGame, i64 CurrPawn)
 
 // A function to create a vector of moves from a move board when we aren't sure 
 // whether this is move is a capture or not
-vector<Move> Build_Moves(Game CurrGame, i64 MoveBoard, i64 From, i64 Piece)
+vector<Move> Build_Moves(const Game& CurrGame, i64 MoveBoard, const i64& From, const i64& Piece)
 {
   vector<Move> Moves;
   
-  const i64  EnemyPieces = (CurrGame.Status.Side == WHITE ? CurrGame.Board.Black_All : CurrGame.Board.White_All);
+  const i64 EnemyPieces = (CurrGame.Status.Side == WHITE ? CurrGame.Board.Black_All : CurrGame.Board.White_All);
   i64  To;
   bool Capture;
   
@@ -93,7 +93,7 @@ vector<Move> Build_Moves(Game CurrGame, i64 MoveBoard, i64 From, i64 Piece)
 
 // Verify that none of the moves passed in came from pinned pieces that move
 // off the attacking ray 
-vector<Move> Verify_Moves_Pins(Game CurrGame, vector<Move> Moves)
+vector<Move> Verify_Moves_Pins(const Game& CurrGame, vector<Move>& Moves)
 {
   vector<Move> Valid_Moves;
   
@@ -104,7 +104,7 @@ vector<Move> Verify_Moves_Pins(Game CurrGame, vector<Move> Moves)
     // it moves through the pin mask, if not then the move isn't legal 
     if (CurrGame.Status.Pins.find(move.From) != CurrGame.Status.Pins.end())
     {
-      if (move.To & CurrGame.Status.Pins[move.From]) Valid_Moves.push_back(move);
+      if (move.To & CurrGame.Status.Pins.at(move.From)) Valid_Moves.push_back(move);
     }
 
     // If the piece isn't pinned then the move is legal
@@ -115,7 +115,7 @@ vector<Move> Verify_Moves_Pins(Game CurrGame, vector<Move> Moves)
 }
 
 // Verify that none of the moves passed in fail to block check (if there is a check)
-vector<Move> Verify_Moves_Check(Game CurrGame, vector<Move> Moves)
+vector<Move> Verify_Moves_Check(const Game& CurrGame, vector<Move>& Moves)
 {
   i64 Check_Mask = (CurrGame.Status.Side == WHITE ? CurrGame.Status.White_Check : CurrGame.Status.Black_Check);
   if (Check_Mask == NONE) return Moves; // Nothing to do if there is no check
@@ -131,7 +131,7 @@ vector<Move> Verify_Moves_Check(Game CurrGame, vector<Move> Moves)
 }
 
 // A function to generate moves for slider pieces
-vector<Move> Generate_Slider_Moves(Game CurrGame, i64 Piece)
+vector<Move> Generate_Slider_Moves(const Game& CurrGame, i64 Piece)
 {
   vector<Move> Moves;
   
@@ -181,7 +181,7 @@ vector<Move> Generate_Slider_Moves(Game CurrGame, i64 Piece)
 }
 
 // A function to ensure that the king doesn't move onto an attacked square
-vector<Move> Verify_Moves_King(Game CurrGame, vector<Move> Moves)
+vector<Move> Verify_Moves_King(const Game& CurrGame, vector<Move>& Moves)
 {
   vector<Move> Valid_Moves;
 
@@ -203,7 +203,7 @@ vector<Move> Verify_Moves_King(Game CurrGame, vector<Move> Moves)
 }
 
 // A function to generate possible pawn moves for the side to play
-vector<Move> Generate_Pawn_Moves(Game CurrGame)
+vector<Move> Generate_Pawn_Moves(const Game& CurrGame)
 {
   vector<Move> Moves;
   
@@ -275,7 +275,7 @@ vector<Move> Generate_Pawn_Moves(Game CurrGame)
 }
 
 // A function to generate possible knight moves for the side to play
-vector<Move> Generate_Knight_Moves(Game CurrGame)
+vector<Move> Generate_Knight_Moves(const Game& CurrGame)
 {
   vector<Move> Moves;
 
@@ -305,26 +305,24 @@ vector<Move> Generate_Knight_Moves(Game CurrGame)
   return Moves;
 }
 
-vector<Move> Generate_Bishop_Moves(Game CurrGame){
+vector<Move> Generate_Bishop_Moves(const Game& CurrGame){
   return Generate_Slider_Moves(CurrGame, BISHOP);
 }
 
-vector<Move> Generate_Rook_Moves(Game CurrGame){
+vector<Move> Generate_Rook_Moves(const Game& CurrGame){
   return Generate_Slider_Moves(CurrGame, ROOK);
 }
 
-vector<Move> Generate_Queen_Moves(Game CurrGame){
+vector<Move> Generate_Queen_Moves(const Game& CurrGame){
   return Generate_Slider_Moves(CurrGame, QUEEN);
 }
 
-vector<Move> Generate_King_Moves(Game CurrGame)
+vector<Move> Generate_King_Moves(const Game& CurrGame)
 {
   vector<Move> Moves;
 
-  // Get the correct king bitboard
-  i64 KingBB = (CurrGame.Status.Side == WHITE ? CurrGame.Board.White_King : CurrGame.Board.Black_King);
-
-  i64 FriendlyPieces = (CurrGame.Status.Side == WHITE ? CurrGame.Board.White_All : CurrGame.Board.Black_All);
+  i64 KingBB         = (CurrGame.Status.Side == WHITE ? CurrGame.Board.White_King : CurrGame.Board.Black_King);
+  i64 FriendlyPieces = (CurrGame.Status.Side == WHITE ? CurrGame.Board.White_All  : CurrGame.Board.Black_All);
   
   // Normal moves
   // -------------
@@ -390,7 +388,7 @@ vector<Move> Generate_King_Moves(Game CurrGame)
 }
 
 // A function to generate all possible moves
-vector<Move> Generate_Moves(Game CurrGame)
+vector<Move> Generate_Moves(const Game& CurrGame)
 {
   // If there is a double check then only the king may move
   if (CurrGame.Status.Double_Check) return Generate_King_Moves(CurrGame);

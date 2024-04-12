@@ -1,5 +1,5 @@
 /*
-    Shallow-Thought: A didactic C++ chess engine 
+    Evergreen: A didactic C++ chess engine 
     Copyright (C) 2024  Jonathan Kasongo
 
     This program is free software: you can redistribute it and/or modify
@@ -23,32 +23,16 @@
 using namespace std;
 typedef unsigned long long i64;
 
-bool Is_First_Rank(i64 Bitboard){
-  return (Bitboard & Rank1) == Rank1;
-}
-
-bool Is_Second_Rank(i64 Bitboard){
-  return (Bitboard & Rank2) == Rank2;
-}
-
-bool Is_Seventh_Rank(i64 Bitboard){
-  return (Bitboard & Rank7) == Rank7;
-}
-
-bool Is_Eighth_Rank(i64 Bitboard){
-  return (Bitboard & Rank8) == Rank8;
-}
-
 // This function will take in some character of an number
 // like '5' and return the number 5 as an integer.
 // When we do -'0' the character is implicitly converted
 // to it's integer ascii value. 
-inline int Char_To_Int(char n){
+inline int Char_To_Int(const char& n){
   return n - '0';
 }
 
 // Function to print a visualisation of a bitboard
-void Show_Bitboard(i64 Bitboard)
+void Show_Bitboard(const i64& Bitboard)
 {
   short rank = 8;
   cout << rank << " | ";
@@ -73,12 +57,12 @@ void Show_Bitboard(i64 Bitboard)
 }
 
 // Shift a single bit bitboard up one
-i64 Shift_Up(i64 Bitboard, bool Colour){
+i64 Shift_Up(const i64& Bitboard, const bool& Colour){
   return Colour == WHITE ? (Bitboard << 8) : (Bitboard >> 8);
 }
 
 // Shift a single bit bitboard down one
-i64 Shift_Down(i64 Bitboard, bool Colour){
+i64 Shift_Down(const i64& Bitboard, const bool& Colour){
   return Colour == WHITE ? (Bitboard >> 8) : (Bitboard << 8);
 }
 
@@ -138,7 +122,7 @@ map<pair<i64, i64>, i64> Make_Ray_Map()
 }
 
 // Function to make a horizontal or diagonal ray from one square to another
-i64 Create_Ray(i64 From, i64 To)
+i64 Create_Ray(const i64& From, const i64& To)
 {
   // Handle edge cases
   if (From == To || From == NoBits || To == NoBits) return 0;
