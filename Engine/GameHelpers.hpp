@@ -49,9 +49,12 @@ uint8_t Game::Check_Draw()
 }
 
 // Function to get the piece on a given square, if the square is empty 
-// it will return "X".
+// it will return 'X'.
 char Game::Piece_On(const i64& Square)
-{
+{ 
+  // If we know there is not piece on the board may return early
+  if (Board.All_Pieces & Index_To_Bitboard(Square) == NoBits) return EMPTY_SQ;
+
   const i64* All_Boards[12] = {
     &Board.White_Pawn, &Board.White_Knight, &Board.White_Bishop,
     &Board.White_Rook, &Board.White_Queen,  &Board.White_King,
@@ -59,12 +62,8 @@ char Game::Piece_On(const i64& Square)
     &Board.Black_Rook, &Board.Black_Queen,  &Board.Black_King
   };
 
-  short i = 0;
-  for (const i64* Board : All_Boards)
-  {
-    if (Get_Bit(*Board, Square)) return  Index_To_Char.at(i);
-    i++;
-  }
+  for (int i = 0; i < 12; i++)
+    if (Get_Bit(*All_Boards[i], Square)) return Index_To_Char[i];
 
   return EMPTY_SQ;
 }
@@ -78,7 +77,7 @@ void Game::Show_Board()
   char piece;
 
   cout << "\n" << rank << " | ";
-
+  
   // Loop over all squares and print the piece on this square
   for (i64 sq = a8; sq != h1; sq--)
   {
@@ -92,17 +91,72 @@ void Game::Show_Board()
 
   // Print the last square
   if (Get_Bit(Board.All_Pieces, h1)) cout << Piece_On(h1) << " \n"; 
-  
-  else cout << ". \n";
+  else                               cout << ". \n";
 
   // Print letters
   cout << "    _______________\n";
   cout << "    a b c d e f g h\n\n";
 }
 
+// Function to get the FEN of the game used for debugging
 string Game::Get_Fen()
 {
-  return "";
+  string fen = "";
+  char   piece;
+  short  empty_count = 0; // How many empty squares have we encountered in a row
+  
+  // Piece placement data
+  // ---------------------
+  // Loop over all squares .. 
+  for (int sq = a8; sq >= h1; sq--)
+  {
+    piece = Piece_On(sq);
+
+    // If the square is empty increment the empty count
+    if (piece == EMPTY_SQ) empty_count++;
+
+    // Otherwise if the square is not empty then add the piece and reset the empty count
+    else
+    { 
+      if (empty_count > 0) fen += to_string(empty_count);
+      fen        += piece;
+      empty_count = 0;
+    }
+    
+    // If this is the end of a rank then add a slash
+    if (sq % 8 == 0)
+    {
+      if (empty_count > 0) fen += to_string(empty_count);
+      if (sq != h1)        fen += "/";
+      empty_count = 0;
+    }
+  }
+
+  // Active colour
+  // -------------_
+  fen += (Status.Side == WHITE ? " w " : " b ");
+
+  // Castling availability
+  // ----------------------
+  if (Status.Castle_Rights == No_Castle) fen += "-";
+  else
+  {
+    if (Status.Castle_Rights & W_Kingside)  fen += "K";
+    if (Status.Castle_Rights & W_Queenside) fen += "Q";
+    if (Status.Castle_Rights & B_Kingside)  fen += "k";
+    if (Status.Castle_Rights & B_Queenside) fen += "q";
+  }
+
+  // En passant square
+  // ------------------
+  if (Status.En_Passant == NONE) fen += " - ";
+  else                           fen += " " + Index_To_Square[Get_Index(Status.En_Passant)] + " ";
+
+  // Halfmove and fullmove
+  // ----------------------
+  fen += to_string(Status.Ply) + " " + to_string(Status.Fullmove);
+  
+  return fen;
 }
 
 // Function to check if a square index is attacked by a given colour
@@ -134,13 +188,15 @@ bool Game::Is_Square_Attacked(const i64& Square, const bool& Colour, const i64& 
   i64 Enemy_BishopQueen = (Colour == WHITE ? Board.White_Bishop | Board.White_Queen : 
                                              Board.Black_Bishop | Board.Black_Queen);
 
-  if (Compute_Bishop_attacks(Index_To_Bitboard(Square), Occupancy) & Enemy_BishopQueen) return true;
+  if (Compute_Bishop_attacks(Index_To_Bitboard(Square), Occupancy) & Enemy_BishopQueen) 
+    return true;
 
   // Does a rook or a queen attack this square?
   i64 Enemy_RookQueen   = (Colour == WHITE ? Board.White_Rook | Board.White_Queen :
                                              Board.Black_Rook | Board.Black_Queen);
 
-  if (Compute_Rook_attacks(Index_To_Bitboard(Square), Occupancy) & Enemy_RookQueen) return true;
+  if (Compute_Rook_attacks(Index_To_Bitboard(Square), Occupancy) & Enemy_RookQueen) 
+    return true;
 
   return false; // If none of the above are true then the square is not attacked
 }

@@ -22,8 +22,7 @@ int main()
   }
   */ 
   Start.Show_Board();
-  cout << Start.Piece_On(e1) << "\n";
-
+  cout << Start.Get_Fen() << "\n";  
  
   // cp.Show_Board();
   

@@ -189,7 +189,6 @@ class Game
     string  Get_Fen();
     char    Piece_On(const i64& Square);
 
-
     // Constructor to initialise a game from a fen string
     Game(string& Fen) 
     {

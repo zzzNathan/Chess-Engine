@@ -28,22 +28,18 @@ using namespace std;
 //
 // Good resource:
 // https://chess.stackexchange.com/questions/22735/how-to-debug-move-generation-function
-map<string, int> cnt;
 inline i64 Perft(Game game, int depth)
 {
-  // Return the number of leaf nodes
   vector<Move> Moves = Generate_Moves(game);
   if (depth == 1)
   { 
-    game.Show_Board();
-    cout << game.Status.Side << "\n";
-    for (Move m : Moves){
-      cout << m.UCI() << "\n";
-    }
-    cout << Moves.size() << "\n";
+    cout << game.Get_Fen() << "\n";
+    cout << Moves.size()   << "\n";
+    for (Move m : Moves) cout << m.UCI() << "\n";
+    
     return Moves.size();
   }
-          
+
   else
   {   
     Game copy = game; // A copy of the game to restore state
@@ -64,10 +60,11 @@ inline i64 Perft(Game game, int depth)
 // WARNING: This function is not robust and potentially unsafe, because we
 // don't verify correct input of fen strings. I am not resposible for any harm
 // to the user's system when envoking the user manually envokes this function.
-int main()
+int main() 
 {
+  cout.tie(nullptr); // Faster output
+  
   // depth 3 should be 62,379 nodes
-  // rook hasnt moved during a castle
   string fen = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
   //cout << "Enter the fen of the game you would like to perft test: \n";
   //getline(cin, fen);
@@ -77,10 +74,7 @@ int main()
   cin  >> depth;
    
   Game game(fen);
-  game.Show_Board();
-  cout << "\nNodes: " << Perft(game, depth) << "\n";
-
-  //for (auto m : cnt) cout << m.first << " " << m.second << "\n";
+  cout << "\nNodes: " << Perft(game, depth) << "\n\n";
  
   return 0;
 }

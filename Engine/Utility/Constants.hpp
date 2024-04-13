@@ -51,7 +51,7 @@ credits = https://www.chessprogramming.org/Little-endian
 // Bitboard constants
 // -------------------
 const i64 AllBits = 0xffffffffffffffff; 
-const i64 NoBits = 0x0;
+const i64 NoBits  = 0x0;
 
 // File constants
 const i64 NotFileA = 0x7F7F7F7F7F7F7F7F;
@@ -154,6 +154,7 @@ const uint8_t W_Kingside  = 0x1;
 const uint8_t W_Queenside = 0x2;
 const uint8_t B_Kingside  = 0x4;
 const uint8_t B_Queenside = 0x8;
+const uint8_t No_Castle   = 0x0;
 
 // White and black indicators (see Game.h)
 const bool WHITE = true;
@@ -216,13 +217,13 @@ const string Piece_To_Uci[5] = {
 };
 
 // A map from indexes into the 'all pieces' array to their relevant ascii characters
-const static unordered_map<short, char> Index_To_Char = {
-  {0, 'P'}, {1, 'N'}, {2, 'B'}, {3, 'R'}, {4,  'Q'}, {5,  'K'},
-  {6, 'p'}, {7, 'n'}, {8, 'b'}, {9, 'r'}, {10, 'q'}, {11, 'k'}
+const char Index_To_Char[12] = {
+  'P', 'N', 'B', 'R', 'Q', 'K', 
+  'p', 'n', 'b', 'r', 'q', 'k'
 };
 
 // A map of characters like 'P' to their location within the Boards array
-const static unordered_map<char, i64> Char_To_Index = {
+const unordered_map<char, i64> Char_To_Index = {
   {'K', 0}, {'k', 1}, {'Q', 2}, {'q', 3}, {'B',  4}, {'b',  5},
   {'R', 6}, {'r', 7}, {'N', 8}, {'n', 9}, {'P', 10}, {'p', 11}
 };
