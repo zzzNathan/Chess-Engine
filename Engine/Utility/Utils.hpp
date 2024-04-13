@@ -122,6 +122,7 @@ map<pair<i64, i64>, i64> Make_Ray_Map()
   return Ray_Map;
 }
 
+
 // Function to make a horizontal or diagonal ray from one square to another
 i64 Create_Ray(const i64& From, const i64& To)
 {
@@ -130,7 +131,7 @@ i64 Create_Ray(const i64& From, const i64& To)
 
   // Initialise the ray map
   const static map<pair<i64, i64>, i64> Ray_Map = Make_Ray_Map();
-  
+
   // Check if the ray is in the map
   if (Ray_Map.find({From, To}) != Ray_Map.end()) return Ray_Map.at({From, To}); 
 

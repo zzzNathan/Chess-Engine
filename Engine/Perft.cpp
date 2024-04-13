@@ -68,7 +68,7 @@ int main()
   string fen = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
   //cout << "Enter the fen of the game you would like to perft test: \n";
   //getline(cin, fen);
-                          
+                             
   int depth;
   cout << "Enter the depth you would like to search to: \n";
   cin  >> depth;

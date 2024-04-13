@@ -27,7 +27,7 @@
 uint8_t Game::Check_Win()
 {
   // Get check mask of the side to move
-  i64& Check = (Status.Side == WHITE ? Status.White_Check : Status.Black_Check);
+  const i64& Check = (Status.Side == WHITE ? Status.White_Check : Status.Black_Check);
   
   // If there currently is a check and we have no legal moves there must be check mate
   if (Check != NONE && Generate_Moves(*this).size() == 0)
@@ -61,7 +61,9 @@ char Game::Piece_On(const i64& Square)
     &Board.Black_Pawn, &Board.Black_Knight, &Board.Black_Bishop,
     &Board.Black_Rook, &Board.Black_Queen,  &Board.Black_King
   };
-
+  
+  // Loop over all boards and if the bit is set return the 
+  // relevant character to represent the piece
   for (int i = 0; i < 12; i++)
     if (Get_Bit(*All_Boards[i], Square)) return Index_To_Char[i];
 
@@ -185,15 +187,15 @@ bool Game::Is_Square_Attacked(const i64& Square, const bool& Colour, const i64& 
   if (Remove_sq != NONE) Occupancy = Remove_Bit(Occupancy, Remove_sq); // See (MoveGen.hpp - line 195)
    
   // Does a bishop or a queen attack this square?
-  i64 Enemy_BishopQueen = (Colour == WHITE ? Board.White_Bishop | Board.White_Queen : 
-                                             Board.Black_Bishop | Board.Black_Queen);
+  const i64 Enemy_BishopQueen = (Colour == WHITE ? Board.White_Bishop | Board.White_Queen : 
+                                                   Board.Black_Bishop | Board.Black_Queen);
 
   if (Compute_Bishop_attacks(Index_To_Bitboard(Square), Occupancy) & Enemy_BishopQueen) 
     return true;
 
   // Does a rook or a queen attack this square?
-  i64 Enemy_RookQueen   = (Colour == WHITE ? Board.White_Rook | Board.White_Queen :
-                                             Board.Black_Rook | Board.Black_Queen);
+  const i64 Enemy_RookQueen = (Colour == WHITE ? Board.White_Rook | Board.White_Queen :
+                                                 Board.Black_Rook | Board.Black_Queen);
 
   if (Compute_Rook_attacks(Index_To_Bitboard(Square), Occupancy) & Enemy_RookQueen) 
     return true;

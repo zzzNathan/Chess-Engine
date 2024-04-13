@@ -37,9 +37,8 @@ vector<Move> Get_Promo_Moves(const Game& CurrGame, i64& CurrPawn)
   if (!(Above_1 & CurrGame.Board.All_Pieces)) // If there is an empty square above
   { 
     // Add all promotion possibilities
-    for (i64 piece : Promo_Pieces){
+    for (i64 piece : Promo_Pieces)
       Moves.push_back(Move(CurrPawn, Above_1, PAWN, false, piece, false));
-    }
   }
 
   // Capture promotions
@@ -57,9 +56,8 @@ vector<Move> Get_Promo_Moves(const Game& CurrGame, i64& CurrPawn)
     CurrCapture = Get_LSB(Capture_Promos);
     
     // Add all promotion possibilities
-    for (i64 piece : Promo_Pieces){
+    for (i64 piece : Promo_Pieces)
       Moves.push_back(Move(CurrPawn, CurrCapture, PAWN, true, piece, false));
-    }
 
     Capture_Promos ^= CurrCapture; // Remove the bit from capture promotions
   }
@@ -123,9 +121,8 @@ vector<Move> Verify_Moves_Check(const Game& CurrGame, vector<Move>& Moves)
   vector<Move> Valid_Moves;
 
   // Loop over all moves and if they move within the check mask this is a legal move
-  for (Move move : Moves){
+  for (Move move : Moves)
     if (move.To & Check_Mask) Valid_Moves.push_back(move);
-  }
 
   return Valid_Moves; 
 }
@@ -395,7 +392,7 @@ vector<Move> Generate_Moves(const Game& CurrGame)
   // If there is a double check then only the king may move
   if (CurrGame.Status.Double_Check) return Generate_King_Moves(CurrGame);
 
-  vector<Move> Moves;
+  vector<Move> Moves = {};
   
   // Generate all moves
   vector<Move> Pawn_Moves   = Generate_Pawn_Moves(CurrGame);

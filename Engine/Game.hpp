@@ -281,27 +281,18 @@ class Game
       // Loop over all bitboards and remove the bit of the captured piece
       else if (move.Capture)
       {
-        if (Status.Side == WHITE)
-        {
-          for (i64* piece : B_Piece_To_Bitboard){
-            if (Get_Bit(*piece, To_Index)) { *piece = Remove_Bit(*piece, To_Index); break; }
-          }
-        }
-
-        else
-        {
-          for (i64* piece : W_Piece_To_Bitboard){
-            if (Get_Bit(*piece, To_Index)) { *piece = Remove_Bit(*piece, To_Index); break; }
-          }
-        }
+        i64* (&Enemy_Boards)[6] = (Status.Side == WHITE ? B_Piece_To_Bitboard : W_Piece_To_Bitboard);
+        
+        for (i64* piece : Enemy_Boards)
+          if (Get_Bit(*piece, To_Index)) { *piece = Remove_Bit(*piece, To_Index); break; }
       }
 
       if (move.Promoted_Piece != NO_PROMO)
       {
-        i64* Pawn_Board = (Status.Side == WHITE ? &Board.White_Pawn : &Board.Black_Pawn);
+        i64& Pawn_Board = (Status.Side == WHITE ? Board.White_Pawn : Board.Black_Pawn);
         
         // Remove the old pawn
-        *Pawn_Board = Remove_Bit(*Pawn_Board, From_Index);
+        Pawn_Board = Remove_Bit(Pawn_Board, From_Index);
         
         // Add the promoted piece
         i64* Promoted_Bitboard = (Status.Side == WHITE ? W_Piece_To_Bitboard[move.Promoted_Piece] :
@@ -381,8 +372,8 @@ class Game
       i64 King_Index    = Get_Index(King_Location);
 
       // Enemy pieces variables
-      i64 Enemy_Pawns   = (Colour == WHITE ? Board.Black_Pawn   : Board.White_Pawn);
-      i64 Enemy_Knights = (Colour == WHITE ? Board.Black_Knight : Board.White_Knight);
+      i64 Enemy_Pawns         = (Colour == WHITE ? Board.Black_Pawn   : Board.White_Pawn);
+      i64 Enemy_Knights       = (Colour == WHITE ? Board.Black_Knight : Board.White_Knight);
       i64 Enemy_BishopsQueens = (Colour == WHITE ? Board.Black_Bishop|Board.Black_Queen : Board.White_Bishop|Board.White_Queen);
       i64 Enemy_RooksQueens   = (Colour == WHITE ? Board.Black_Rook|Board.Black_Queen   : Board.White_Rook|Board.White_Queen);
 
