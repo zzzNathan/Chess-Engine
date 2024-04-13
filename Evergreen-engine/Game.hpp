@@ -168,41 +168,6 @@ struct Board_Status
   }
 };
 
-// Function to check if a square index is attacked by a given colour
-// We use the square location and assume that at this square is a pawn, knight, bishop ... etc.
-// then we look at the squares that it can attack and if a pawn, knight, bishop ... etc.
-// of the enemy colour exists on this square then, this square is attacked.
-// Better explanation can be found here:
-// https://www.chessprogramming.org/Square_Attacked_By#:~:text=determines%20whether%20a%20square%20is,generate%20all%20pseudo%20legal%20moves.
-bool Is_Square_Attacked(const Board_Status& Boards, const i64& Square, const bool& Colour, const i64& Remove_sq=NONE)
-{
-  // Does a pawn attack this square?
-  const array<i64, 64> Pawn_Attacks = (Colour == WHITE ? BLACK_PAWN_ATKS   : WHITE_PAWN_ATKS); 
-  const i64 Enemy_Pawns             = (Colour == WHITE ? Boards.White_Pawn : Boards.Black_Pawn);
-  if (Pawn_Attacks[Square] & Enemy_Pawns) return true;
-
-  // Does a knight attack this square?
-  const i64 Enemy_Knights = (Colour == WHITE ? Boards.White_Knight : Boards.Black_Knight);
-  if (KNIGHT_MOVES[Square] & Enemy_Knights) return true;
-
-  // We need to remove the 1 bit of this square from the occupancy (if it exists)
-  // otherwise hyperbola quintessence will generate moves incorrectly
-  i64 Occupancy                    = Remove_Bit(Boards.All_Pieces, Square); 
-  if (Remove_sq != NONE) Occupancy = Remove_Bit(Occupancy, Remove_sq); // See (MoveGen.hpp - line 195)
-   
-  // Does a bishop or a queen attack this square?
-  i64 Enemy_BishopQueen = (Colour == WHITE ? Boards.White_Bishop | Boards.White_Queen : 
-                                             Boards.Black_Bishop | Boards.Black_Queen);
-  if (Compute_Bishop_attacks(Index_To_Bitboard(Square), Occupancy) & Enemy_BishopQueen) return true;
-
-  // Does a rook or a queen attack this square?
-  i64 Enemy_RookQueen   = (Colour == WHITE ? Boards.White_Rook | Boards.White_Queen :
-                                             Boards.Black_Rook | Boards.Black_Queen);
-  if (Compute_Rook_attacks(Index_To_Bitboard(Square), Occupancy) & Enemy_RookQueen) return true;
-
-  return false; // If none of the above are true then the square is not attacked
-}
-
 // This class will organise all information needed to play a game of chess with this engine
 // -----------------------------------------------------------------------------------------
 class Game
@@ -210,9 +175,21 @@ class Game
   public:
     Board_Status Board;
     Game_Status Status;
-    uint8_t Check_Win();  // Defined in "WinDrawLoss.hpp"
-    uint8_t Check_Draw(); // Defined in "WinDrawLoss.hpp"
+
+    // The following declarations are defined in "GameHelpers.hpp"
     
+    // Game related functions
+    uint8_t Check_Win();  
+    uint8_t Check_Draw(); 
+    bool Is_Square_Attacked(const i64& Square, const bool& Colour, 
+                            const i64& Remove_sq=NONE) const;
+
+    // Debugging related functions
+    void    Show_Board();
+    string  Get_Fen();
+    char    Piece_On(const i64& Square);
+
+
     // Constructor to initialise a game from a fen string
     Game(string& Fen) 
     {
@@ -227,12 +204,6 @@ class Game
       i64 Square     = 63;
       i64 Boards[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-      // A map of characters like 'P' to their location within the Boards array
-      const static unordered_map<char, i64> Char_To_Index = {
-        {'K', 0}, {'k', 1}, {'Q', 2}, {'q', 3}, {'B', 4},  {'b', 5},
-        {'R', 6}, {'r', 7}, {'N', 8}, {'n', 9}, {'P', 10}, {'p', 11}
-      };
-      
       // Iterate over all characters ..
       for (char piece : Piece_Locations)
       {
@@ -343,66 +314,6 @@ class Game
       Status.Last_Move = move; 
       Update();
       Status.Side = !Status.Side; // Change side
-    }
-
-    // Function to print the board
-    void Show_Board() 
-    {  
-      // An array of pointers to all of the piece bitboards
-      i64* All_Bitboards[12] = {
-        &Board.White_Pawn,   &Board.White_Knight, &Board.White_Bishop, &Board.White_Rook, 
-        &Board.White_Queen,  &Board.White_King,   
-        &Board.Black_Pawn,   &Board.Black_Knight, &Board.Black_Bishop, &Board.Black_Rook,
-        &Board.Black_Queen,  &Board.Black_King
-      };
-
-      // A map from indexes into the 'all pieces' array to their relevant ascii characters
-      const static unordered_map<short, char> Index_To_Char = {
-        {0, 'P'}, {1, 'N'}, {2, 'B'}, {3, 'R'}, {4,  'Q'}, {5,  'K'},
-        {6, 'p'}, {7, 'n'}, {8, 'b'}, {9, 'r'}, {10, 'q'}, {11, 'k'}
-      };
-
-      int rank = 8, count;
-      cout << "\n" << rank << " | ";
-
-      // Loop over all squares
-      for (i64 sq = a8; sq != h1; sq--)
-      {
-        // If the square is empty print a dot 
-        if (!(Get_Bit(Board.All_Pieces, sq)))
-        {
-          cout << ". ";
-          if (sq % 8 == 0) cout << "\n" << --rank << " | "; // If this the end of a rank print a new line
-          continue;
-        }
-
-        // If the square is set print the relevant character
-        count = 0;
-        for (i64* Board : All_Bitboards)
-        {
-          if (Get_Bit(*Board, sq)) {cout << Index_To_Char.at(count) << " "; break;}
-          ++count;
-        }
-     
-        // If this the end of a rank print a new line
-        if (sq % 8 == 0) cout << "\n" << --rank << " | ";
-      }
-
-      // Print the last square
-      if (Get_Bit(Board.All_Pieces, h1))
-      {
-        count = 0;
-        for (i64* Board : All_Bitboards)
-        {
-          if (Get_Bit(*Board, h1)) {cout << Index_To_Char.at(count) << " \n"; break;}
-          ++count;
-        }
-      }
-      else cout << ". \n";
-
-      // Print letters
-      cout << "    _______________\n";
-      cout << "    a b c d e f g h\n\n";
     }
 
   private:
@@ -557,10 +468,10 @@ class Game
       // Get working variables
       const int From_Index = Get_Index(Status.Last_Move.From);
       const int To_Index   = Get_Index(Status.Last_Move.To);
-      const int King_rook_from  = (Status.Side == WHITE ? h1 : h8); 
-      const int Queen_rook_from = (Status.Side == WHITE ? a1 : a8);
-      const int King_rook_to    = (Status.Side == WHITE ? f1 : f8);
-      const int Queen_rook_to   = (Status.Side == WHITE ? d1 : d8);
+      const int King_rook_from   = (Status.Side == WHITE ? h1 : h8); 
+      const int Queen_rook_from  = (Status.Side == WHITE ? a1 : a8);
+      const int King_rook_to     = (Status.Side == WHITE ? f1 : f8);
+      const int Queen_rook_to    = (Status.Side == WHITE ? d1 : d8);
       const uint8_t King_rights  = (Status.Side == WHITE ? W_Kingside  : B_Kingside);
       const uint8_t Queen_rights = (Status.Side == WHITE ? W_Queenside : B_Queenside);
       const uint8_t All_rights   = King_rights | Queen_rights;
@@ -582,18 +493,19 @@ class Game
       }
 
       // Otherwise the last move was a castle and we need to ensure that we have moved the rook
-      i64* Rook_Board = (Status.Side == WHITE ? &Board.White_Rook : &Board.Black_Rook);
+      i64& Rook_Board = (Status.Side == WHITE ? Board.White_Rook : Board.Black_Rook);
 
-      if (To_Index == King_rook_from)
+      if ((Status.Side == WHITE && To_Index == g1) || (Status.Side == BLACK && To_Index == g8))
       {
-        *Rook_Board = Remove_Bit(*Rook_Board, King_rook_from);
-        *Rook_Board = Set_Bit(*Rook_Board,    King_rook_to);
+        Rook_Board = Remove_Bit(Rook_Board, King_rook_from);
+        Rook_Board = Set_Bit(Rook_Board,    King_rook_to);
       }
       
-      else if (To_Index == Queen_rook_from)
+      else if ((Status.Side == WHITE && To_Index == c1) || 
+               (Status.Side == BLACK && To_Index == c8))
       {
-        *Rook_Board = Remove_Bit(*Rook_Board, Queen_rook_from);
-        *Rook_Board = Set_Bit(*Rook_Board,    Queen_rook_to);
+        Rook_Board = Remove_Bit(Rook_Board, Queen_rook_from);
+        Rook_Board = Set_Bit(Rook_Board,    Queen_rook_to);
       }
 
       Status.Castle_Rights &= ~All_rights; // We remove all rights after castling

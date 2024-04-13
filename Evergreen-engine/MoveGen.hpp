@@ -194,7 +194,9 @@ vector<Move> Verify_Moves_King(const Game& CurrGame, vector<Move>& Moves)
     // in front isn't directly attacked by any piece, however if the king moves here it is still a check. Here 
     // is a position to visualise: 8/8/8/8/5k2/8/1K3R2/8 w - - 0 1. Notice how the f5 square isn't directly attacked
     // by the black rook, but it is still illegal to move there.
-    if (!(Is_Square_Attacked(CurrGame.Board, Get_Index(move.To), !CurrGame.Status.Side, Get_Index(move.From)))){
+    if (!(CurrGame.Is_Square_Attacked(Get_Index(move.To), !CurrGame.Status.Side,
+                                      Get_Index(move.From))))
+    {
       Valid_Moves.push_back(move);
     }
   }
@@ -364,8 +366,8 @@ vector<Move> Generate_King_Moves(const Game& CurrGame)
   {
     i64 Right_1 = (CurrGame.Status.Side == WHITE ? f1 : f8);
     i64 Right_2 = (CurrGame.Status.Side == WHITE ? g1 : g8);
-    if ((!(Is_Square_Attacked(CurrGame.Board, Right_1, EnemyCol))) && 
-        (!(Is_Square_Attacked(CurrGame.Board, Right_2, EnemyCol))))
+    if ((!(CurrGame.Is_Square_Attacked(Right_1, EnemyCol))) && 
+        (!(CurrGame.Is_Square_Attacked(Right_2, EnemyCol))))
     {
       Moves.push_back(Move(KingBB, Index_To_Bitboard(Right_2), KING, false, NO_PROMO, false));
     }
@@ -375,8 +377,8 @@ vector<Move> Generate_King_Moves(const Game& CurrGame)
   {
     i64 Left_1 = (CurrGame.Status.Side == WHITE ? d1 : d8);
     i64 Left_2 = (CurrGame.Status.Side == WHITE ? c1 : c8);
-    if ((!(Is_Square_Attacked(CurrGame.Board, Left_1, EnemyCol))) && 
-        (!(Is_Square_Attacked(CurrGame.Board, Left_2, EnemyCol))))
+    if ((!(CurrGame.Is_Square_Attacked(Left_1, EnemyCol))) && 
+        (!(CurrGame.Is_Square_Attacked(Left_2, EnemyCol))))
     {
       Moves.push_back(Move(KingBB, Index_To_Bitboard(Left_2), KING, false, NO_PROMO, false));
     }
@@ -413,4 +415,4 @@ vector<Move> Generate_Moves(const Game& CurrGame)
 
   return Moves;
 }
-#include "WinDrawLoss.hpp"
+#include "GameHelpers.hpp"

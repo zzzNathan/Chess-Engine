@@ -215,6 +215,21 @@ const string Piece_To_Uci[5] = {
   "", "n", "b", "r", "q"
 };
 
+// A map from indexes into the 'all pieces' array to their relevant ascii characters
+const static unordered_map<short, char> Index_To_Char = {
+  {0, 'P'}, {1, 'N'}, {2, 'B'}, {3, 'R'}, {4,  'Q'}, {5,  'K'},
+  {6, 'p'}, {7, 'n'}, {8, 'b'}, {9, 'r'}, {10, 'q'}, {11, 'k'}
+};
+
+// A map of characters like 'P' to their location within the Boards array
+const static unordered_map<char, i64> Char_To_Index = {
+  {'K', 0}, {'k', 1}, {'Q', 2}, {'q', 3}, {'B',  4}, {'b',  5},
+  {'R', 6}, {'r', 7}, {'N', 8}, {'n', 9}, {'P', 10}, {'p', 11}
+};
+
+// The character used to represent an empty square
+const char EMPTY_SQ = 'X';
+
 // Chess fen strings
 const string STARTING_FEN    = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const string TRICKY_POSITION = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";

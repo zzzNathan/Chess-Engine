@@ -36,10 +36,8 @@ inline i64 Perft(Game game, int depth)
   if (depth == 1)
   { 
     game.Show_Board();
-    Show_Bitboard(game.Board.Black_King);
     cout << game.Status.Side << "\n";
-    for (Move m : Moves)    
-    {
+    for (Move m : Moves){
       cout << m.UCI() << "\n";
     }
     cout << Moves.size() << "\n";
@@ -63,12 +61,17 @@ inline i64 Perft(Game game, int depth)
   }
 }
 
+// WARNING: This function is not robust and potentially unsafe, because we
+// don't verify correct input of fen strings. I am not resposible for any harm
+// to the user's system when envoking the user manually envokes this function.
 int main()
 {
-  string fen = "n1n5/PPPk4/8/8/8/8/4Kppp/5N1N b - - 0 1";
-  //cout <maps< "Enter the fen of the game you would like to perft test: \n";
+  // depth 3 should be 62,379 nodes
+  // rook hasnt moved during a castle
+  string fen = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
+  //cout << "Enter the fen of the game you would like to perft test: \n";
   //getline(cin, fen);
-                     
+                          
   int depth;
   cout << "Enter the depth you would like to search to: \n";
   cin  >> depth;

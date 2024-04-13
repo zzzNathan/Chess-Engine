@@ -5,7 +5,7 @@ using namespace std;
 int main()
 {
   string fen = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
-  fen = "rnNq1k1r/pp2bppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R b KQ - 0 8";
+  //fen = "rnNq1k1r/pp2bppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R b KQ - 0 8";
   Game Start(fen);
   vector<Move> Moves = Generate_Moves(Start);
   //Game cp = Start;
@@ -22,6 +22,7 @@ int main()
   }
   */ 
   Start.Show_Board();
+  cout << Start.Piece_On(e1) << "\n";
 
  
   // cp.Show_Board();

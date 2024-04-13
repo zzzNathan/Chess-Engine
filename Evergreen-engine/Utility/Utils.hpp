@@ -34,6 +34,8 @@ inline int Char_To_Int(const char& n){
 // Function to print a visualisation of a bitboard
 void Show_Bitboard(const i64& Bitboard)
 {
+  cout.tie(nullptr); // Faster output
+  
   short rank = 8;
   cout << rank << " | ";
 
@@ -73,7 +75,7 @@ map<pair<i64, i64>, i64> Make_Ray_Map()
   map<pair<i64, i64>, i64> Ray_Map;
 
   // Directions we can travel in (see Constants.h - line 27)
-  const static int Directions[8] = {1, -1, 7, -7, 8, -8, 9, -9}; 
+  const int Directions[8] = {1, -1, 7, -7, 8, -8, 9, -9}; 
   
   // Lambda function to check whether or not we are able to move in this direction
   auto Can_Move = [](i64 From, int delta)
@@ -98,7 +100,6 @@ map<pair<i64, i64>, i64> Make_Ray_Map()
   i64 Curr_Sq_BB, sq_BB;
 
   for (int sq = a8; sq >= h1; sq--)
-  { 
     // Loop over all directions
     for (int delta : Directions)
     {
@@ -117,7 +118,7 @@ map<pair<i64, i64>, i64> Make_Ray_Map()
         Ray_Map[{sq_BB, Curr_Sq_BB}] = Ray;
       }
     }
-  }
+  
   return Ray_Map;
 }
 
