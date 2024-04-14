@@ -75,17 +75,14 @@ void Game::Show_Board()
 {  
   cout.tie(nullptr); // Faster output
 
-  int  rank = 8;
-  char piece;
+  int rank = 8;
 
   cout << "\n" << rank << " | ";
   
   // Loop over all squares and print the piece on this square
   for (i64 sq = a8; sq != h1; sq--)
   {
-    piece = Piece_On(sq);
-
-    cout << (piece != EMPTY_SQ ? piece : '.') << " "; 
+    cout << (Piece_On(sq) != EMPTY_SQ ? Piece_On(sq) : '.') << " "; 
 
     // If this the end of a rank print a new line
     if (sq % 8 == 0) cout << "\n" << --rank << " | ";

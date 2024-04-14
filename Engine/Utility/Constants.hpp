@@ -25,6 +25,7 @@ typedef unsigned long long i64;
 
 /*
   The board may be represented like so:
+
      A    B    C    D    E    F    G    H
    +----+----+----+----+----+----+----+----+
  8 | 63 | 62 | 61 | 60 | 59 | 58 | 57 | 56 |  8th rank

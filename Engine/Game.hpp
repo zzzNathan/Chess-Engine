@@ -289,10 +289,9 @@ class Game
 
       if (move.Promoted_Piece != NO_PROMO)
       {
-        i64& Pawn_Board = (Status.Side == WHITE ? Board.White_Pawn : Board.Black_Pawn);
-        
         // Remove the old pawn
-        Pawn_Board = Remove_Bit(Pawn_Board, From_Index);
+        i64& Pawn_Board = (Status.Side == WHITE ? Board.White_Pawn : Board.Black_Pawn);
+        Pawn_Board      = Remove_Bit(Pawn_Board, From_Index);
         
         // Add the promoted piece
         i64* Promoted_Bitboard = (Status.Side == WHITE ? W_Piece_To_Bitboard[move.Promoted_Piece] :
@@ -448,57 +447,41 @@ class Game
     }
     
     // A function to update castling rights
-    void Get_Castle_Rights()
+    void Get_Castle_Rights(const int& From_Index, const int& To_Index)
     {
       // If there is no last move or the last move wasn't from the king
       // or rook we dont need to update the castle rights
       if (Status.Last_Move.From  == NONE || 
          (Status.Last_Move.Piece != KING && Status.Last_Move.Piece != ROOK)) return;
-      
+
       // Get working variables
-      const int From_Index = Get_Index(Status.Last_Move.From);
-      const int To_Index   = Get_Index(Status.Last_Move.To);
-      const int King_rook_from   = (Status.Side == WHITE ? h1 : h8); 
-      const int Queen_rook_from  = (Status.Side == WHITE ? a1 : a8);
-      const int King_rook_to     = (Status.Side == WHITE ? f1 : f8);
-      const int Queen_rook_to    = (Status.Side == WHITE ? d1 : d8);
+      const bool King_Side = (To_Index < From_Index); // See the diagram in "Constant.hpp"
+      const int  Rook_To   = (King_Side ? Index_Right(From_Index) : Index_Left(From_Index));
+      const int  Rook_From = (King_Side ? Index_Right(To_Index)   : Index_Left_2(To_Index));
+      
       const uint8_t King_rights  = (Status.Side == WHITE ? W_Kingside  : B_Kingside);
       const uint8_t Queen_rights = (Status.Side == WHITE ? W_Queenside : B_Queenside);
-      const uint8_t All_rights   = King_rights | Queen_rights;
 
       // If the last move was a rook moving for the first time we remove
       // castle rights for that side
       if (Status.Last_Move.Piece == ROOK)
       {
-        if (From_Index == King_rook_from)  Status.Castle_Rights &= ~King_rights;
-        if (From_Index == Queen_rook_from) Status.Castle_Rights &= ~Queen_rights;
+        if (From_Index == h1 || From_Index == h8) Status.Castle_Rights &= ~King_rights;
+        if (From_Index == a1 || From_Index == a8) Status.Castle_Rights &= ~Queen_rights;
         return;
       }
+      
+      // We lose all castling rights if the last move was from the king
+      Status.Castle_Rights &= ~(King_rights | Queen_rights);
 
-      // If the last move was by a king that didn't castle we remove all rights
-      if (abs(From_Index - To_Index) != 2)
-      {
-        Status.Castle_Rights &= ~All_rights;
-        return;
-      }
+      // If the last move was by a king that didn't castle we don't have to move the rook
+      if (abs(From_Index - To_Index) != 2) return;
 
       // Otherwise the last move was a castle and we need to ensure that we have moved the rook
       i64& Rook_Board = (Status.Side == WHITE ? Board.White_Rook : Board.Black_Rook);
 
-      if ((Status.Side == WHITE && To_Index == g1) || (Status.Side == BLACK && To_Index == g8))
-      {
-        Rook_Board = Remove_Bit(Rook_Board, King_rook_from);
-        Rook_Board = Set_Bit(Rook_Board,    King_rook_to);
-      }
-      
-      else if ((Status.Side == WHITE && To_Index == c1) || 
-               (Status.Side == BLACK && To_Index == c8))
-      {
-        Rook_Board = Remove_Bit(Rook_Board, Queen_rook_from);
-        Rook_Board = Set_Bit(Rook_Board,    Queen_rook_to);
-      }
-
-      Status.Castle_Rights &= ~All_rights; // We remove all rights after castling
+      Rook_Board = Remove_Bit(Rook_Board, Rook_From);
+      Rook_Board = Set_Bit(Rook_Board, Rook_To);
     }
     
     // A function to update all occupancy bitboards
@@ -521,7 +504,7 @@ class Game
       Status.Pins = Get_Pins(WHITE);
       Status.Pins.insert(Get_Pins(BLACK).begin(), Get_Pins(BLACK).end());
       Get_En_Passant();
-      Get_Castle_Rights();
+      Get_Castle_Rights(Get_Index(Status.Last_Move.From), Get_Index(Status.Last_Move.To));
       Status.Status = Check_Draw();
       Status.Status = Check_Win();
       if (Status.Last_Move.Capture) Status.Ply = 0; // Reset ply if there was a capture

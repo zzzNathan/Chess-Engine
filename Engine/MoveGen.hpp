@@ -358,24 +358,29 @@ vector<Move> Generate_King_Moves(const Game& CurrGame)
   bool EnemyCol = !CurrGame.Status.Side;
   
   // We need to make sure that the king doesn't move through check
-  // we do this by making sure that the squares between the king and the rook are not under attack
-  if (Kingside_Rights)
+  // we do this by making sure that the squares between the king and 
+  // the rook are not under attack and also that the squares between 
+  // aren't obstructed by any pieces.
+  i64 Right_1 = Index_Right(Get_Index(KingBB)); i64 Right_2 = Index_Right(Right_1);
+  i64 Left_1  = Index_Left(Get_Index(KingBB));  i64 Left_2  = Index_Left(Left_1);
+
+  if ( Kingside_Rights && 
+      (!(CurrGame.Is_Square_Attacked(Right_1, EnemyCol))) && 
+      (!(CurrGame.Is_Square_Attacked(Right_2, EnemyCol))) ) 
   {
-    i64 Right_1 = (CurrGame.Status.Side == WHITE ? f1 : f8);
-    i64 Right_2 = (CurrGame.Status.Side == WHITE ? g1 : g8);
-    if ((!(CurrGame.Is_Square_Attacked(Right_1, EnemyCol))) && 
-        (!(CurrGame.Is_Square_Attacked(Right_2, EnemyCol))))
+    if ( (!(CurrGame.Board.All_Pieces & Index_To_Bitboard(Right_1))) &&
+         (!(CurrGame.Board.All_Pieces & Index_To_Bitboard(Right_2))) )
     {
       Moves.push_back(Move(KingBB, Index_To_Bitboard(Right_2), KING, false, NO_PROMO, false));
     }
   }
 
-  if (Queenside_Rights)
+  if ( Queenside_Rights &&
+      (!(CurrGame.Is_Square_Attacked(Left_1, EnemyCol))) &&
+      (!(CurrGame.Is_Square_Attacked(Left_2, EnemyCol))) )
   {
-    i64 Left_1 = (CurrGame.Status.Side == WHITE ? d1 : d8);
-    i64 Left_2 = (CurrGame.Status.Side == WHITE ? c1 : c8);
-    if ((!(CurrGame.Is_Square_Attacked(Left_1, EnemyCol))) && 
-        (!(CurrGame.Is_Square_Attacked(Left_2, EnemyCol))))
+    if ( (!(CurrGame.Board.All_Pieces & Index_To_Bitboard(Left_1))) &&
+         (!(CurrGame.Board.All_Pieces & Index_To_Bitboard(Left_2))) )
     {
       Moves.push_back(Move(KingBB, Index_To_Bitboard(Left_2), KING, false, NO_PROMO, false));
     }

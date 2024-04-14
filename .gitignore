@@ -4,6 +4,9 @@
 # Ignore optimisation files
 o
 
+# Ignore any .txt file
+*.txt
+
 # Ignores for all useless latex files 
 # Source:
 # https://github.com/github/gitignore/blob/main/TeX.gitignore

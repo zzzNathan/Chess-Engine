@@ -68,6 +68,26 @@ i64 Shift_Down(const i64& Bitboard, const bool& Colour){
   return Colour == WHITE ? (Bitboard >> 8) : (Bitboard << 8);
 }
 
+// Shifts a square index left
+inline int Index_Left(const int& Square){
+  return Square + 1;
+}
+
+// Shifts a square index left by 2
+inline int Index_Left_2(const int& Square){
+  return Square + 2;
+}
+
+// Shifts a square index right
+inline int Index_Right(const int& Square){
+  return Square - 1;
+}
+
+// Shifts a square index right by 2
+inline int Index_Right_2(const int& Square){
+  return Square - 2;
+}
+
 // Function to make a map that takes in 2 squares and returns either a 
 // horizontal or diagonal ray from these 2 squares
 map<pair<i64, i64>, i64> Make_Ray_Map()

@@ -28,15 +28,18 @@ using namespace std;
 //
 // Good resource:
 // https://chess.stackexchange.com/questions/22735/how-to-debug-move-generation-function
-inline i64 Perft(Game game, int depth)
+inline i64 Perft(Game game, int depth, bool Fen_Only = false)
 {
   vector<Move> Moves = Generate_Moves(game);
   if (depth == 1)
   { 
     cout << game.Get_Fen() << "\n";
-    cout << Moves.size()   << "\n";
-    for (Move m : Moves) cout << m.UCI() << "\n";
-    
+    if (!Fen_Only)
+    {
+      cout << Moves.size() << "\n";
+      for (Move m : Moves) cout << m.UCI() << "\n";
+    }
+
     return Moves.size();
   }
 
@@ -49,7 +52,7 @@ inline i64 Perft(Game game, int depth)
     for (Move move : Moves)
     { 
       game.Make_Move(move);
-      nodes += Perft(game, depth - 1);
+      nodes += Perft(game, depth - 1, Fen_Only);
       game   = copy; // Restore state
     }
       
@@ -60,21 +63,27 @@ inline i64 Perft(Game game, int depth)
 // WARNING: This function is not robust and potentially unsafe, because we
 // don't verify correct input of fen strings. I am not resposible for any harm
 // to the user's system when envoking the user manually envokes this function.
-int main() 
+int main(int argc, char* argv[]) 
 {
-  cout.tie(nullptr); // Faster output
+  // Fast I/O
+  cout.tie(nullptr); cin.tie(nullptr);
   
+  bool Fen_Only = false;
+  if (argc > 1) Fen_Only = ((string)argv[1] == "--fen");
+
   // depth 3 should be 62,379 nodes
-  string fen = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
-  //cout << "Enter the fen of the game you would like to perft test: \n";
-  //getline(cin, fen);
-                             
+  //string fen = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
+  string fen;
+  cout << "Enter the fen of the game you would like to perft test: \n";
+  getline(cin, fen);
+
   int depth;
   cout << "Enter the depth you would like to search to: \n";
   cin  >> depth;
    
   Game game(fen);
-  cout << "\nNodes: " << Perft(game, depth) << "\n\n";
+  i64 nodes = Perft(game, depth, Fen_Only);
+  cout << "Nodes: " << nodes << "\n\n";
  
   return 0;
 }
