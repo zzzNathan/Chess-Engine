@@ -127,6 +127,32 @@ vector<Move> Verify_Moves_Check(const Game& CurrGame, vector<Move>& Moves)
   return Valid_Moves; 
 }
 
+// See generate pawn moves function below for an explanation.
+bool Verify_En_Passant(Game& CurrGame, i64 Square, i64& Friendly_Pawns, i64& Enemy_Pawns)
+{
+  bool valid = false;
+
+  const i64& Friendly_King    = (CurrGame.Status.Side == WHITE ? CurrGame.Board.White_King : CurrGame.Board.Black_King);
+  const i64  Captured_Pawn_Sq = Get_Index(Shift_Up(CurrGame.Status.En_Passant, !CurrGame.Status.Side));
+
+  // Make the capture on the board
+  Friendly_Pawns = Remove_Bit(Friendly_Pawns, Square);
+  Friendly_Pawns = Set_Bit(Friendly_Pawns, Get_Index(CurrGame.Status.En_Passant));
+  Enemy_Pawns    = Remove_Bit(Enemy_Pawns, Captured_Pawn_Sq);
+  CurrGame.Update_Occupancy();
+
+  if (!CurrGame.Is_Square_Attacked(Get_Index(Friendly_King), !CurrGame.Status.Side))
+    valid = true;
+  
+  // Reset board to it's original state
+  Friendly_Pawns = Set_Bit(Friendly_Pawns, Square);
+  Friendly_Pawns = Remove_Bit(Friendly_Pawns, Get_Index(CurrGame.Status.En_Passant));
+  Enemy_Pawns    = Set_Bit(Enemy_Pawns, Captured_Pawn_Sq);
+  CurrGame.Update_Occupancy();
+
+  return valid;
+}
+
 // A function to generate moves for slider pieces
 vector<Move> Generate_Slider_Moves(const Game& CurrGame, i64 Piece)
 {
@@ -202,15 +228,15 @@ vector<Move> Verify_Moves_King(const Game& CurrGame, vector<Move>& Moves)
 }
 
 // A function to generate possible pawn moves for the side to play
-vector<Move> Generate_Pawn_Moves(const Game& CurrGame)
+vector<Move> Generate_Pawn_Moves(Game& CurrGame)
 {
   vector<Move> Moves;
   
   // Get correct pawn bitboard and relevant tables
   i64 PawnBB = (CurrGame.Status.Side == WHITE ? CurrGame.Board.White_Pawn : CurrGame.Board.Black_Pawn);
 
-  const array<i64, 64> MoveTable   = (CurrGame.Status.Side == WHITE ? WHITE_PAWN_MOVES : BLACK_PAWN_MOVES);
-  const array<i64, 64> AttackTable = (CurrGame.Status.Side == WHITE ? WHITE_PAWN_ATKS  : BLACK_PAWN_ATKS);
+  const array<i64, 64>& MoveTable   = (CurrGame.Status.Side == WHITE ? WHITE_PAWN_MOVES : BLACK_PAWN_MOVES);
+  const array<i64, 64>& AttackTable = (CurrGame.Status.Side == WHITE ? WHITE_PAWN_ATKS  : BLACK_PAWN_ATKS);
 
   const i64 EnemyPieces = (CurrGame.Status.Side == WHITE ? CurrGame.Board.Black_All : CurrGame.Board.White_All);
   
@@ -230,14 +256,27 @@ vector<Move> Generate_Pawn_Moves(const Game& CurrGame)
     {
       Captures     = AttackTable[Get_Index(CurrPawn)] & EnemyPieces;
       Moves_To_Add = Build_Moves(CurrGame, Captures, CurrPawn, PAWN); 
+
       Moves.insert(Moves.end(), Moves_To_Add.begin(), Moves_To_Add.end());
     }
     
-    // If an en-passant square exists and we are able to attack it then add this move
+    // If an en-passant square exists and we are able to attack it then add this move.
+    // NOTE: A VERY common bug chess move genereration is the en-passant discovered 
+    // check. Consider the position: 8/8/8/1K1pP2r/6k1/8/8/8 w - d6 0 3, in this 
+    // position black has just pushed their d pawn to d5. Normally we would be able to 
+    // caputre this pawn en-passant, however doing so will leave the king in check!
+    // The solution is to first simulate the capture of the d5 pawn then check if the king
+    // is left in check. This is acceptable because en-passant is such a rare move that 
+    // the overhead of this computation should be ~negligable.
+    i64& Enemy_Pawns    = (CurrGame.Status.Side == WHITE ? CurrGame.Board.Black_Pawn : CurrGame.Board.White_Pawn);
+    i64& Friendly_Pawns = (CurrGame.Status.Side == WHITE ? CurrGame.Board.White_Pawn : CurrGame.Board.Black_Pawn);
+
     if ((CurrGame.Status.En_Passant != NONE) && 
-        (AttackTable[Get_Index(CurrPawn)] & CurrGame.Status.En_Passant))
-    {
-      Moves.push_back(Move(CurrPawn, CurrGame.Status.En_Passant, PAWN, true, NO_PROMO, true));
+        (AttackTable[Get_Index(CurrPawn)] & CurrGame.Status.En_Passant) && 
+        (CurrGame.Status.En_Passant & Enemy_Pawns))
+    { 
+      if (Verify_En_Passant(CurrGame, Get_Index(CurrPawn), Friendly_Pawns, Enemy_Pawns))
+        Moves.push_back(Move(CurrPawn, CurrGame.Status.En_Passant, PAWN, true, NO_PROMO, true));
     }
 
     // Quiet pawn moves
@@ -336,7 +375,7 @@ vector<Move> Generate_King_Moves(const Game& CurrGame)
   i64 Check_Mask    = (CurrGame.Status.Side == WHITE ? CurrGame.Status.White_Check : CurrGame.Status.Black_Check);
   
   // If king isn't on the castling square or there is a check we may return early because castling will be illegal
-  if ((!(KingBB & Castle_Square)) || (Check_Mask != AllBits))
+  if ((!(KingBB & Castle_Square)) || (Check_Mask != NONE))
   {
     Moves = Verify_Moves_King(CurrGame, Moves);
     return Moves;
@@ -344,16 +383,11 @@ vector<Move> Generate_King_Moves(const Game& CurrGame)
 
   // Get relevant castling rights
   bool Kingside_Rights, Queenside_Rights;
-  if (CurrGame.Status.Side == WHITE)
-  {
-    Kingside_Rights  = CurrGame.Status.Castle_Rights & W_Kingside;
-    Queenside_Rights = CurrGame.Status.Castle_Rights & W_Queenside;
-  } 
-  else 
-  {
-    Kingside_Rights  = CurrGame.Status.Castle_Rights & B_Kingside;
-    Queenside_Rights = CurrGame.Status.Castle_Rights & B_Queenside;
-  }
+  Kingside_Rights  = (CurrGame.Status.Side == WHITE ? CurrGame.Status.Castle_Rights & W_Kingside : 
+                                                      CurrGame.Status.Castle_Rights & B_Kingside);
+
+  Queenside_Rights = (CurrGame.Status.Side == WHITE ? CurrGame.Status.Castle_Rights & W_Queenside :
+                                                      CurrGame.Status.Castle_Rights & B_Queenside);
 
   bool EnemyCol = !CurrGame.Status.Side;
   
@@ -363,7 +397,7 @@ vector<Move> Generate_King_Moves(const Game& CurrGame)
   // aren't obstructed by any pieces.
   i64 Right_1 = Index_Right(Get_Index(KingBB)); i64 Right_2 = Index_Right(Right_1);
   i64 Left_1  = Index_Left(Get_Index(KingBB));  i64 Left_2  = Index_Left(Left_1);
-
+   
   if ( Kingside_Rights && 
       (!(CurrGame.Is_Square_Attacked(Right_1, EnemyCol))) && 
       (!(CurrGame.Is_Square_Attacked(Right_2, EnemyCol))) ) 
@@ -392,7 +426,7 @@ vector<Move> Generate_King_Moves(const Game& CurrGame)
 }
 
 // A function to generate all possible moves
-vector<Move> Generate_Moves(const Game& CurrGame)
+vector<Move> Generate_Moves(Game& CurrGame)
 {
   // If there is a double check then only the king may move
   if (CurrGame.Status.Double_Check) return Generate_King_Moves(CurrGame);

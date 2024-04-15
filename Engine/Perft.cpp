@@ -20,70 +20,62 @@
 using namespace std;
 
 // The perft function aims to test the performance and correctness 
-// of the move generation algorithm. The function will run a search
-// up to a certain depth on the game's legal moves and print the 
-// number of moves explored (nodes). In a perft function we only 
+// of the move generation algorithm. More specifically this function 
+// is a divide function (a variation on perft). The function will run
+// a search up to a certain depth on the game's legal moves and print
+// the number of moves explored (nodes). In a perft function we only 
 // consider the leaf nodes, that is only the moves that are found
 // at the given depth to search.
 //
 // Good resource:
-// https://chess.stackexchange.com/questions/22735/how-to-debug-move-generation-function
-inline i64 Perft(Game game, int depth, bool Fen_Only = false)
+// - https://chess.stackexchange.com/questions/22735/how-to-debug-move-generation-function
+template<bool Root>
+i64 Perft(Game& game, int depth)
 {
   vector<Move> Moves = Generate_Moves(game);
-  if (depth == 1)
+  
+  if (depth == 1) return Moves.size();
+
+  const Game copy = game; // A copy of the game to restore state
+  i64 nodes = 0;
+  i64 delta = 0;
+        
+  for (Move move : Moves)
   { 
-    cout << game.Get_Fen() << "\n";
-    if (!Fen_Only)
-    {
-      cout << Moves.size() << "\n";
-      for (Move m : Moves) cout << m.UCI() << "\n";
-    }
+    game.Make_Move(move);
+    delta = Perft<false>(game, depth - 1);
 
-    return Moves.size();
+    if (Root) cout << move.UCI() << ": " << delta << "\n";
+    
+    nodes += delta;
+    game   = copy; // Restore state
   }
-
-  else
-  {   
-    Game copy = game; // A copy of the game to restore state
-    i64 nodes = 0;
-          
-    if (Moves.size() == 0) return 0; 
-    for (Move move : Moves)
-    { 
-      game.Make_Move(move);
-      nodes += Perft(game, depth - 1, Fen_Only);
-      game   = copy; // Restore state
-    }
-      
-    return nodes;
-  }
+    
+  return nodes;
 }
 
 // WARNING: This function is not robust and potentially unsafe, because we
 // don't verify correct input of fen strings. I am not resposible for any harm
 // to the user's system when envoking the user manually envokes this function.
-int main(int argc, char* argv[]) 
+int main() 
 {
-  // Fast I/O
-  cout.tie(nullptr); cin.tie(nullptr);
+  cout.tie(nullptr); cin.tie(nullptr); // Fast I/O
   
-  bool Fen_Only = false;
-  if (argc > 1) Fen_Only = ((string)argv[1] == "--fen");
 
-  // depth 3 should be 62,379 nodes
-  //string fen = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
-  string fen;
-  cout << "Enter the fen of the game you would like to perft test: \n";
-  getline(cin, fen);
+  //string fen;
+  string fen = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
+  //cout << "Enter the fen of the game you would like to perft test: \n";
+  //getline(cin, fen);
 
   int depth;
   cout << "Enter the depth you would like to search to: \n";
   cin  >> depth;
    
   Game game(fen);
-  i64 nodes = Perft(game, depth, Fen_Only);
+  i64 nodes = Perft<true>(game, depth);
+
   cout << "Nodes: " << nodes << "\n\n";
+  game.Show_Board();
  
-  return 0;
+  return 0; 
 }

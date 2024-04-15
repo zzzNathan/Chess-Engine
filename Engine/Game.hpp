@@ -185,9 +185,9 @@ class Game
                             const i64& Remove_sq=NONE) const;
 
     // Debugging related functions
-    void    Show_Board();
-    string  Get_Fen();
-    char    Piece_On(const i64& Square);
+    void    Show_Board() const;
+    string  Get_Fen() const;
+    char    Piece_On(const i64& Square) const;
 
     // Constructor to initialise a game from a fen string
     Game(string& Fen) 
@@ -303,6 +303,18 @@ class Game
       Status.Last_Move = move; 
       Update();
       Status.Side = !Status.Side; // Change side
+    }
+
+    // A function to update all occupancy bitboards
+    void Update_Occupancy()
+    {
+      Board.White_All  = (Board.White_Pawn | Board.White_Knight | Board.White_Bishop | 
+                          Board.White_Rook | Board.White_Queen  | Board.White_King); 
+
+      Board.Black_All  = (Board.Black_Pawn | Board.Black_Knight | Board.Black_Bishop |
+                          Board.Black_Rook | Board.Black_Queen  | Board.Black_King);
+
+      Board.All_Pieces = Board.White_All | Board.Black_All;
     }
 
   private:
@@ -449,6 +461,22 @@ class Game
     // A function to update castling rights
     void Get_Castle_Rights(const int& From_Index, const int& To_Index)
     {
+      const uint8_t& King_rights  = (Status.Side == WHITE ? W_Kingside  : B_Kingside);
+      const uint8_t& Queen_rights = (Status.Side == WHITE ? W_Queenside : B_Queenside);
+
+      const uint8_t& Enemy_King_rights  = (Status.Side == WHITE ? B_Kingside  : W_Kingside);
+      const uint8_t& Enemy_Queen_rights = (Status.Side == WHITE ? B_Queenside : W_Queenside);
+
+      // If a rook was just captured then we lose this sides castling rights
+      if (Status.Last_Move.Capture)
+      {
+        if ((Status.Side == WHITE && To_Index == h8) || (Status.Side == BLACK && To_Index == h1))
+          Status.Castle_Rights &= ~Enemy_King_rights;
+
+        if ((Status.Side == WHITE && To_Index == a8) || (Status.Side == BLACK && To_Index == a1))
+          Status.Castle_Rights &= ~Enemy_Queen_rights;
+      } 
+
       // If there is no last move or the last move wasn't from the king
       // or rook we dont need to update the castle rights
       if (Status.Last_Move.From  == NONE || 
@@ -459,15 +487,14 @@ class Game
       const int  Rook_To   = (King_Side ? Index_Right(From_Index) : Index_Left(From_Index));
       const int  Rook_From = (King_Side ? Index_Right(To_Index)   : Index_Left_2(To_Index));
       
-      const uint8_t King_rights  = (Status.Side == WHITE ? W_Kingside  : B_Kingside);
-      const uint8_t Queen_rights = (Status.Side == WHITE ? W_Queenside : B_Queenside);
-
       // If the last move was a rook moving for the first time we remove
       // castle rights for that side
       if (Status.Last_Move.Piece == ROOK)
       {
-        if (From_Index == h1 || From_Index == h8) Status.Castle_Rights &= ~King_rights;
-        if (From_Index == a1 || From_Index == a8) Status.Castle_Rights &= ~Queen_rights;
+        if ((Status.Side == WHITE && From_Index == h1) || (Status.Side == BLACK && From_Index == h8))
+          Status.Castle_Rights &= ~King_rights;
+        if ((Status.Side == WHITE && From_Index == a1) || (Status.Side == BLACK && From_Index == a8))
+          Status.Castle_Rights &= ~Queen_rights;
         return;
       }
       
@@ -482,18 +509,6 @@ class Game
 
       Rook_Board = Remove_Bit(Rook_Board, Rook_From);
       Rook_Board = Set_Bit(Rook_Board, Rook_To);
-    }
-    
-    // A function to update all occupancy bitboards
-    void Update_Occupancy()
-    {
-      Board.White_All  = (Board.White_Pawn | Board.White_Knight | Board.White_Bishop | 
-                          Board.White_Rook | Board.White_Queen  | Board.White_King); 
-
-      Board.Black_All  = (Board.Black_Pawn | Board.Black_Knight | Board.Black_Bishop |
-                          Board.Black_Rook | Board.Black_Queen  | Board.Black_King);
-
-      Board.All_Pieces = Board.White_All | Board.Black_All;
     }
 
     // A function to update the game's status, this includes updating the en passant square

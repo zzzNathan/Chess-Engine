@@ -4,27 +4,34 @@ using namespace std;
  
 int main()
 {
-  string fen = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
-  //fen = "rnNq1k1r/pp2bppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R b KQ - 0 8";
-  Game Start(fen);
+  string u = STARTING_FEN;
+  Game Start(u);
   vector<Move> Moves = Generate_Moves(Start);
-  //Game cp = Start;
+
+  for (Move m : Moves){
+    if (m.UCI() == "g2g4"){
+      Start.Make_Move(m);
+      cout << "made move" << "\n";
+      break;
+    }
+  }
+
+  Moves = Generate_Moves(Start);
+  for (auto m : Moves){
+    if (m.UCI() == "h7h6"){
+      Start.Make_Move(m);
+      cout << "made move" << "\n";
+      break;
+    }
+  }
+
+  Moves = Generate_Moves(Start);
+  for (auto m : Moves) cout << m.UCI() << "\n";
     
   Start.Show_Board();
-  //for (auto m : Moves) cout << m.UCI() << "\n";
-  /*
-  cout << Start.Status.Pins.size() << "\n";
-  for (auto p : Start.Status.Pins){
-    Show_Bitboard(p.first);
-    cout << "\n" << "--------" << "\n";
-    Show_Bitboard(p.second);
-    cout << "\n" << "--------)" << "\n";
-  }
-  */ 
-  Start.Show_Board();
+
   cout << Start.Get_Fen() << "\n";  
- 
-  // cp.Show_Board();
+  cout << Start.Status.Side << "\n"; 
   
   cout << Moves.size() << "\n";  
   return 0;

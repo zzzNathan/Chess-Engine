@@ -50,7 +50,7 @@ uint8_t Game::Check_Draw()
 
 // Function to get the piece on a given square, if the square is empty 
 // it will return 'X'.
-char Game::Piece_On(const i64& Square)
+char Game::Piece_On(const i64& Square) const
 { 
   // If we know there is not piece on the board may return early
   if (Board.All_Pieces & Index_To_Bitboard(Square) == NoBits) return EMPTY_SQ;
@@ -71,7 +71,7 @@ char Game::Piece_On(const i64& Square)
 }
 
 // Function to print the board
-void Game::Show_Board() 
+void Game::Show_Board() const
 {  
   cout.tie(nullptr); // Faster output
 
@@ -98,7 +98,7 @@ void Game::Show_Board()
 }
 
 // Function to get the FEN of the game used for debugging
-string Game::Get_Fen()
+string Game::Get_Fen() const
 {
   string fen = "";
   char   piece;
