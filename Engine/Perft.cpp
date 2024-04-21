@@ -33,6 +33,14 @@ template<bool Root>
 i64 Perft(Game& game, int depth)
 {
   vector<Move> Moves = Generate_Moves(game);
+
+  if (Root && depth == 1)
+  {
+    for (const Move& move : Moves) 
+      cout << move.UCI()<< ": 1" << "\n";
+
+    return Moves.size();
+  }
   
   if (depth == 1) return Moves.size();
 
@@ -40,7 +48,7 @@ i64 Perft(Game& game, int depth)
   i64 nodes = 0;
   i64 delta = 0;
         
-  for (Move move : Moves)
+  for (const Move& move : Moves)
   { 
     game.Make_Move(move);
     delta = Perft<false>(game, depth - 1);
@@ -61,12 +69,13 @@ int main()
 {
   cout.tie(nullptr); cin.tie(nullptr); // Fast I/O
   
-
   //string fen;
-  string fen = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
+  string fen = STARTING_FEN;
+  fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+
   //cout << "Enter the fen of the game you would like to perft test: \n";
   //getline(cin, fen);
-
+ 
   int depth;
   cout << "Enter the depth you would like to search to: \n";
   cin  >> depth;

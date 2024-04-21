@@ -24,6 +24,11 @@ else:
         for move in (Our_Moves - Stockfish_Moves): print(move)
 
     else:
-        print("The following moves are missing:")
-
-        for move in (Stockfish_Moves - Our_Moves): print(move)
+        if len(Stockfish_Moves - Our_Moves) > 0:
+            print("The following moves are missing:")
+            
+            for move in (Stockfish_Moves - Our_Moves): print(move)
+        else:
+            print("The following moves are illegal:")
+            
+            for move in (Our_Moves - Stockfish_Moves): print(move)

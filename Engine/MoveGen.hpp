@@ -37,7 +37,7 @@ vector<Move> Get_Promo_Moves(const Game& CurrGame, i64& CurrPawn)
   if (!(Above_1 & CurrGame.Board.All_Pieces)) // If there is an empty square above
   { 
     // Add all promotion possibilities
-    for (i64 piece : Promo_Pieces)
+    for (const i64& piece : Promo_Pieces)
       Moves.push_back(Move(CurrPawn, Above_1, PAWN, false, piece, false));
   }
 
@@ -56,7 +56,7 @@ vector<Move> Get_Promo_Moves(const Game& CurrGame, i64& CurrPawn)
     CurrCapture = Get_LSB(Capture_Promos);
     
     // Add all promotion possibilities
-    for (i64 piece : Promo_Pieces)
+    for (const i64& piece : Promo_Pieces)
       Moves.push_back(Move(CurrPawn, CurrCapture, PAWN, true, piece, false));
 
     Capture_Promos ^= CurrCapture; // Remove the bit from capture promotions
@@ -71,7 +71,7 @@ vector<Move> Build_Moves(const Game& CurrGame, i64 MoveBoard, const i64& From, c
 {
   vector<Move> Moves;
   
-  const i64 EnemyPieces = (CurrGame.Status.Side == WHITE ? CurrGame.Board.Black_All : CurrGame.Board.White_All);
+  const i64& EnemyPieces = (CurrGame.Status.Side == WHITE ? CurrGame.Board.Black_All : CurrGame.Board.White_All);
   i64  To;
   bool Capture;
   
@@ -96,7 +96,7 @@ vector<Move> Verify_Moves_Pins(const Game& CurrGame, vector<Move>& Moves)
   vector<Move> Valid_Moves;
   
   // Loop over all moves ..
-  for (Move move : Moves)
+  for (const Move& move : Moves)
   {
     // .. and if the piece is in the pins map then check that
     // it moves through the pin mask, if not then the move isn't legal 
@@ -121,7 +121,7 @@ vector<Move> Verify_Moves_Check(const Game& CurrGame, vector<Move>& Moves)
   vector<Move> Valid_Moves;
 
   // Loop over all moves and if they move within the check mask this is a legal move
-  for (Move move : Moves)
+  for (const Move& move : Moves)
     if (move.To & Check_Mask) Valid_Moves.push_back(move);
 
   return Valid_Moves; 
@@ -210,7 +210,7 @@ vector<Move> Verify_Moves_King(const Game& CurrGame, vector<Move>& Moves)
 
   // Loop over all moves and check if this square is attacked 
   // If not then the move is legal
-  for (Move move : Moves)
+  for (const Move& move : Moves)
   {
     // If we don't add the last optional arguement there will be cases where the king moves onto an attacked
     // square whilst in check, this occurs when a slider piece checks the king from behind such that the square 
@@ -270,10 +270,10 @@ vector<Move> Generate_Pawn_Moves(Game& CurrGame)
     // the overhead of this computation should be ~negligable.
     i64& Enemy_Pawns    = (CurrGame.Status.Side == WHITE ? CurrGame.Board.Black_Pawn : CurrGame.Board.White_Pawn);
     i64& Friendly_Pawns = (CurrGame.Status.Side == WHITE ? CurrGame.Board.White_Pawn : CurrGame.Board.Black_Pawn);
-
+    
     if ((CurrGame.Status.En_Passant != NONE) && 
         (AttackTable[Get_Index(CurrPawn)] & CurrGame.Status.En_Passant) && 
-        (CurrGame.Status.En_Passant & Enemy_Pawns))
+        (Shift_Up(CurrGame.Status.En_Passant, !CurrGame.Status.Side) & Enemy_Pawns))
     { 
       if (Verify_En_Passant(CurrGame, Get_Index(CurrPawn), Friendly_Pawns, Enemy_Pawns))
         Moves.push_back(Move(CurrPawn, CurrGame.Status.En_Passant, PAWN, true, NO_PROMO, true));

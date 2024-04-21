@@ -23,16 +23,15 @@
 #include "Utility/Utils.hpp"
 
 using namespace std;
-typedef unsigned long long i64;
 
 // This structure will organise all information about a move
 // ----------------------------------------------------------
 // We will use the following convention for piece promotions:
-// - 0 = No promotion
-// - 1 = Knight
-// - 2 = Bishop
-// - 3 = Rook
-// - 4 = Queen
+// - 0 = Knight
+// - 1 = Bishop
+// - 2 = Rook
+// - 3 = Queen
+// - 4 = No Promotion
 //
 // We will use the following convention for piece indicators:
 // - 0 = Pawn
@@ -61,7 +60,7 @@ struct Move
   }
 
   // A function to turn move objects into UCI formatted moves
-  string UCI()
+  string UCI() const
   {
     const i64 From_Index = Get_Index(From);
     const i64 To_Index   = Get_Index(To);
@@ -204,7 +203,7 @@ class Game
       i64 Boards[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
       // Iterate over all characters ..
-      for (char piece : Piece_Locations)
+      for (const char& piece : Piece_Locations)
       {
         // If the character is '/' we move to the next row, and if the character
         // is a number we skip that many squares, otherwise we add the piece to the relevant bitboard
@@ -223,7 +222,7 @@ class Game
       // Initialising game status variables
       // -----------------------------------
       bool side             = (Colour == "w");
-      i64 en_passant        = (En_Passant != "-" ? Square_To_Index.at(En_Passant) : NONE);
+      i64 en_passant        = (En_Passant != "-" ? Index_To_Bitboard(Square_To_Index.at(En_Passant)) : NONE);
       i64 ply               = stoi(Halfmove);
       i64 fullmove          = stoi(Fullmove);
       uint8_t castle_rights = 0;
@@ -241,7 +240,7 @@ class Game
     }
 
     // Function to play a move onto the board
-    void Make_Move(Move& move)
+    void Make_Move(const Move& move)
     {
       if (Status.Side == BLACK) Status.Fullmove++; // Fullmove always increments after black's move
       Status.Ply++;                                // Increment ply counter after every move
