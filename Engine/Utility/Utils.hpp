@@ -64,9 +64,19 @@ inline Index Index_Down(const Index& Square, const bool& Colour){
   return Colour == WHITE ? Square - 8 : Square + 8;
 }
 
+// Shifts a square index down by 2 
+inline Index Index_Down_2(const Index& Square, const bool& Colour){
+  return Colour == WHITE ? Square - 16 : Square + 16;
+}
+
 // Shifts a square index up
 inline Index Index_Up(const Index& Square, const bool& Colour){
   return Colour == WHITE ? Square + 8 : Square - 8;
+}
+
+// Shifts a square index up by 2
+inline Index Index_Up_2(const Index& Square, const bool& Colour){
+  return Colour == WHITE ? Square + 16 : Square - 16;
 }
 
 void Show_Bitboard(const Bitboard& Board);
