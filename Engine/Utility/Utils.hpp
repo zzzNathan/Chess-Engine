@@ -15,6 +15,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+#ifndef UTILS_HPP
+#define UTILS_HPP
 #include "Constants.hpp"
 #include <map>
 #include <iostream>
@@ -82,3 +84,4 @@ inline Index Index_Up_2(const Index& Square, const bool& Colour){
 void Show_Bitboard(const Bitboard& Board);
 map<pair<Bitboard, Bitboard>, Bitboard> Make_Ray_Map();
 Bitboard Create_Ray(const Bitboard& From, const Bitboard& To);
+#endif

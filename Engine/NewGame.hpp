@@ -1,8 +1,10 @@
+#ifndef NEWGAME_HPP
+#define NEWGAME_HPP
 #include <sstream>
-#include <unordered_map>
-#include "Utility/Constants.hpp"
+#include <cassert>
 #include "Utility/Utils.hpp"
-#include "NewMoveGen.hpp"
+#include "Moves.hpp"
+//#define NDEBUG
 
 using namespace std;
 
@@ -276,6 +278,8 @@ class Game
     void Unmake_Move(const Move& move)
     {
       // Set all game state variables to the previous state
+      assert(Last_State != nullptr); // Ensure that a last state exists
+      
       Current_State = *Last_State;
       Last_State    = nullptr; // We no longer have a last state
 
@@ -310,7 +314,7 @@ class Game
     // "A common approach is to put a super-piece on the to-square, to look up all kind of piece-type
     // attacks from there and to intersect them with all appropriate pieces able to attack that square.
     // Note that white pawn attacks intersect black pawns and vice versa." 
-    bool Is_Square_Attacked(const Index& Square, const bool& Colour)
+    bool Is_Square_Attacked(const Index& Square, const bool& Colour) const
     {
       // Does a pawn attack this square?
       const array<Bitboard, 64>& Pawn_Attacks = (Colour == WHITE ? BLACK_PAWN_ATKS : WHITE_PAWN_ATKS);
@@ -479,7 +483,7 @@ class Game
     // If the only 2 pieces are the pinner then the 'pinnee' AND the pinner is 
     // in front of the 'pinnee' then we have found a pin. 'Pinnee' refers to a piece
     // that is being pinned.
-    unordered_map<Index, Bitboard> Get_Pins(const bool& Colour)
+    unordered_map<Index, Bitboard> Get_Pins(const bool& Colour) const
     {
       unordered_map<Index, Bitboard> Pins;
 
@@ -615,3 +619,4 @@ class Game
         Current_State.Ply = 0; // Reset ply if there was a capture or pawn move
     }
 };
+#endif

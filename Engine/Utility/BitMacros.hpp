@@ -15,6 +15,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+#ifndef BITMACROS_HPP
+#define BITMACROS_HPP
 #include <cmath>
 #include <cstdint>
 using namespace std;
@@ -68,3 +70,4 @@ inline Bitboard Remove_Bit(const Bitboard& Board, const Index& Square){
 inline Bitboard BitCount(const Bitboard& Board){
   return __builtin_popcountll(Board);
 }
+#endif
