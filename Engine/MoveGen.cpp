@@ -1,5 +1,5 @@
 #include <functional>
-#include "NewMoveGen.hpp"
+#include "MoveGen.hpp"
 
 using namespace std;
 

@@ -16,7 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "MoveGen.hpp"
-#include <iostream>
+
 using namespace std;
 
 // The perft function aims to test the performance and correctness 
@@ -30,33 +30,33 @@ using namespace std;
 // Good resource:
 // - https://chess.stackexchange.com/questions/22735/how-to-debug-move-generation-function
 template<bool Root>
-i64 Perft(Game& game, int depth)
+inline unsigned long long Perft(Game& game, int depth)
 {
   vector<Move> Moves = Generate_Moves(game);
-
-  if (Root && depth == 1)
+  
+  if (depth == 1)
   {
-    for (const Move& move : Moves) 
-      cout << move.UCI()<< ": 1" << "\n";
+    if (Root)
+    {
+      for (const Move& move : Moves) 
+        cout << move.UCI() << ": 1" << "\n";
+    }
 
     return Moves.size();
   }
-  
-  if (depth == 1) return Moves.size();
 
-  const Game copy = game; // A copy of the game to restore state
-  i64 nodes = 0;
-  i64 delta = 0;
+  unsigned long long nodes = 0;
+  unsigned long long delta = 0;
         
   for (const Move& move : Moves)
   { 
     game.Make_Move(move);
     delta = Perft<false>(game, depth - 1);
-
+    
     if (Root) cout << move.UCI() << ": " << delta << "\n";
     
     nodes += delta;
-    game   = copy; // Restore state
+    game.Unmake_Move(move);
   }
     
   return nodes;
@@ -71,7 +71,7 @@ int main()
   
   //string fen;
   string fen = STARTING_FEN;
-  fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+  //fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
 
   //cout << "Enter the fen of the game you would like to perft test: \n";
   //getline(cin, fen);
@@ -81,7 +81,7 @@ int main()
   cin  >> depth;
    
   Game game(fen);
-  i64 nodes = Perft<true>(game, depth);
+  unsigned long long nodes = Perft<true>(game, depth);
 
   cout << "Nodes: " << nodes << "\n\n";
   game.Show_Board();
