@@ -190,7 +190,7 @@ const Bitboard NONE = AllBits;
 const uint8_t MAX_PLY = 100;
 
 // Mapping squares to their indexes
-enum {
+enum : Index {
   h1, g1, f1, e1, d1, c1, b1, a1,
   h2, g2, f2, e2, d2, c2, b2, a2,
   h3, g3, f3, e3, d3, c3, b3, a3,

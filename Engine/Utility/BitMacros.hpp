@@ -19,10 +19,11 @@
 #define BITMACROS_HPP
 #include <cmath>
 #include <cstdint>
+
 using namespace std;
 
 typedef unsigned long long Bitboard;
-typedef uint8_t            Index;
+typedef short              Index;
 
 // Bitboards are the actual 64 bit integers representing piece locations
 // Indexes are the numbers from [0, 63] representing squares, see diagram

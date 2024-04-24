@@ -1,5 +1,6 @@
 #ifndef GAME_HPP
 #define GAME_HPP
+#include <algorithm>
 #include <sstream>
 #include <cassert>
 #include "Moves.hpp"
@@ -122,7 +123,7 @@ class Game
                                   &B_Pawn, &B_Knight, &B_Bishop, &B_Rook, &B_Queen, &B_King};
   
     // Maps each square index to whatever piece is currently occupying it
-    Piece Board[64] = {No_Piece};
+    Piece Board[64];
     
     // Status of the game
     Status  Current_State;
@@ -150,6 +151,8 @@ class Game
     // What is a fen?: https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
     Game(string& Fen)
     {
+      fill_n(Board, 64, No_Piece);
+
       string Piece_Locations, Colour, Castle_Rights, En_Passant, Halfmove, Fullmove;
 
       // Separates fen into 6 strings each containing the information above 
@@ -410,7 +413,7 @@ class Game
       
       // Loop over all squares and print the piece on this square
       for (Index sq = a8; sq >= h1; sq--)
-      {
+      { 
         cout << (Board[sq] != No_Piece ? Piece_To_Char[Board[sq]] : '.') << " "; 
 
         // If this the end of a rank print a new line
