@@ -91,3 +91,6 @@ const Square file_E = e1;  const Square rank_5 = a5;
 const Square file_F = f1;  const Square rank_6 = a6;
 const Square file_G = g1;  const Square rank_7 = a7;
 const Square file_H = h1;  const Square rank_8 = a8;
+
+const bool BLOCKER     = true;
+const bool NON_BLOCKER = false;

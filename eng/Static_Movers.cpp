@@ -112,7 +112,7 @@ BB_Value B_PAWN_ATKS[64];
 void Init_Static_Piece_Tables()
 {
   assertm(DIRECTION_TBLS_INITIALISED,
-    "Directtional tables must be initialised first!");
+    "Directtional tables must be initialised first! - (Static pc initialisation)");
 
   STATIC_PC_TBLS_INITIALISED = true;
 

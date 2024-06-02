@@ -61,7 +61,8 @@ BB_Value Square_To_BB(Square sq) {
 // (NOTE: We must compile with C++ 20 or higher for the
 // "countr_zero" function to run)
 Square BB_To_Square(BB_Value bb) {
-  assertm(bb != 0, "Bitboard is empty in BB_To_Square!");
+  assertm(bb != 0, 
+    "Bitboard value can't be 0! - (BB_To_Square func)");
 
   // The number of leading 0s is the same as taking log 
   // base 2, if we know that 'bb' only has 1 bit set to a 1

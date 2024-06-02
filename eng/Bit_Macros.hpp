@@ -17,13 +17,21 @@
 #ifndef BIT_MACROS_HPP
 #define BIT_MACROS_HPP
 
+#include <algorithm>
 #include "Core.hpp"
 
+// Bit macros
+BB_Value Get_LSB(BB_Value bb);
+BB_Value Get_MSB(BB_Value bb);
+void Pop_Bit(BB_Value &bb, BB_Value bit); // In-place
+void Pop_Bit(BB_Value &bb, Square sq);
+int Bit_Count(BB_Value);
+
 // Bitboard manipulation functions
-BB_Value Remove_Bit(BB_Value bb, Square sq);
+BB_Value Remove_Bit(BB_Value bb, Square sq); // Not In-place
 BB_Value Remove_Bit(BB_Value bb, BB_Value bit);
-BB_Value Set_Bit(BB_Value File_BB, Square Current_sq); 
-BB_Value Set_Bit(BB_Value File_BB, BB_Value bit); 
+BB_Value Set_Bit(BB_Value Value_bb, Square Current_sq); 
+BB_Value Set_Bit(BB_Value Value_bb, BB_Value bit); 
 
 BB_Value North(BB_Value bb);
 BB_Value North_East(BB_Value bb);

@@ -78,6 +78,16 @@ enum Index : Square
   no_sq
 };
 
+enum Directions_Vertical_Horizontal : int
+{
+  NORTH, EAST, SOUTH, WEST, 
+};
+
+enum Directions_Diagonal : int
+{
+  NORTH_EAST, SOUTH_EAST, SOUTH_WEST, NORTH_WEST
+};
+
 class Bitboard
 {
   public:

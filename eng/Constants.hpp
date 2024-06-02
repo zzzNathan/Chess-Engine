@@ -64,4 +64,7 @@ void Init_Ranks();
 void Init_Diags();
 void Init_Direction_Tables();
 
+extern const bool BLOCKER;
+extern const bool NON_BLOCKER;
+
 #endif

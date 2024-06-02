@@ -17,10 +17,32 @@
 */
 
 #include <iostream>
-#include <algorithm>
 #include "Bit_Macros.hpp"
 
-// Removes a given bit from a bitboard
+BB_Value Get_LSB(BB_Value bb) {
+  return bb & (~bb + 1);  
+}
+
+BB_Value Get_MSB(BB_Value bb) {
+  if (bb == 0) return 0;
+
+  return Square_To_BB(63 - __builtin_clzll(bb));
+}
+
+// Removes a given bit from a bitboard (In-place)
+void Pop_Bit(BB_Value &bb, BB_Value bit) {
+  bb = Remove_Bit(bb, bit);
+}
+
+void Pop_Bit(BB_Value &bb, Square sq) {
+  bb = Remove_Bit(bb, sq);
+}
+
+int Bit_Count(BB_Value bb) {
+  return std::popcount(bb);
+}
+
+// Removes a given bit from a bitboard (Not in-place)
 BB_Value Remove_Bit(BB_Value bb, Square sq) {
   return bb & (~Square_To_BB(sq));
 }

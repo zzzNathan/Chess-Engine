@@ -17,58 +17,118 @@
 */
 
 // This file aims to generate legal moves for the sliding
-// pieces that is, rooks, bishops & queens, assuming a
-// completely empty board.This file is used to help the file 
-// "K_bit_magics.cpp".
+// pieces that is, rooks, bishops & queens This file is used 
+// to help the file "Tables.cpp".
 
 #include <iostream>
 #include "Slider_Movers.hpp"
 
 // All directions are from white's perspective
-BB_Value Gen_Rook_Moves(Square sq, bool blocker_mask)
+BB_Value Gen_Rook_Moves_slow(Square sq, BB_Value Occupancy)
 {
-  assertm(DIRECTION_TBLS_INITIALISED, 
-    "Directional tables must be initialised first!");
+  BB_Value moves = 0; 
+  Square Curr_sq;
+  int dist;
 
-  BB_Value Moves = Remove_Bit((FILES[sq] | RANKS[sq]), sq);
-  BB_Value edges;
+  // If occupacy includes our square we assume that this 
+  // is our own piece and we ignore it`
+  if (Occupancy & Square_To_BB(sq))
+    Occupancy = Remove_Bit(Occupancy, sq);
+
+  // North
+  Curr_sq = sq;
+  dist    = Dist_To_North(sq);
+
+  while ( (!(Square_To_BB(Curr_sq) & Occupancy)) &&
+	    (dist-- > 0) )
+  {
+    Curr_sq = SQ_North(Curr_sq);
+    moves   = Set_Bit(moves, Curr_sq);
+  }
+ 
+  // East 
+  Curr_sq = sq;
+  dist    = Dist_To_East(Curr_sq);
+
+  while ( (!(Square_To_BB(Curr_sq) & Occupancy)) &&
+	    (dist-- > 0) )
+  {
+    Curr_sq = SQ_East(Curr_sq);
+    moves   = Set_Bit(moves, Curr_sq);
+  }
+
+  // South 
+  Curr_sq = sq;
+  dist    = Dist_To_South(sq);
+
+  while ( (!(Square_To_BB(Curr_sq) & Occupancy)) &&
+	    (dist-- > 0) )
+  {
+    Curr_sq = SQ_South(Curr_sq);
+    moves   = Set_Bit(moves, Curr_sq);
+  }
+
+  // West
+  Curr_sq = sq;
+  dist    = Dist_To_West(sq);
+
+  while ( (!(Square_To_BB(Curr_sq) & Occupancy)) &&
+	    (dist-- > 0) )
+  {
+    Curr_sq = SQ_West(Curr_sq);
+    moves   = Set_Bit(moves, Curr_sq);
+  }
+
+  return moves;
+}
+
+BB_Value Gen_Bishop_Moves_slow(Square sq, BB_Value Occupancy)
+{
+  BB_Value moves = 0; 
+  Square Curr_sq;
+  int dist;
+
+  // North-east
+  Curr_sq = sq;
+  dist    = std::min(Dist_To_North(Curr_sq),
+		     Dist_To_East(Curr_sq));
   
-  if (blocker_mask)
+  while ( (!(Square_To_BB(Curr_sq) & Occupancy)) &&
+	    (dist-- > 0) )
   {
-    edges  = Remove_Bit((FILES[file_A] | FILES[file_H]), FILES[sq]);
-    edges |= Remove_Bit((RANKS[rank_1] | RANKS[rank_8]), RANKS[sq]);
+    Curr_sq = SQ_North_East(Curr_sq);
+    moves   = Set_Bit(moves, Curr_sq);
   }
 
-  else edges = 0;
+  // South-east
+  Curr_sq = sq;
+  dist    = std::min(Dist_To_South(Curr_sq),
+		     Dist_To_East(Curr_sq));
 
-  return Remove_Bit(Moves, edges);
-}
-
-BB_Value Gen_Bishop_Moves(Square sq, bool blocker_mask)
-{
-  assertm(DIRECTION_TBLS_INITIALISED, 
-    "Directional tables must be initialised first!");
-
-  BB_Value Moves = Remove_Bit(DIAGS[sq], sq);
-  BB_Value edges;
-
-  if (blocker_mask)
+  while ( (!(Square_To_BB(Curr_sq) & Occupancy)) &&
+	    (dist-- > 0) )
   {
-    edges  = Remove_Bit((FILES[file_A] | FILES[file_H]), FILES[sq]);
-    edges |= Remove_Bit((RANKS[rank_1] | FILES[rank_8]), RANKS[sq]);
+    Curr_sq = SQ_South_East(Curr_sq);
+    moves   = Set_Bit(moves, Curr_sq);
   }
 
-  else edges = 0;
+  // South-west
+  Curr_sq = sq;
+  dist    = std::min(Dist_To_South(Curr_sq),
+		     Dist_To_West(Curr_sq));
 
-  return Remove_Bit(Moves, edges);
+  while ( (!(Square_To_BB(Curr_sq) & Occupancy)) &&
+	    (dist-- > 0) )
+  {
+    Curr_sq = SQ_South_West(Curr_sq);
+    moves   = Set_Bit(moves, Curr_sq);
+  }
+
+  return moves;
 }
 
-BB_Value Gen_Queen_Moves(Square sq, bool blocker_mask)
+BB_Value Gen_Queen_Moves_slow(Square sq, BB_Value Occupancy)
 {
-  assertm(DIRECTION_TBLS_INITIALISED, 
-    "Directional tables must be initialised first!");
-
-  BB_Value Moves = Gen_Rook_Moves(sq, blocker_mask) | 
-	           Gen_Bishop_Moves(sq, blocker_mask);
-  return Moves;
+  return Gen_Rook_Moves_slow(sq, Occupancy) |
+	 Gen_Bishop_Moves_slow(sq, Occupancy);
 }

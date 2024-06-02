@@ -21,8 +21,8 @@
 
 #include "Constants.hpp"
 
-BB_Value Gen_Rook_Moves(Square sq, bool blocker_mask);
-BB_Value Gen_Bishop_Moves(Square sq, bool blocker_mask);
-BB_Value Gen_Queen_Moves(Square sq, bool blocker_mask);
+BB_Value Gen_Rook_Moves_slow(Square sq, BB_Value Occupancy);
+BB_Value Gen_Bishop_Moves_slow(Square sq, BB_Value Occupancy);
+BB_Value Gen_Queen_Moves_slow(Square sq, BB_Value Occupancy);
 
 #endif
