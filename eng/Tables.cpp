@@ -187,9 +187,9 @@ BB_Value Gen_Rook_Moves_fast(Square sq, BB_Value Occ)
 
   BB_Value moves;
   moves = ROOK_MOVES[sq][NORTH][Get_LSB(FILES_N[sq] & Occ)] &
-	  ROOK_MOVES[sq][EAST][Get_MSB(RANKS_E[sq] & Occ)] &
+	  ROOK_MOVES[sq][EAST][Get_MSB(RANKS_E[sq]  & Occ)] &
 	  ROOK_MOVES[sq][SOUTH][Get_MSB(FILES_S[sq] & Occ)] &
-	  ROOK_MOVES[sq][WEST][Get_LSB(RANKS_W[sq] & Occ)];
+	  ROOK_MOVES[sq][WEST][Get_LSB(RANKS_W[sq]  & Occ)];
 
   return moves;
 }
@@ -202,12 +202,10 @@ BB_Value Gen_Bishop_Moves_fast(Square sq, BB_Value Occ)
 
   BB_Value moves;
   
-  moves = 
-   BISHOP_MOVES[sq][NORTH_EAST][Get_LSB(DIAGS_NE[sq] & Occ)] &
-   BISHOP_MOVES[sq][SOUTH_EAST][Get_MSB(DIAGS_SE[sq] & Occ)] &
-   BISHOP_MOVES[sq][SOUTH_WEST][Get_MSB(DIAGS_SW[sq] & Occ)] &
-   BISHOP_MOVES[sq][NORTH_WEST][Get_LSB(DIAGS_NW[sq] & Occ)];
-
+  moves = BISHOP_MOVES[sq][NORTH_EAST][Get_LSB(DIAGS_NE[sq] & Occ)] &
+	  BISHOP_MOVES[sq][SOUTH_EAST][Get_MSB(DIAGS_SE[sq] & Occ)] &
+          BISHOP_MOVES[sq][SOUTH_WEST][Get_MSB(DIAGS_SW[sq] & Occ)] &
+          BISHOP_MOVES[sq][NORTH_WEST][Get_LSB(DIAGS_NW[sq] & Occ)];
 
   return moves;
 }

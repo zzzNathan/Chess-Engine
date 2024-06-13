@@ -96,7 +96,8 @@ class Bitboard
     // Methods
     void Show_Bitboard() const;
 
-    // Data members
+  // Data members
+  private:
     BB_Value value;
 };
 
